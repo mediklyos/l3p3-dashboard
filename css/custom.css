@@ -4,6 +4,7 @@
     border:1px solid #eee;
 }
 
+
 #chart-ring-resource{
     margin-left: 85px;
     margin-bottom:15px;
@@ -12,6 +13,7 @@
 #resetButton{
     margin-top: 25px;
     margin-bottom: 25px;
+    margin-left: 120px;
 }
 
 #myDCTable{
@@ -31,6 +33,16 @@
 
 #axisButton{
     margin-bottom:15px;
+    margin-left:120px;
 }
 
+#s2id_nodeSelector{
+    width:300px;
+    margin-left:25px;
+    margin-bottom:10px;
+}
+
+#mainPart{
+    height:100%;
+}
 
