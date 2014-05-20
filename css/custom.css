@@ -1,5 +1,12 @@
+/*Bootstrap CSS*/
+
+.navbar-inverse{
+    background-color:white;
+}
 
 
+
+/*My CSS*/
 .myDiv{
     border:1px solid #eee;
 }
@@ -22,6 +29,10 @@
 }
 
 #rangeTable{
+    margin-left:10px;
+}
+
+#eventsTable{
     margin-left:10px;
 }
 

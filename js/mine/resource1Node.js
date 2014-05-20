@@ -1,5 +1,4 @@
 var firstNode = null;
-
 var timeInspection = true;
 if(timeInspection){
     var start = null;
@@ -14,49 +13,60 @@ function measureTime(message){
     start = new Date().getTime();
 }
 
-function nodeResourceLines (sourceFile,htmlID){
-    d3.csv(sourceFile, function(error, data) {	
-        
+
+var dataEvents =null;
+var dataResources= null;
+
+function getData(sourceFileResources,sourceFileEvents){
+    d3.csv(sourceFileResources,function(error,ResourceData){
+        d3.csv(sourceFileEvents,function(error2,EventsData){
+            dataResources = ResourceData;
+            dataEvents = EventsData;
+            
+            
             if (timeInspection){start = new Date().getTime();}
-        
-            var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
-            data.forEach(function(d) {
-                d.Date = parseDate(d.date);
-                d.Day = d3.time.day(d.Date);
-                d.value = +d.value;
+
+var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
+
+            
+///////  Resource data   /////////            
+            dataResources.forEach(function(d) {
+                            d.date = parseDate(d.date);
+                            d.Day = d3.time.day(d.date);
+                            if (d.cpu=="NA"){d.cpu=0;}
+                            else            {d.cpu = +d.cpu;}
+                            if (d.mem=="NA"){d.mem=0;}
+                            else            {d.mem = +d.mem;}
+                            if (d.int=="NA"){d.int=0;}
+                            else            {d.int = +d.int;}
+                           if (d.hd=="NA"){d.hd=0;}
+                            else            {d.hd = +d.hd;}
+                        });
+
+            if(timeInspection){measureTime("forEach Resources");}
+            
+            var ndxR = crossfilter(melt(dataResources,["date","Day","node"],"Resource","Value"));
+            
+//Series chart
+            var dateDim = ndxR.dimension(function(d){return d.date.getTime();});
+            var dateTypeDim = ndxR.dimension (function(d) {
+                return [d.date.getTime(),d.Resource,d.node];
             });
-        
-            if(timeInspection){measureTime("forEach");}
-        
-            var ndx2 = crossfilter(data);
-        
-            // Series chart
-            var dateDim = ndx2.dimension(function(d){return d.Date;});
-            var dateTypeDim = ndx2.dimension (function(d) {
-                var type = d.variable;
-                if (type=="cpu"){return [d.Date.getTime(),1];}
-                if (type=="mem"){return [d.Date.getTime(),2];}
-                if (type=="int"){return [d.Date.getTime(),3];} 
-                if (type=="hd"){return [d.Date.getTime(),4];}
+            var valueGroup = dateTypeDim.group().reduceSum(function(d){
+                return d.Value;
             });
-            var valueGroup = dateTypeDim.group().reduceSum(function(d){return d.value});
-        
-            //Time range selector
-            var dayDim = ndx2.dimension(function(d) {return d.Day;});
+            
+//Time range selector
+            var dayDim = ndxR.dimension(function(d) {return d.Day.getTime();});
             var volumeByDayGroup = dayDim.group().reduceSum(function (d) {return 1});
         
-            //Resource pie chart
-            var resourceDim  = ndx2.dimension(function(d) {if (d.variable!="event"){return d.variable;}});
-            var value_resource = resourceDim.group().reduceSum(function(d) {return 1;}); 
+//Resource pie chart
+            var resourceDim  = ndxR.dimension(function(d) {return d.Resource;});
+            var value_resource = resourceDim.group().reduceSum(function(d) {return 1;}
+            );    
             
-        
-            //Events scatter plot
-//            var eventDim = ndx2.dimension(function(d) {return d.variable;});
-//            eventDim.filter("event");
-//            var eventCountGroup = eventDim.group().reduceSum(function(d){return d.value});
-        
-            //Node selector
-            var nodeDimension = ndx2.dimension(function(d){return d.node});
+//Node selector
+            var nodeDimension = ndxR.dimension(function(d){return d.node});
             var nodeGroup = nodeDimension.group();
             var nodeNames = new Array();
             for (var i=0;i<nodeGroup.top(Infinity).length;i++){
@@ -70,42 +80,76 @@ function nodeResourceLines (sourceFile,htmlID){
             $("#nodeSelectorTitle").append(selectorString);
             $("#nodeSelector").select2();
             nodeDimension.filter($("#nodeSelector").val());
-                
-        
-            if(timeInspection){measureTime("crossfiltering");}
-        
-            var minDate = dateDim.bottom(1)[0].Date;
-            var maxDate = dateDim.top(1)[0].Date;
+            
+            
+
+///// Events data ///////
+            
+            dataEvents.forEach(function(d) {
+                d.date = parseDate(d.date);
+                d.value = 1;
+            });
+                               
+            var ndxE = crossfilter(dataEvents);
+            
+            var dateTypeDimE = ndxE.dimension(function(d){return [d.date.getTime(),d.type];});
+            var eventGroup = dateTypeDimE.group().reduceSum(function(d){return 1});
+            
+            var minDateE = dateTypeDimE.bottom(1)[0].date;
+            var maxDateE = dateTypeDimE.top(1)[0].date;
+            
+            var nodeDimE = ndxE.dimension(function(d){return d.node;});                              
+            nodeDimE.filter($("#nodeSelector").val());
+            
+            if(timeInspection){measureTime("Crossfilter");}
+            
+            
+/////// Graph defining   ////////
+            
+            var minDate = dateDim.bottom(1)[0].date;
+            var maxDate = dateDim.top(1)[0].date;
             
             var xAxisWidth = 1000;
-            var yAxisHeight = 700;
+            var yAxisHeight = 350;
         
-            var colorList1 = ["#E76473","#F1C968","#5361A4","#70CB58"];
-            var colorList2 = ["#E76473","#70CB58","#5361A4","#F1C968"];
-        
+            var colorListChart = ["#FF0000","#FF7400","#009999","#00CC00"];
+            var colorListPie = ["#E76473","#70CB58","#5361A4","#F1C968"];
+            
+
+//Date range picker
+            
             var dateRangePicker = dc.barChart("#rangeTable");
             dateRangePicker
                 .width(xAxisWidth).height(50)
-                .margins({top: 0, right: 10, bottom: 20, left: 65})
+                .margins({top: 0, right: 10, bottom: 20, left: 55})
                 .dimension(dayDim)
                 .group(volumeByDayGroup)
                 .x(d3.time.scale().domain([minDate,maxDate]))
-                .gap(1)
+                .gap(10)
                 .round(d3.time.day.round)
-                .elasticY(true)
+//                .elasticY(true)
                 .xUnits(d3.time.days)
+		        .turnOnControls(true)
                 .yAxis().ticks(0);
-        
-                var chart = dc.seriesChart(htmlID);
+            
+//Resources chart
+            
+            var chart = dc.seriesChart("#resourceChart");
               chart
-                .width(xAxisWidth).height(yAxisHeight)
+               .width(xAxisWidth).height(yAxisHeight)
                .dimension(dateDim)
                .group(valueGroup)
-               .seriesAccessor(function(d) {return d.key[1]})
-               .keyAccessor(function(d) {return d.key[0]})
-               .valueAccessor(function (d) {return d.value})               
+               .seriesAccessor(function(d) {
+                   return d.key[1];
+               })
+               .keyAccessor(function(d) {
+                   return d.key[0];
+               })
+               .valueAccessor(function (d) {
+                   return d.value;
+               })               
                .elasticY(false)
-               .ordinalColors(colorList1)
+               .ordinalColors(colorListChart)
                .x(d3.time.scale().domain([minDate,maxDate]))
                .y(d3.scale.linear().domain([0,100]))
                .elasticX(true)
@@ -116,71 +160,94 @@ function nodeResourceLines (sourceFile,htmlID){
                .renderVerticalGridLines(true)
                .rangeChart(dateRangePicker)
                .mouseZoomable(false)
-//               .legend(dc.legend().x(xAxisWidth-65).y(10).itemHeight(13).gap(5))
-                       .margins({ top: 10, left: 50, right: 10, bottom: 50 }) 
-               .title(function(d){ return new Date(d.key[0])+", "+d.key[1]+": "+d.value+"%";} ) 
+               .legend(dc.legend().x(xAxisWidth-100).y(10).itemHeight(13).gap(5))
+               .margins({ top: 10, left: 50, right: 10, bottom: 50 }) 
+               .title(function(d){ return new Date(d.key[0])+", "+d.key[1]+": "+d.value+"%";} )
+               .xAxisLabel("Date")
+                .data(function(group) {
+                    return group.all().filter(function(d) { return d.value > 0; });
+                })
                .yAxisLabel("Resource Percentage");
             
-            var symbolScale = d3.scale.ordinal().range(d3.svg.symbolTypes);
-//            var symbolAccessor = function(d){
-//	 		    return symbolScale(d.key[0]);
-//            };
-        
-//            var eventScatter = dc.scatterPlot("#eventsTable");
-//            eventScatter
-//                .width(xAxisWidth).height(yAxisHeight)
-//                .dimension(dateDim)
-//                .group(eventCountGroup)
-//                .x(d3.time.scale().domain([minDate,maxDate]))
-//                .symbol(symbolAccessor)
-                
-        
-            var resourceRingChart = dc.pieChart("#chart-ring-resource");
+            
+//Resource picker
+             var resourceRingChart = dc.pieChart("#chart-ring-resource");
             resourceRingChart
                 .width(170).height(170)
-                .ordinalColors(colorList2)
+                .ordinalColors(colorListPie)
                 .dimension(resourceDim)
                 .group(value_resource)
                 .legend(dc.legend().x(73).y(53).itemHeight(13).gap(5))
                 .renderLabel(false)
                 .renderTitle(false)
                 .innerRadius(50); 
-        
-            if (timeInspection){measureTime("graph defining");}
-        
-            dc.renderAll();
-                    
-            if(timeInspection){measureTime("rendering");}
             
+//Event scatterplot    
+            
+            var symbolScale = d3.scale.ordinal().range(d3.svg.symbolTypes);
+            var symbolAccessor = function(d){
+	 		    return symbolScale(d.key[1]);
+            };
+            
+            var subChart = function(c) {
+                return dc.scatterPlot(c)
+//                .symbol(symbolAccessor)
+                .symbolSize(5)
+                .highlightedSize(10);
+  };
+            
+             var eventScatter = dc.seriesChart("#eventsTable");
+            eventScatter
+                .width(xAxisWidth).height(yAxisHeight)
+                .dimension(dateTypeDimE)
+                .group(eventGroup)
+                .chart(subChart)
+//                .elasticY(true)
+                .renderHorizontalGridLines(true)
+                .renderVerticalGridLines(true)
+//                .label(function(d){ return new Date(d.key[0])+", "+d.key[1]+": "+d.value;} )
+                .rangeChart(dateRangePicker)
+                .seriesAccessor(function(d){
+                    return d.key[1]})
+                .keyAccessor(function(d){
+                    return d.key[0]})
+                .valueAccessor(function(d){
+                    if (d.value==0){return null}
+                    else return d.value})
+                .legend(dc.legend().x(xAxisWidth-150).y(50).itemHeight(13).gap(5).horizontal(1).legendWidth(140).itemWidth(70))
+                .brushOn(false)
+                .yAxisLabel("Amount of events")
+                .xAxisLabel("Date")
+//                .margins({top: 0, right: 00, bottom: 00, left: 00})
+                .y(d3.scale.linear().domain([0,eventGroup.top(1)[0].value+3]))
+                .data(function(group) {
+                    return group.all().filter(function(d) { return d.value > 0; });
+                })
+                .x(d3.time.scale().domain([minDateE,maxDateE]));
+//                .symbol(symbolAccessor);
+            
+            
+            
+            
+            
+                dc.renderAll();
+            
+                if(timeInspection){measureTime("Graph defining and rendering");}
+            
+//Node selection            
             $("#nodeSelector").on("change",function(){
+                nodeDimE.filterAll();
                 nodeDimension.filterAll();
-                var node = $("#nodeSelector").val();
-                nodeDimension.filter(node);
+                nodeDimension.filter($("#nodeSelector").val());
+                nodeDimE.filter($("#nodeSelector").val());
                 dc.redrawAll();
-            });
-        
-            $("#resetButton").on("click",function(){
-               start = new Date().getTime();
-               dateDim.filterAll();
-//               nodeDimension.filterAll();
-               chart.y(d3.scale.linear().domain([0,100]));
-               resourceDim.filterAll();
-               dayDim.filterAll();
-//               nodeDimension.filter(firstNode);    
-               dc.redrawAll();
-               $("#rangeSlider").slider("destroy");
-                $("#rangeSlider").slider({
-                 range: true,
-                 min: 0,
-                 max: 100,
-                 values: [0,100],
-               });
-              end = new Date().getTime();
-              timeTaken = end - start;
-              console.log(timeTaken+" ms resetting.")
-            });
-        
-             $("#axisButton").on("click",function(){
+                chart.data(function(group) {
+                    return group.all().filter(function(d) { return d.value > 0; });
+                })
+            });            
+            
+//Range selection
+            $("#axisButton").on("click",function(){
                 var min = $('#rangeSlider').slider("option", "values")[0];
                 var max = $('#rangeSlider').slider("option", "values")[1];
                 chart.y(d3.scale.linear().domain([min,max]));
@@ -193,6 +260,32 @@ function nodeResourceLines (sourceFile,htmlID){
                   max: 100,
                   values: [0,100],
                 });
-        })
+            
+            
+//Reset button
+            
+            $("#resetButton").on("click",function(){
+               start = new Date().getTime();
+               dateDim.filterAll();
+//               nodeDimension.filterAll();
+               chart.y(d3.scale.linear().domain([0,100]));
+               resourceDim.filterAll();
+               dayDim.filterAll();
+//               nodeDimension.filter(firstNode);    
+               dc.renderAll();
+               $("#rangeSlider").slider("destroy");
+                $("#rangeSlider").slider({
+                 range: true,
+                 min: 0,
+                 max: 100,
+                 values: [0,100],
+               });
+              end = new Date().getTime();
+              timeTaken = end - start;
+              console.log(timeTaken+" ms resetting.")
+            });  
+                }
+              )
+            }
+          )
 }
-
