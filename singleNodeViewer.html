@@ -15,7 +15,7 @@
     <title>L3P3 Project Dash</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/bootstrap.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
     <link href="http://getbootstrap.com/examples/dashboard/dashboard.css" rel="stylesheet">
@@ -61,6 +61,17 @@
     <div class="container-fluid">
         <div class="row">
             <div class="col-sm-3 col-md-2 sidebar">
+                    <ul class="nav nav-sidebar">
+                    <li class="active">
+                        <a href="singleNodeViewer.html" style="border-bottom:1px solid #eee">Single Node Viewer</a>
+                    </li>
+                    <li>
+                        <a href="">Global Events Viewer</a>
+                    </li>
+                    <li>
+                        <a href="">Node comparator</a>
+                    </li>
+                </ul>
                 <ul class="nav nav-sidebar">
                     <li>
                         <a href="">Overview</a>
@@ -75,47 +86,21 @@
                         <a href="">Export</a>
                     </li>
                 </ul>
-                <ul class="nav nav-sidebar">
-                    <li class="active">
-                        <a href="resource1Node.html" style="border-bottom:1px solid #eee">Resource metrics</a>
-                    </li>
-                    <li>
-                        <a href="">RAM metrics</a>
-                    </li>
-                    <li>
-                        <a href="">HD metrics</a>
-                    </li>
-                    <li>
-                        <a href="">Interfaces metrics</a>
-                    </li>
-                    <li>
-                        <a href="">Events metrics</a>
-                    </li>
-                </ul>
-                <ul class="nav nav-sidebar">
-                    <li>
-                        <a href="">Nav item again</a>
-                    </li>
-                    <li>
-                        <a href="">One more nav</a>
-                    </li>
-                    <li>
-                        <a href="">Another nav item</a>
-                    </li>
-                </ul>
+
             </div>
             <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-                <h1 class="page-header">Single Node Resources Viewer</h1>
+                <h1 class="page-header">Node Resources and Events Viewer</h1>
 
                 <div class="row">
                     <div class="col-xs-9 col-sm-9 myDiv" id="mainPart">
-                        <div  id="myDCTable"></div>
-                        <div  id="rangeTable"></div>
+                        <div  id="resourceChart"></div>
+                        <div  id="rangeTable"></div><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+                        <h4>Events</h4>
                         <div id="eventsTable"></div>
                     </div>
                     <div class="col-xs-3 col-sm-3 myDiv rightPart" id="rightPart">
                         <h4>Select resources</h4>
-                        <div id="chart-ring-resource"></div>
+                        <div id="chart-ring-resource"></div><br><br><br><br><br><br><br><br><br><br>
                         <h4 id="percentage">Percentage Range</h4>
                         <div id="rangeSlider"></div>
                         <button class="btn btn-default " id="axisButton">Apply change</button> <br>
@@ -135,7 +120,6 @@
     <script src="js/bootstrap.min.js"></script>
     
     <!-- Custom JavaScript -->
-    <script src="js/mine/resource1Node.js"></script>
     <script src="js/d3.js"></script>
 	<script src="js/crossfilter.js"></script>
 	<script src="js/dc.js"></script>
@@ -144,9 +128,11 @@
 <!--    <script src="js/sliderExtension.js"></script>-->
     <link rel="stylesheet" href="//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
     <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
-    <script src="/js/select2-3.4.8/select2.js"></script>    
+    <script src="/js/select2-3.4.8/select2.js"></script> 
+    <script src="js/mine/resource1Nodev2.js"></script>    
     <script>
-        nodeResourceLines("data/res.events-allnodes.csv","#myDCTable");
+//        nodeResourceLines("data/res.events-allnodes.csv","#resourceChart")
+        getData("data/resources-allnodes-8000.csv","data/events-allnodes15.csv");
     </script>
 
 
