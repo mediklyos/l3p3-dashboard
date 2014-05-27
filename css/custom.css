@@ -7,6 +7,8 @@
 
 
 /*My CSS*/
+
+/*Single Node Viewer*/
 .myDiv{
     border:1px solid #eee;
 }
@@ -23,19 +25,18 @@
     margin-left: 120px;
 }
 
-#myDCTable{
-    margin-top: 10px;
-    margin-left: 10px;
-}
-
-#rangeTable{
-    margin-left:10px;
+#resourceChart{
+    margin-top: 5px;
+    margin-left: -7px;
 }
 
 #eventsTable{
-    margin-left:10px;
+    margin-left: 15px;
 }
 
+#rangeTable{
+    margin-left:0px;
+}
 
 #rangeSlider{
     margin-top:30px;
@@ -55,5 +56,12 @@
 
 #mainPart{
     height:100%;
+}
+
+
+/*Global Events Viewer*/
+
+#yAxisDiv{
+    
 }
 

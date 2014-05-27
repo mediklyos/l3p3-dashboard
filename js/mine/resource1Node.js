@@ -110,7 +110,7 @@ var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
             var maxDate = dateDim.top(1)[0].date;
             
             var xAxisWidth = 1000;
-            var yAxisHeight = 350;
+            var yAxisHeight = 300;
         
             var colorListChart = ["#FF0000","#FF7400","#009999","#00CC00"];
             var colorListPie = ["#E76473","#70CB58","#5361A4","#F1C968"];
@@ -153,14 +153,14 @@ var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
                .x(d3.time.scale().domain([minDate,maxDate]))
                .y(d3.scale.linear().domain([0,100]))
                .elasticX(true)
-               .margins({top: 10, right: 10, bottom: 00, left: 10})
+//               .margins({top: 10, right: 10, bottom: 00, left: 10})
                .brushOn(false)
                .transitionDuration(1000)
                .renderHorizontalGridLines(true)
                .renderVerticalGridLines(true)
                .rangeChart(dateRangePicker)
                .mouseZoomable(false)
-               .legend(dc.legend().x(xAxisWidth-100).y(10).itemHeight(13).gap(5))
+               .legend(dc.legend().x(xAxisWidth-100).y(30).itemHeight(13).gap(5))
                .margins({ top: 10, left: 50, right: 10, bottom: 50 }) 
                .title(function(d){ return new Date(d.key[0])+", "+d.key[1]+": "+d.value+"%";} )
                .xAxisLabel("Date")
@@ -191,7 +191,7 @@ var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
             
             var subChart = function(c) {
                 return dc.scatterPlot(c)
-//                .symbol(symbolAccessor)
+                .symbol(symbolAccessor)
                 .symbolSize(5)
                 .highlightedSize(10);
   };
@@ -218,13 +218,11 @@ var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
                 .brushOn(false)
                 .yAxisLabel("Amount of events")
                 .xAxisLabel("Date")
-//                .margins({top: 0, right: 00, bottom: 00, left: 00})
                 .y(d3.scale.linear().domain([0,eventGroup.top(1)[0].value+3]))
                 .data(function(group) {
                     return group.all().filter(function(d) { return d.value > 0; });
                 })
                 .x(d3.time.scale().domain([minDateE,maxDateE]));
-//                .symbol(symbolAccessor);
             
             
             
