@@ -1,36 +1,36 @@
 var firstNode = null;
 var timeInspection = true;
-if(timeInspection){
+if (timeInspection) {
     var start = null;
     var end = null;
-    var timeTaken=null;
+    var timeTaken = null;
 }
 
-function measureTime(message){
+function measureTime(message) {
     end = new Date().getTime();
-    timeTaken = end-start;
-    console.log("Time taken for "+message+": "+timeTaken+" ms.");
+    timeTaken = end - start;
+    console.log("Time taken for " + message + ": " + timeTaken + " ms.");
     start = new Date().getTime();
 }
 
 
-var dataEvents =null;
-var dataResources= null;
+var dataEvents = null;
+var dataResources = null;
 
-function getData(sourceFileResources,sourceFileEvents){
-    d3.csv(sourceFileResources,function(error,ResourceData){
-        d3.csv(sourceFileEvents,function(error2,EventsData){
+function getData(sourceFileResources, sourceFileEvents) {
+    d3.csv(sourceFileResources, function (error, ResourceData) {
+        d3.csv(sourceFileEvents, function (error2, EventsData) {
             dataResources = ResourceData;
             dataEvents = EventsData;
             
             
-            if (timeInspection){start = new Date().getTime();}
+            if (timeInspection) {start = new Date().getTime(); }
 
 var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
 
             
 ///////  Resource data   /////////            
-            dataResources.forEach(function(d) {
+            dataResources.forEach(function (d) {
                             d.date = parseDate(d.date);
                             d.Day = d3.time.day(d.date);
                             if (d.cpu=="NA"){d.cpu=0;}
@@ -153,7 +153,7 @@ var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
                .x(d3.time.scale().domain([minDate,maxDate]))
                .y(d3.scale.linear().domain([0,100]))
                .elasticX(true)
-//               .margins({top: 10, right: 10, bottom: 00, left: 10})
+               .xUnits(d3.time.days)
                .brushOn(false)
                .transitionDuration(1000)
                .renderHorizontalGridLines(true)
@@ -264,13 +264,10 @@ var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
             
             $("#resetButton").on("click",function(){
                start = new Date().getTime();
-               dateDim.filterAll();
-//               nodeDimension.filterAll();
                chart.y(d3.scale.linear().domain([0,100]));
-               resourceDim.filterAll();
-               dayDim.filterAll();
-//               nodeDimension.filter(firstNode);    
-               dc.renderAll();
+                dc.filterAll();
+                dc.redrawAll();
+                chart.render();
                $("#rangeSlider").slider("destroy");
                 $("#rangeSlider").slider({
                  range: true,
