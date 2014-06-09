@@ -245,19 +245,22 @@ var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
             });            
             
 //Range selection
-            $("#axisButton").on("click",function(){
-                var min = $('#rangeSlider').slider("option", "values")[0];
-                var max = $('#rangeSlider').slider("option", "values")[1];
-                chart.y(d3.scale.linear().domain([min,max]));
-                chart.render();
-            });
-        
+            
             $("#rangeSlider").slider({
                   range: true,
                   min: 0,
                   max: 100,
                   values: [0,100],
                 });
+            
+            $("#rangeSlider").on("mouseup",function(){
+                var min = $('#rangeSlider').slider("option", "values")[0];
+                var max = $('#rangeSlider').slider("option", "values")[1];
+                chart.y(d3.scale.linear().domain([min,max]));
+                chart.render();
+            });
+        
+
             
             
 //Reset button
