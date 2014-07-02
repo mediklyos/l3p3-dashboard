@@ -250,7 +250,7 @@ var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
                   range: true,
                   min: 0,
                   max: 100,
-                  values: [0,100],
+                  values: [0,100]
                 });
             
             $("#rangeSlider").on("mouseup",function(){

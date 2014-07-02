@@ -215,4 +215,13 @@ pip-log.txt
 .mr.developer.cfg
 
 #My things
-data/
+/dashboard/data/
+
+# IntelliJ IDEA
+.idea
+dashboard/dashboard.iml
+
+# git
+.gitignore
+.gitattributes
+
