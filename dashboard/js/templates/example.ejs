@@ -1,0 +1,33 @@
+<div>
+<div id="test"></div>
+<script type="text/javascript">
+
+    d3.csv("data/titanic/titaniccomplete.csv", function(error, experiments) {
+        var chart = dc.barChart("#test");
+        var cat = ["1","2","3"]
+        var ndx                 = crossfilter(experiments);
+        var dimension        = ndx.dimension(function(d) {return d.Pclass;});
+        // reduceCount == reduceSum(function(){return 1)
+        var group       = dimension.group().reduceCount();
+//        var group       = dimension.group().reduceSum(function(d) {return 1;;});
+
+
+        chart
+                .width(768)
+                .height(480)
+//                .xAxis().tickValues([1, 2, 3])
+//                .xAxis().tickFormat(function(v) {return v + "%";})
+                .x(d3.scale.linear().domain([0,4]))
+                .brushOn(false)
+                .yAxisLabel("This is the Y Axis!")
+
+                .dimension(dimension)
+                .group(group);
+
+        chart.render();
+
+
+    });
+</script>
+    <%= "Prueba de texto que saco por pantalla"%>
+</div>
