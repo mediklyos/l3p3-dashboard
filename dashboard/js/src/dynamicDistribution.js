@@ -189,11 +189,15 @@ function setPrimaryOptions(keys) {
 }
 
 function setCategory(newCategory){
+    if (newCategory == ""){
+        document.getElementById(DYNAMIC_DISTRIBUTION_FILTER_CATEGORY).innerHTML = "";
+        return;
+    }
     dynamicDistributionObject.categorizedBy(newCategory);
     var categoryInfo = dynamicDistributionObject.getCategoryRowInfo();
     var categoryType = categoryInfo.type;
-
-    if (categoryType == CSVContainer.TYPE_DISCRETE){
+    if (newCategory == "" || categoryType === undefined){
+    } else if (categoryType == CSVContainer.TYPE_DISCRETE){
         var innerHTML = '';
         categoryFiltered = new Object;
         innerHTML = '<div class="panel panel-default">' +
@@ -229,6 +233,7 @@ function clickOnCategoryNone(){
     }
     $("."+DYNAMIC_DISTRIBUTION_FILTER_CATEGORY_CLASS).prop("checked",false)
     discreteGraphicPaint(dynamicDistributionObject)
+    document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none';
 }
 
 
@@ -245,4 +250,12 @@ function getCategoriesFiltered(){
 var color20 = d3.scale.category20();
 function myColors(pos){
     return color20(pos);
+}
+
+function reset(){
+    dynamicDistributionObject.init(dynamicDistributionObject.src,dynamicDistributionObject.keys)
+    setCategory("");
+    document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'; // block
+    document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'; // block
+//    clickSelect();
 }

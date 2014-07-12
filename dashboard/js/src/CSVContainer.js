@@ -18,40 +18,10 @@
     CSVContainer.TYPE_CONTINUOUS = "continuous";
     CSVContainer.TYPE_DATE = "type_date";
     CSVContainer.REMOVE_CONTINOUS_UNKONWN = true;
+
+
     function CSVContainer (srcFile,rowsTypes) {
-        /*Cambiando el contexto al propio this*/
-        d3.csv(srcFile,function (error, resourceData, onload){
-            if (error !== undefined && error != null) {
-                console.log(error);
-                alert("The data can not be loaded");
-                throw error;
-            }
-
-            /* Traducción!*/
-            /* Reset the principal object */
-            if (resourceData.length > 0){
-                this.src = srcFile
-                this.keys = rowsTypes;
-                this.distributions = new Object()
-                this.data = crossfilter(resourceData);
-                this.secondaries = new Array();
-                if (onload !== undefined){
-                    onload(this);
-                }
-                for (var key in resourceData[0]){
-                    var type = rowsTypes[key];
-                    if (type !== undefined) {
-                        this.distributions[key] = new Object
-                        this.distributions[key].dimension = this.loadDimension.bind(this,key,type)
-                        this.distributions[key].keys = this.loadDimension(key,type).keys;
-                        this.distributions[key].key = key;
-                        this.distributions[key].type = type;
-                    }
-                }
-                this.loaded = true;
-
-            }
-        }.bind(this))
+        this.init(srcFile,rowsTypes);
     }
 
     /**
@@ -116,6 +86,46 @@
     CSVContainer.prototype.getKeys = function (){
         return this.keys;
     }
+
+
+    CSVContainer.prototype.init = function (srcFile,rowsTypes) {
+        this.categoryRow = "";
+        this.primaryRow = "";
+        /*Cambiando el contexto al propio this*/
+        d3.csv(srcFile,function (error, resourceData, onload){
+            if (error !== undefined && error != null) {
+                console.log(error);
+                alert("The data can not be loaded");
+                throw error;
+            }
+
+            /* Traducción!*/
+            /* Reset the principal object */
+            if (resourceData.length > 0){
+                this.src = srcFile
+                this.keys = rowsTypes;
+                this.distributions = new Object()
+                this.data = crossfilter(resourceData);
+                this.secondaries = new Array();
+                if (onload !== undefined){
+                    onload(this);
+                }
+                for (var key in resourceData[0]){
+                    var type = rowsTypes[key];
+                    if (type !== undefined) {
+                        this.distributions[key] = new Object
+                        this.distributions[key].dimension = this.loadDimension.bind(this,key,type)
+                        this.distributions[key].keys = this.loadDimension(key,type).keys;
+                        this.distributions[key].key = key;
+                        this.distributions[key].type = type;
+                    }
+                }
+                this.loaded = true;
+
+            }
+        }.bind(this))
+
+    };
 
 
     this.CSVContainer = CSVContainer;
