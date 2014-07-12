@@ -278,7 +278,7 @@ function getData(sourceFileResources, sourceFileEvents) {
                  range: true,
                  min: 0,
                  max: 100,
-                 values: [0,100],
+                 values: [0,100]
                });
               end = new Date().getTime();
               timeTaken = end - start;

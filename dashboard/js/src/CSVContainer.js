@@ -13,7 +13,12 @@
  |  |  | values (Array)
  */
 (function () {
-    function CSVContainer (srcFile) {
+    CSVContainer.TYPE_ID = "id";
+    CSVContainer.TYPE_DISCRETE = "discrete";
+    CSVContainer.TYPE_CONTINUOUS = "continuous";
+    CSVContainer.TYPE_DATE = "type_date";
+    CSVContainer.REMOVE_CONTINOUS_UNKONWN = true;
+    function CSVContainer (srcFile,rowsTypes) {
         /*Cambiando el contexto al propio this*/
         d3.csv(srcFile,function (error, resourceData, onload){
             if (error !== undefined && error != null) {
@@ -21,37 +26,30 @@
                 alert("The data can not be loaded");
                 throw error;
             }
+
+            /* Traducción!*/
             /* Reset the principal object */
             if (resourceData.length > 0){
                 this.src = srcFile
-                this.keys = new Array();
-                for (var key in resourceData[0]){
-                    this.keys.push(key);
-                }
+                this.keys = rowsTypes;
                 this.distributions = new Object()
-                // TODO hacer para todo
-                {
-                    this.distributions["Pclass"] = new Object;
-                    this.distributions["Pclass"].discrete = true;
-                    this.distributions["Pclass"].values = new Array;
-                    this.distributions["Pclass"].values.push(1);
-                    this.distributions["Pclass"].values.push(2);
-                    this.distributions["Pclass"].values.push(3);
-
-                    this.distributions["Survived"] = new Object;
-                    this.distributions["Survived"].discrete = true;
-                    this.distributions["Survived"].values = new Array;
-                    this.distributions["Survived"].values.push(0);
-                    this.distributions["Survived"].values.push(1);
-                }
-
                 this.data = crossfilter(resourceData);
-                this.dimensionsLoaded = new Object();
                 this.secondaries = new Array();
-                this.loaded = true;
                 if (onload !== undefined){
                     onload(this);
                 }
+                for (var key in resourceData[0]){
+                    var type = rowsTypes[key];
+                    if (type !== undefined) {
+                        this.distributions[key] = new Object
+                        this.distributions[key].dimension = this.loadDimension.bind(this,key,type)
+                        this.distributions[key].keys = this.loadDimension(key,type).keys;
+                        this.distributions[key].key = key;
+                        this.distributions[key].type = type;
+                    }
+                }
+                this.loaded = true;
+
             }
         }.bind(this))
     }
@@ -60,66 +58,63 @@
      * Critical function TODO
      * @param dimension
      */
-    CSVContainer.prototype.preLoadDimension = function(dimension) {
+    CSVContainer.prototype.loadDimension = function(dimension,type) {
         var newDimension = new Object;
-        newDimension.dimension = this.data.dimension(function(d){return d[dimension]});
-        newDimension.values = newDimension.dimension.group().reduceCount();
-        newDimension.keys = new Array();
-        for (var key in newDimension.values.all()){
-            newDimension.keys.push(newDimension.values.all()[key].key)
+        newDimension.type = type;
+        if (type == CSVContainer.TYPE_CONTINUOUS){
+            newDimension.dimension = this.data.dimension(function(d){
+                if (d[dimension] == ""){
+                    return null;
+                } else {
+                    return +d[dimension];
+                }
+            });
+            newDimension.dimension.filter(function(d){
+                if (d == null){
+                    return false;
+                }else {
+                    return true;
+                }
+            });
+
+            newDimension.keys = [newDimension.dimension.bottom(1)[0],newDimension.dimension.top(1)[0]];
+
+        } else if (type == CSVContainer.TYPE_ID){
+            // Ignored
+
+        } else if (type == CSVContainer.TYPE_DISCRETE){
+            newDimension.dimension = this.data.dimension(function(d){return d[dimension]});
+            newDimension.values = newDimension.dimension.group().reduceCount();
+            newDimension.keys = new Array();
+            for (var key in newDimension.values.all()){
+                newDimension.keys.push(newDimension.values.all()[key].key)
+            }
         }
-        this.dimensionsLoaded[dimension] = newDimension;
+        return newDimension;
 
     }
-
-    CSVContainer.prototype.getPrimaryDimension = function(){
-        return this.dimensionsLoaded[this.primary].dimension;
-    }
-
-    CSVContainer.prototype.getKeysForPrimaryDimension = function(){
-        return this.dimensionsLoaded[this.primary].keys;
-    }
-    CSVContainer.prototype.getKeysForLoadedDimension = function (dimension){
-        if (this.dimensionsLoaded[dimension] === undefined) {
-            return undefined;
-        }
-        return dimensionsLoaded[dimension].keys;
-    }
-
-    CSVContainer.prototype.getDistribution = function (dimension){
-        return newDimension.values.all();
-    }
-
-    CSVContainer.prototype.preLoadedDimension = function(dimension) {
-        return this.dimensionsLoaded[dimension];
-    }
-
-    CSVContainer.prototype.getCategories = function() {
-
-    }
-
-    CSVContainer.prototype.getValuesOfCategory = function(category){
-
-    }
-
-    CSVContainer.prototype.isDiscrete = function (category) {
-        return dynamicDistributionObject.distributions[category].discrete;
-    };
-
-    CSVContainer.prototype.possiblesValues = function (category){
-        return dynamicDistributionObject.distributions[category].values;
-    }
-    /**
-     * Call to a critical function
-     * @param row
-     */
-    CSVContainer.prototype.setPrimary = function (row){
-        this.primary = row;
-        this.preLoadDimension(this.primary);
-    }
-
-    CSVContainer.prototype.categorizedBy = function (row){
+    CSVContainer.prototype.categorizedBy = function(row){
         this.categoryRow = row;
+    }
+    CSVContainer.prototype.setPrimaryRow = function(row){
+        this.primaryRow = row;
+    }
+
+    CSVContainer.prototype.getPrimaryRowInfo = function () {
+        return this.distributions[this.primaryRow];
+    }
+    CSVContainer.prototype.getCategoryRow= function(){
+        return this.categoryRow;
+    }
+    CSVContainer.prototype.getPrimaryRow= function(){
+        return this.primaryRow;
+    }
+    CSVContainer.prototype.getCategoryRowInfo= function(){
+        return this.distributions[this.categoryRow];
+    }
+
+    CSVContainer.prototype.getKeys = function (){
+        return this.keys;
     }
 
 

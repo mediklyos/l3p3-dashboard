@@ -18,4 +18,5 @@ var DATA_URL_EVENTS = DATA_URL + "s-events/events-allnodes15.csv"
 var GLOBAL_EVENTS_SOURCE_FILE = DATA_URL + "s-events/4-VisualizationTables/events-allnodes.csv";
 
 /*Distribution*/
-var DISTRIBUTION_SOURCE_FILE = DATA_URL + "titanic/titaniccomplete.csv"
+//var DISTRIBUTION_SOURCE_FILE =
+var DISTRIBUTION_SOURCE_FILE = DATA_URL + "s-events/res.events-allnodesShort.csv"
