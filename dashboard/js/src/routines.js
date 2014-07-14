@@ -85,8 +85,8 @@ function runDynamicDistribution(file){
             console.log("The data has been loaded")
 //            dynamicDistributionObject.categorizedBy("Pclass");
 //            dynamicDistributionObject.setPrimaryRow("Sex");
-            setCategoryOptions(dynamicDistributionObject.getKeys());
-            setPrimaryOptions(dynamicDistributionObject.getKeys());
+            setCategoryList(dynamicDistributionObject.getKeys());
+            setPrimaryList(dynamicDistributionObject.getKeys());
 //            document.getElementById("uno").selectedIndex = -1
 
             discreteGraphicProcess(dynamicDistributionObject);

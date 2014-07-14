@@ -1,6 +1,6 @@
 var DYNAMIC_DISTRIBUTION_CHART_DIV = "dynamic-distribution-chart-div";
-var DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_ROW_ID = "select-category"
-var DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_ROW_ID = "select-primary-row"
+var DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_ROW_ID = "dd-select-category"
+var DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_ROW_ID = "dd-select-primary-row"
 
 var DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV = "dd-attributes-row";
 var DYNAMIC_DISTRIBUTION_GRAPHICS_DIV = "dd-graphics-row";
@@ -10,29 +10,38 @@ var DYNAMIC_DISTRIBUTION_FILTER_CATEGORY = "dd-filter-category";
 
 var DYNAMIC_DISTRIBUTION_FILTER_CATEGORY_CLASS = "dd-filter-category-class";
 
+var BUTTON_ID_PREFIX_PRIMARY = "dd-primary-";
+
+var BUTTON_PRIMARY_CLASS = "dd-primary-class"
+
+var BUTTON_ID_PREFIX_CATEGORY = "dd-button-";
+
+var BUTTON_CATEGORY_CLASS = "dd-category-class"
+
 var BORDER_PROPORTION = 0.1
 var CHART_WIDTH = $(window).width();
 
 var categoryFiltered = new Object;
+
+
 function discreteGraphicProcess (dynamicDistributionObject){
 }
 
 
+function selectCategory(category){
+    var prevCategory = dynamicDistributionObject.getCategoryRow();
+    if (category != prevCategory){
+
+    }
+}
 
 
 function clickSelect(){
 
     var needUpdate = false; // TODO cambiar
-    var prevCategory = dynamicDistributionObject.getCategoryRow();
-    var tmp =document.getElementById(DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_ROW_ID).selectedOptions[0];
-    var newCategory = (tmp == undefined)?undefined:tmp.innerText;
     var prevPrimary = dynamicDistributionObject.getPrimaryRowInfo();
     var tmp =document.getElementById(DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_ROW_ID).selectedOptions[0];
     var newPrimary = (tmp==undefined)?undefined:tmp.innerText;
-    if (prevCategory != newCategory){
-        setCategory(newCategory);
-        needUpdate = true;
-    }
     if (prevPrimary != newPrimary){
         dynamicDistributionObject.setPrimaryRow(newPrimary);
         needUpdate = true;
@@ -144,62 +153,95 @@ function discreteGraphicPaint (dynamicDistributionObject) {
                 var translate_cad = "translate(" + movement + ", 0)"
                 chart.selectAll(element_name).attr("transform", translate_cad);
             }
-
-//            chart.selectAll("g._0").attr("transform", "translate(" + 0 + ", 0)");
-//            chart.selectAll("g._1").attr("transform", "translate(" + 25 + ", 0)");
-//            chart.selectAll("g._2").attr("transform", "translate(" + 50 + ", 0)");
         });
     compositeChart.render();
 }
 
 
-function setCategoryOptions(keys) {
-    var html = "";
+function setCategoryList(keys) {
+    $("#"+DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_ROW_ID).empty()
+    var buttons = jQuery('<div/>', {
+            class: 'btn-group'
+        }
+    ).appendTo("#"+DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_ROW_ID);
     for (var key in keys){
-        if (keys[key] == CSVContainer.TYPE_DISCRETE)
-            html += "<option>"+key+"</option>"
+        if (keys[key] == CSVContainer.TYPE_DISCRETE) {
+            var button = jQuery('<button/>', {
+                type: 'button',
+                class: 'btn btn-default '+BUTTON_CATEGORY_CLASS,
+                id: BUTTON_ID_PREFIX_CATEGORY + key,
+                text: key,
+                onclick: 'setCategory("' + key + '")'
+            }).appendTo(buttons);
+        }
     }
-
-    $("#"+DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_ROW_ID).html(html);
-    document.getElementById(DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_ROW_ID).selectedIndex = -1
 }
 
-function setPrimaryOptions(keys) {
-    var html = "";
+function setPrimaryList(keys) {
+    $("#"+DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_ROW_ID).empty()
+    var buttons = jQuery('<div/>', {
+            class: 'btn-group'
+        }
+    ).appendTo("#"+DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_ROW_ID);
     for (var key in keys){
-        if (keys[key] == CSVContainer.TYPE_DISCRETE)
-            html += "<option>"+key+"</option>"
+        if (keys[key] == CSVContainer.TYPE_DISCRETE) {
+            var button = jQuery('<button/>', {
+                type: 'button',
+                class: 'btn btn-default '+BUTTON_PRIMARY_CLASS,
+                id: BUTTON_ID_PREFIX_PRIMARY + key,
+                text: key,
+                onclick: 'setPrimary("' + key + '")'
+            }).appendTo(buttons);
+        }
     }
-    $("#"+DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_ROW_ID).html(html);
-    document.getElementById(DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_ROW_ID).selectedIndex = -1
 }
 
 function setCategory(newCategory){
-    if (newCategory == ""){
+    var prevCategory = dynamicDistributionObject.getCategoryRow();
+
+    if (newCategory == "") {
+        $("#"+DYNAMIC_DISTRIBUTION_FILTER_CATEGORY).empty();
         document.getElementById(DYNAMIC_DISTRIBUTION_FILTER_CATEGORY).innerHTML = "";
         return;
-    }
-    dynamicDistributionObject.categorizedBy(newCategory);
-    var categoryInfo = dynamicDistributionObject.getCategoryRowInfo();
-    var categoryType = categoryInfo.type;
-    if (newCategory == "" || categoryType === undefined){
-    } else if (categoryType == CSVContainer.TYPE_DISCRETE){
-        var innerHTML = '';
-        categoryFiltered = new Object;
-        innerHTML = '<div class="panel panel-default">' +
-            '<div class="panel-heading">Categories ' +
-            '<small>(<a href="#" onclick="clickOnCategoryAll()">all</a>/' +
-            '<a href="#" onclick="clickOnCategoryNone()">none</a>)</small></div>' +
-            '<div class="panel-body">'
-        for (var key in categoryInfo.keys){
-            innerHTML += '<input type="checkbox" class="'+DYNAMIC_DISTRIBUTION_FILTER_CATEGORY_CLASS+'" name="categories" value="'+categoryInfo.keys[key]
-                + '" checked onclick="clickOnCategoryCheckBoxes(\''+categoryInfo.keys[key]+'\')">'+categoryInfo.keys[key]+'<br>';
-            categoryFiltered[categoryInfo.keys[key]] = true;
+    } else if (newCategory != prevCategory){
+        $("."+BUTTON_CATEGORY_CLASS).removeClass("active");
+        $("#"+BUTTON_ID_PREFIX_CATEGORY + newCategory).addClass("active")
+        dynamicDistributionObject.categorizedBy(newCategory);
+        var categoryInfo = dynamicDistributionObject.getCategoryRowInfo();
+        var categoryType = categoryInfo.type;
+        if (categoryType == undefined) {
+            document.getElementById(DYNAMIC_DISTRIBUTION_FILTER_CATEGORY).innerHTML = "";
+            return;
+        } else if (categoryType == CSVContainer.TYPE_DISCRETE) {
+            categoryFiltered = new Object;
+            // TODO cambiar a jQuery
+            var innerHTML = '<div class="panel panel-default">' +
+                '<div class="panel-heading">Categories ' +
+                '<small>(<a href="#" onclick="clickOnCategoryAll()">all</a>/' +
+                '<a href="#" onclick="clickOnCategoryNone()">none</a>)</small></div>' +
+                '<div class="panel-body">'
+            for (var key in categoryInfo.keys){
+                innerHTML += '<input type="checkbox" class="'+DYNAMIC_DISTRIBUTION_FILTER_CATEGORY_CLASS+'" name="categories" value="'+categoryInfo.keys[key]
+                    + '" checked onclick="clickOnCategoryCheckBoxes(\''+categoryInfo.keys[key]+'\')">'+categoryInfo.keys[key]+'<br>';
+                categoryFiltered[categoryInfo.keys[key]] = true;
+            }
+            document.getElementById(DYNAMIC_DISTRIBUTION_FILTER_CATEGORY).innerHTML = innerHTML;
         }
-        document.getElementById(DYNAMIC_DISTRIBUTION_FILTER_CATEGORY).innerHTML = innerHTML;
+        discreteGraphicPaint(dynamicDistributionObject)
     }
 }
 
+function setPrimary(newPrimary){
+    var prevPrimary = dynamicDistributionObject.getPrimaryRowInfo();
+
+    if(prevPrimary != newPrimary){
+        $("."+BUTTON_PRIMARY_CLASS).removeClass("active");
+        $("#"+BUTTON_ID_PREFIX_PRIMARY + newPrimary).addClass("active")
+        dynamicDistributionObject.setPrimaryRow(newPrimary);
+        discreteGraphicPaint(dynamicDistributionObject)
+    }
+
+}
 
 function clickOnCategoryCheckBoxes(category) {
     categoryFiltered[category] =!categoryFiltered[category];
@@ -241,7 +283,7 @@ function myColors(pos){
 function reset(){
     dynamicDistributionObject.init(dynamicDistributionObject.src,dynamicDistributionObject.keys)
     setCategory("");
+    setPrimary("")
     document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'; // block
     document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'; // block
-//    clickSelect();
 }

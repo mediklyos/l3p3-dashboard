@@ -10,13 +10,9 @@
             </div>
         </div>
         <div class="col-lg-2">
-            <button class="btn btn-default" onclick="clickSelect()">Apply</button>
+            <!--<button class="btn btn-default" onclick="clickSelect()">Apply</button>-->
             <button class="btn btn-default" onclick="reset()">Reset</button>
         </div>
-        <script>
-
-
-        </script>
     </div>
 
 
@@ -27,18 +23,12 @@
         <div id="dd-attributes" class="row">
             <div class="col-lg-4">
                 <div class="input-group input-group-sm" id="group-select-category-row">
-                    <span class="input-group-addon">
-                        Category row
-                    </span>
-                    <select id="select-category" class="form-control" onclick="clickSelect()"></select>
+                    <div id="dd-select-category"/>
                 </div>
             </div>
             <div class="col-lg-4">
                 <div class="input-group input-group-sm" id="group-select-primary-row" >
-                <span class="input-group-addon">
-                    Primary row
-                </span>
-                    <select id="select-primary-row" class="form-control" onclick="clickSelect()"></select>
+                    <div id="dd-select-primary-row"/>
                 </div>
             </div>
         </div>
@@ -70,8 +60,8 @@
         document.getElementById("form-src").setAttribute("value",DISTRIBUTION_SOURCE_FILE);
         if (dynamicDistributionObject !== undefined)
             discreteGraphicPaint(dynamicDistributionObject)
-        document.getElementById("select-category").selectedIndex = -1
-        document.getElementById("select-primary-row").selectedIndex = -1
+//        document.getElementById("select-category").selectedIndex = -1
+//        document.getElementById("select-primary-row").selectedIndex = -1
 
     </script>
 </div>
