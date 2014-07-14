@@ -11,14 +11,10 @@ var DYNAMIC_DISTRIBUTION_FILTER_CATEGORY = "dd-filter-category";
 var DYNAMIC_DISTRIBUTION_FILTER_CATEGORY_CLASS = "dd-filter-category-class";
 
 var BORDER_PROPORTION = 0.1
-var CHART_WIDTH = 1000;
+var CHART_WIDTH = $(window).width();
 
 var categoryFiltered = new Object;
 function discreteGraphicProcess (dynamicDistributionObject){
-//    dynamicDistributionObject.primary;
-//    dynamicDistributionObject.preLoadDimension(principal_dimension_name);
-
-    //var principal_dimension_values;
 }
 
 
@@ -78,16 +74,6 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     // Filtrar tambien aqui porque si no lo suma y luego no sabe donde ponerlo
     var charts = new Array;
     var color = 0;
-
-
-
-//    dc.units.oldOrdinal= dc.units.ordinal;
-//    var myFunction = function (s, e, domain) {
-//        return primaryKeys.length;
-//        return 2000;//*primaryKeys.length;
-//
-//    }
-//    dc.units.ordinal = myFunction;
 
     if (primaryRow == categoryRow){
         var group = dimension.dimension.group().reduceSum(function(d){

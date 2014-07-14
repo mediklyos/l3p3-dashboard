@@ -2,6 +2,7 @@
 ## Eclipse
 #################
 
+.gitignore
 *.pydevproject
 .project
 .metadata
@@ -215,7 +216,7 @@ pip-log.txt
 .mr.developer.cfg
 
 #My things
-/dashboard/data/
+/dashboard/data/s-events
 
 # IntelliJ IDEA
 .idea
