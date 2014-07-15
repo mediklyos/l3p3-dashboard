@@ -83,14 +83,15 @@ function runDynamicDistribution(file){
         console.log("ID: " + id + ". Old value: " + oldValue + ", new value: " + newValue);
         if (newValue){
             console.log("The data has been loaded")
-//            dynamicDistributionObject.categorizedBy("Pclass");
-//            dynamicDistributionObject.setPrimaryRow("Sex");
-            setCategoryList(dynamicDistributionObject.getKeys());
-            setPrimaryList(dynamicDistributionObject.getKeys());
-//            document.getElementById("uno").selectedIndex = -1
-
+            var keyList = new Array;
+            for (var key in dynamicDistributionObject.getKeys()){
+                if (dynamicDistributionObject.getKeys()[key] == CSVContainer.TYPE_DISCRETE){
+                    keyList.push(key)
+                }
+            }
+            setCategoryList(keyList);
+            setPrimaryList(keyList);
             discreteGraphicProcess(dynamicDistributionObject);
-//            discreteGraphicPaintF(dynamicDistributionObject)
         }
         return newValue;
     });

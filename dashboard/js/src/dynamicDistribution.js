@@ -1,6 +1,6 @@
 var DYNAMIC_DISTRIBUTION_CHART_DIV = "dynamic-distribution-chart-div";
 var DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_ROW_ID = "dd-select-category"
-var DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_ROW_ID = "dd-select-primary-row"
+var DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_ROW_ID = "dd-select-primary-col"
 
 var DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV = "dd-attributes-row";
 var DYNAMIC_DISTRIBUTION_GRAPHICS_DIV = "dd-graphics-row";
@@ -11,15 +11,18 @@ var DYNAMIC_DISTRIBUTION_FILTER_CATEGORY = "dd-filter-category";
 var DYNAMIC_DISTRIBUTION_FILTER_CATEGORY_CLASS = "dd-filter-category-class";
 
 var BUTTON_ID_PREFIX_PRIMARY = "dd-primary-";
+var BUTTON_ID_PREFIX_CATEGORY = "dd-button-";
+var BUTTON_ID_PREFIX_CATEGORY_FILTER = "dd-category-filter";
 
 var BUTTON_PRIMARY_CLASS = "dd-primary-class"
 
-var BUTTON_ID_PREFIX_CATEGORY = "dd-button-";
+var BUTTON_CATEGORY_FILTER_CLASS = "dd-category-filter-class"
+
 
 var BUTTON_CATEGORY_CLASS = "dd-category-class"
 
 var BORDER_PROPORTION = 0.1
-var CHART_WIDTH = $(window).width();
+var CHART_WIDTH = $(window).width() * 0.96;
 
 var categoryFiltered = new Object;
 
@@ -159,41 +162,67 @@ function discreteGraphicPaint (dynamicDistributionObject) {
 
 
 function setCategoryList(keys) {
-    $("#"+DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_ROW_ID).empty()
-    var buttons = jQuery('<div/>', {
-            class: 'btn-group'
-        }
-    ).appendTo("#"+DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_ROW_ID);
-    for (var key in keys){
-        if (keys[key] == CSVContainer.TYPE_DISCRETE) {
-            var button = jQuery('<button/>', {
-                type: 'button',
-                class: 'btn btn-default '+BUTTON_CATEGORY_CLASS,
-                id: BUTTON_ID_PREFIX_CATEGORY + key,
-                text: key,
-                onclick: 'setCategory("' + key + '")'
-            }).appendTo(buttons);
-        }
-    }
+    createPanelButtons("Category attribute",DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_ROW_ID,keys,BUTTON_CATEGORY_CLASS,BUTTON_ID_PREFIX_CATEGORY,setCategory);
 }
 
 function setPrimaryList(keys) {
-    $("#"+DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_ROW_ID).empty()
-    var buttons = jQuery('<div/>', {
+    createPanelButtons("Primary attribute",DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_ROW_ID,keys,BUTTON_PRIMARY_CLASS,BUTTON_ID_PREFIX_PRIMARY,setPrimary)
+}
+
+function setCategoryFilterList(keys){
+
+    var title = 'Categories'
+    var panel = createPanelButtons(title,DYNAMIC_DISTRIBUTION_FILTER_CATEGORY,keys,BUTTON_CATEGORY_FILTER_CLASS,BUTTON_ID_PREFIX_CATEGORY_FILTER,clickOnCategoryFilter)
+    var body = panel.find(".panel-body")
+    var all= jQuery('<div/>', {
             class: 'btn-group'
         }
-    ).appendTo("#"+DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_ROW_ID);
-    for (var key in keys){
-        if (keys[key] == CSVContainer.TYPE_DISCRETE) {
-            var button = jQuery('<button/>', {
-                type: 'button',
-                class: 'btn btn-default '+BUTTON_PRIMARY_CLASS,
-                id: BUTTON_ID_PREFIX_PRIMARY + key,
-                text: key,
-                onclick: 'setPrimary("' + key + '")'
-            }).appendTo(buttons);
+    ).appendTo(body)
+    jQuery('<button/>',{
+        onclick:"clickOnCategoryAllNone()",
+        text: "All/None",
+        type: 'button',
+        class: 'btn btn-default '
+
+    }).appendTo(all)
+//    heading.innerHTML =     heading.innerText + '<small>(<a href="#" onclick="clickOnCategoryAll()">all</a>/' +
+//
+//    '<a href="#" onclick="clickOnCategoryNone()">none</a>)</small>'
+    return panel;
+}
+
+function createPanelButtons(title, parentId , keys, buttonsClass,buttons_id_prefix,callback){
+    $("#"+parentId).empty()
+    var panel = jQuery('<div/>',{
+           class : "panel panel-default"
         }
-    }
+    ).appendTo("#"+parentId)
+    var panelHeader = jQuery('<div/>', {
+            class: "panel-heading",
+            text: title
+        }
+    ).appendTo(panel);
+    var panelButtons = jQuery('<div/>', {
+        class: 'panel-body btn-group'
+    }).appendTo(panel);
+    jQuery('<div/>', {
+            class: 'btn-group'
+        }
+    ).appendTo("#"+parentId);
+    $.each(keys,function(){
+        var text = this;
+        if (text == "") text = "#blank";
+
+
+        var button = jQuery('<button/>', {
+            type: 'button',
+            class: 'btn btn-default '+buttonsClass,
+            id: buttons_id_prefix + this,
+            text: text,
+            onclick: callback.name+'("' + this + '")'
+        }).appendTo(panelButtons);
+    })
+    return panel;
 }
 
 function setCategory(newCategory){
@@ -213,27 +242,26 @@ function setCategory(newCategory){
             document.getElementById(DYNAMIC_DISTRIBUTION_FILTER_CATEGORY).innerHTML = "";
             return;
         } else if (categoryType == CSVContainer.TYPE_DISCRETE) {
+            var panel = setCategoryFilterList(categoryInfo.keys);
+
+
             categoryFiltered = new Object;
-            // TODO cambiar a jQuery
-            var innerHTML = '<div class="panel panel-default">' +
-                '<div class="panel-heading">Categories ' +
-                '<small>(<a href="#" onclick="clickOnCategoryAll()">all</a>/' +
-                '<a href="#" onclick="clickOnCategoryNone()">none</a>)</small></div>' +
-                '<div class="panel-body">'
             for (var key in categoryInfo.keys){
-                innerHTML += '<input type="checkbox" class="'+DYNAMIC_DISTRIBUTION_FILTER_CATEGORY_CLASS+'" name="categories" value="'+categoryInfo.keys[key]
-                    + '" checked onclick="clickOnCategoryCheckBoxes(\''+categoryInfo.keys[key]+'\')">'+categoryInfo.keys[key]+'<br>';
                 categoryFiltered[categoryInfo.keys[key]] = true;
+                // Adding all and none
+
+//                panel.
+                $("#"+BUTTON_ID_PREFIX_CATEGORY_FILTER+categoryInfo.keys[key]).addClass("active")
+
             }
-            document.getElementById(DYNAMIC_DISTRIBUTION_FILTER_CATEGORY).innerHTML = innerHTML;
+            discreteGraphicPaint(dynamicDistributionObject)
+            return;
         }
-        discreteGraphicPaint(dynamicDistributionObject)
     }
 }
 
 function setPrimary(newPrimary){
     var prevPrimary = dynamicDistributionObject.getPrimaryRowInfo();
-
     if(prevPrimary != newPrimary){
         $("."+BUTTON_PRIMARY_CLASS).removeClass("active");
         $("#"+BUTTON_ID_PREFIX_PRIMARY + newPrimary).addClass("active")
@@ -243,11 +271,12 @@ function setPrimary(newPrimary){
 
 }
 
-function clickOnCategoryCheckBoxes(category) {
+function clickOnCategoryFilter(category) {
     categoryFiltered[category] =!categoryFiltered[category];
+    $("#"+BUTTON_ID_PREFIX_CATEGORY_FILTER+category).toggleClass("active")
     discreteGraphicPaint(dynamicDistributionObject)
 }
-function clickOnCategoryAll(){
+function clickOnCategoryAllNone(){
     for (var key in categoryFiltered){
         categoryFiltered[key] = true;
     }
