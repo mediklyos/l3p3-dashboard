@@ -1,0 +1,34 @@
+.template {
+    display: none !important;
+}
+* {
+  cursor: default;
+}
+
+main {
+    width: 600px;
+    margin: auto;
+}
+section {
+    clear: left;
+}
+.stats {
+    margin: 0;
+}
+.stat {
+    list-style-type: none;
+    float: left;
+    margin: 0;
+    width: 130px;
+    font-size: 12px;
+}
+.stat-name {
+    display: inline-block;
+    text-align: right;
+    width: 50px;
+    margin-right: 5px;
+}
+.stat-value {
+    font-weight: bold;
+}
+
