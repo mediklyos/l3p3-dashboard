@@ -3,18 +3,28 @@
 
     <div class="row" id="source-row">
         <div class="col-lg-4">
-            <div class="input-group input-group-lg">
-            <span class="input-group-addon">
-              <span class="glyphicon glyphicon-file"></span>
-            </span>
-                <input id="form-src" class="form-control" type="text" placeholder="souce file" />
+            <div class="navbar navbar-default navbar-left" role="search">
+                <form class="navbar-form navbar-left" role="search">
+                    <img src="icons/database.png"/>
+                    <a class="btn btn-default" id="titanic-button" onclick="setTitanicSet()">Titanic</a>
+                    <a class="btn btn-default" id="events-button" onclick="setEventsSet()">Events</a>
+                </form>
+
             </div>
+            <!--<div class="input-group input-group-lg">-->
+                <!--<span class="input-group-addon">-->
+                    <!--<span class="glyphicon glyphicon-file"></span>-->
+                <!--</span>-->
+                <!--<input id="form-src" class="form-control" type="text" placeholder="souce file" />-->
+            <!--</div>-->
         </div>
         <div class="col-lg-2">
-            <!--<button class="btn btn-default" onclick="clickSelect()">Apply</button>-->
             <button class="btn btn-default" onclick="reset()">Reset</button>
         </div>
+        <div class="col-lg-2">
+        </div>
     </div>
+
 
 
 
@@ -23,12 +33,12 @@
         <h3>Attributes</h3>
         <div id="dd-attributes" class="row">
             <div class="col-lg-4">
-                <div class="input-group input-group-sm" id="group-select-category-row">
+                <div class="input-group input-group-sm" id="group-select-category-col">
                     <div id="dd-select-category"/>
                 </div>
             </div>
             <div class="col-lg-4">
-                <div class="input-group input-group-sm" id="group-select-primary-row" >
+                <div class="input-group input-group-sm" id="group-select-primary-col" >
                     <div id="dd-select-primary-col"/>
                 </div>
             </div>
@@ -37,13 +47,13 @@
 
     </div>
 
-    <div class="row" id="dd-graphics-row">
+    <div class="row" id="dd-graphics-col">
         <h3>Graphic</h3>
         <div id="dynamic-distribution-chart-div">
         </div>
     </div>
 
-    <div class="row" id="dd-filters-row" hidden>
+    <div class="row" id="dd-filters-col" hidden>
         <h3>Filters</h3>
         <div class="col-lg-4" id="dd-filter-category">
         </div>
@@ -54,14 +64,11 @@
     </div>
 
     <script>
-        document.getElementById("form-src").setAttribute("value",DISTRIBUTION_SOURCE_FILE);
+
         if (dynamicDistributionObject !== undefined) {
-//            discreteGraphicPaint(dynamicDistributionObject)
             reset();
         }
 
-//        document.getElementById("select-category").selectedIndex = -1
-//        document.getElementById("select-primary-row").selectedIndex = -1
 
     </script>
 </div>

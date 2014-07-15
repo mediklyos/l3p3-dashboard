@@ -20,8 +20,8 @@
     CSVContainer.REMOVE_CONTINOUS_UNKONWN = true;
 
 
-    function CSVContainer (srcFile,rowsTypes) {
-        this.init(srcFile,rowsTypes);
+    function CSVContainer (srcFile,colsTypes) {
+        this.init(srcFile,colsTypes);
     }
 
     /**
@@ -63,24 +63,24 @@
         return newDimension;
 
     }
-    CSVContainer.prototype.categorizedBy = function(row){
-        this.categoryRow = row;
+    CSVContainer.prototype.categorizedBy = function(col){
+        this.categoryCol = col;
     }
-    CSVContainer.prototype.setPrimaryRow = function(row){
-        this.primaryRow = row;
+    CSVContainer.prototype.setPrimaryCol = function(col){
+        this.primaryCol = col;
     }
 
-    CSVContainer.prototype.getPrimaryRowInfo = function () {
-        return this.distributions[this.primaryRow];
+    CSVContainer.prototype.getPrimaryColInfo = function () {
+        return this.distributions[this.primaryCol];
     }
-    CSVContainer.prototype.getCategoryRow= function(){
-        return this.categoryRow;
+    CSVContainer.prototype.getCategoryCol= function(){
+        return this.categoryCol;
     }
-    CSVContainer.prototype.getPrimaryRow= function(){
-        return this.primaryRow;
+    CSVContainer.prototype.getPrimaryCol= function(){
+        return this.primaryCol;
     }
-    CSVContainer.prototype.getCategoryRowInfo= function(){
-        return this.distributions[this.categoryRow];
+    CSVContainer.prototype.getCategoryColInfo= function(){
+        return this.distributions[this.categoryCol];
     }
 
     CSVContainer.prototype.getKeys = function (){
@@ -88,9 +88,9 @@
     }
 
 
-    CSVContainer.prototype.init = function (srcFile,rowsTypes) {
-        this.categoryRow = "";
-        this.primaryRow = "";
+    CSVContainer.prototype.init = function (srcFile,colsTypes) {
+        this.categoryCol = "";
+        this.primaryCol = "";
         /*Cambiando el contexto al propio this*/
         d3.csv(srcFile,function (error, resourceData, onload){
             if (error !== undefined && error != null) {
@@ -103,7 +103,7 @@
             /* Reset the principal object */
             if (resourceData.length > 0){
                 this.src = srcFile
-                this.keys = rowsTypes;
+                this.keys = colsTypes;
                 this.distributions = new Object()
                 this.data = crossfilter(resourceData);
                 this.secondaries = new Array();
@@ -111,7 +111,7 @@
                     onload(this);
                 }
                 for (var key in resourceData[0]){
-                    var type = rowsTypes[key];
+                    var type = colsTypes[key];
                     if (type !== undefined) {
                         this.distributions[key] = new Object
                         this.distributions[key].dimension = this.loadDimension.bind(this,key,type)

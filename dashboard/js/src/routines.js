@@ -43,13 +43,15 @@ $("#content").html(new EJS ({url: "js/templates/template_dynamicDistribution.ejs
         | Secondary (Array(String))
 
  */
-runDynamicDistribution(DISTRIBUTION_SOURCE_FILE);
-function runDynamicDistribution(file){
-    // hidden elements
-    document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'; // block
-    document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'; // block
 
-    var rows1  =
+
+
+function setTitanicSet(){
+    $("#titanic-button").attr("active",'')
+    $("#events-button").removeAttr("active")
+
+    var file = DATA_URL + "titanic/titaniccomplete.csv";
+    var cols  =
     {
         PassengerId: CSVContainer.TYPE_ID,
         Survived: CSVContainer.TYPE_DISCRETE,
@@ -64,21 +66,34 @@ function runDynamicDistribution(file){
         Cabin: CSVContainer.TYPE_DISCRETE,
         Embarked: CSVContainer.TYPE_DISCRETE
     };
-    var rows2 = {
+    runDynamicDistribution(file,cols);
+}
+
+function setEventsSet() {
+    $("#titanic-button").removeAttr("active")
+    $("#events-button").attr("active",'')
+    var file = DISTRIBUTION_SOURCE_FILE
+    var cols = {
         date: CSVContainer.TYPE_DATE,
         node: CSVContainer.TYPE_DISCRETE,
         type: CSVContainer.TYPE_DISCRETE,
         variable: CSVContainer.TYPE_DISCRETE,
         value: CSVContainer.TYPE_CONTINUOUS
     }
-    var rows = rows1;
-    var file = DATA_URL + "titanic/titaniccomplete.csv";
-    if (false){
-        rows = rows2;
-        file = DISTRIBUTION_SOURCE_FILE
+    runDynamicDistribution(file,cols);
+}
 
-    }
-    dynamicDistributionObject = new CSVContainer(file,rows);
+setTitanicSet();
+
+function runDynamicDistribution(file,cols){
+//    document.getElementById("form-src").setAttribute("value",file);
+//    document.getElementById("form-src").setAttribute("disabled","")
+    // hidden elements
+    document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'; // block
+    document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'; // block
+
+
+    dynamicDistributionObject = new CSVContainer(file,cols);
     dynamicDistributionObject.watch("loaded",function (id,oldValue,newValue) {
         console.log("ID: " + id + ". Old value: " + oldValue + ", new value: " + newValue);
         if (newValue){

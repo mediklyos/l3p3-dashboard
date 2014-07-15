@@ -1,15 +1,16 @@
 var DYNAMIC_DISTRIBUTION_CHART_DIV = "dynamic-distribution-chart-div";
-var DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_ROW_ID = "dd-select-category"
-var DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_ROW_ID = "dd-select-primary-col"
+var DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_COL_ID = "dd-select-category"
+var DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_COL_ID = "dd-select-primary-col"
 
-var DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV = "dd-attributes-row";
-var DYNAMIC_DISTRIBUTION_GRAPHICS_DIV = "dd-graphics-row";
-var DYNAMIC_DISTRIBUTION_FILTERS_DIV = "dd-filters-row";
+var DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV = "dd-attributes-col";
+var DYNAMIC_DISTRIBUTION_GRAPHICS_DIV = "dd-graphics-col";
+var DYNAMIC_DISTRIBUTION_FILTERS_DIV = "dd-filters-col";
 
 var DYNAMIC_DISTRIBUTION_FILTER_CATEGORY = "dd-filter-category";
 
 var DYNAMIC_DISTRIBUTION_FILTER_CATEGORY_CLASS = "dd-filter-category-class";
 
+var BUTTON_ID_CATEGORY_FILTER_ALL = "dd-category-filter-all";
 var BUTTON_ID_PREFIX_PRIMARY = "dd-primary-";
 var BUTTON_ID_PREFIX_CATEGORY = "dd-button-";
 var BUTTON_ID_PREFIX_CATEGORY_FILTER = "dd-category-filter";
@@ -32,7 +33,7 @@ function discreteGraphicProcess (dynamicDistributionObject){
 
 
 function selectCategory(category){
-    var prevCategory = dynamicDistributionObject.getCategoryRow();
+    var prevCategory = dynamicDistributionObject.getCategoryCol();
     if (category != prevCategory){
 
     }
@@ -42,11 +43,11 @@ function selectCategory(category){
 function clickSelect(){
 
     var needUpdate = false; // TODO cambiar
-    var prevPrimary = dynamicDistributionObject.getPrimaryRowInfo();
-    var tmp =document.getElementById(DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_ROW_ID).selectedOptions[0];
+    var prevPrimary = dynamicDistributionObject.getPrimaryColInfo();
+    var tmp =document.getElementById(DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_COL_ID).selectedOptions[0];
     var newPrimary = (tmp==undefined)?undefined:tmp.innerText;
     if (prevPrimary != newPrimary){
-        dynamicDistributionObject.setPrimaryRow(newPrimary);
+        dynamicDistributionObject.setPrimaryCol(newPrimary);
         needUpdate = true;
     }
     if (needUpdate){
@@ -55,10 +56,10 @@ function clickSelect(){
 }
 
 function discreteGraphicPaint (dynamicDistributionObject) {
-    if (dynamicDistributionObject.getPrimaryRow() == undefined ||
-        dynamicDistributionObject.getPrimaryRow() == "" ||
-        dynamicDistributionObject.getCategoryRow() == undefined ||
-        dynamicDistributionObject.getCategoryRow() == ""){
+    if (dynamicDistributionObject.getPrimaryCol() == undefined ||
+        dynamicDistributionObject.getPrimaryCol() == "" ||
+        dynamicDistributionObject.getCategoryCol() == undefined ||
+        dynamicDistributionObject.getCategoryCol() == ""){
         return;
     }
     document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'block'
@@ -67,13 +68,13 @@ function discreteGraphicPaint (dynamicDistributionObject) {
 
 //    var chart = dc.barChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
     var compositeChart = dc.compositeChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
-    var categoryInfo = dynamicDistributionObject.getCategoryRowInfo();
+    var categoryInfo = dynamicDistributionObject.getCategoryColInfo();
     var categoryKeys = categoryInfo.keys;
-    var categoryRow = categoryInfo.key;
+    var categoryCol = categoryInfo.key;
     var dimension = categoryInfo.dimension();
-    var primaryRowInfo = dynamicDistributionObject.getPrimaryRowInfo();
-    var primaryRow = primaryRowInfo.key;
-    var primaryKeys = primaryRowInfo.keys;
+    var primaryColInfo = dynamicDistributionObject.getPrimaryColInfo();
+    var primaryCol = primaryColInfo.key;
+    var primaryKeys = primaryColInfo.keys;
     var categoriesFiltered = getCategoriesFiltered();
 
 
@@ -87,9 +88,9 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     var charts = new Array;
     var color = 0;
 
-    if (primaryRow == categoryRow){
+    if (primaryCol == categoryCol){
         var group = dimension.dimension.group().reduceSum(function(d){
-            if (categoriesFiltered.indexOf(d[categoryRow]) == -1){
+            if (categoriesFiltered.indexOf(d[categoryCol]) == -1){
                 return 0;
             }else{
                 return 1;
@@ -99,13 +100,13 @@ function discreteGraphicPaint (dynamicDistributionObject) {
             .colors(myColors(color++))
             .gap(0)
             .dimension(dimension.dimension)
-            .group(group, categoryRow)
+            .group(group, categoryCol)
             .brushOn(false)
         charts.push(newChart)
     }else {
         for (var i = 0; i < primaryKeys.length;i++){
             groupsReduced[i] = dimension.dimension.group().reduceSum(function (pos,d) {
-                if ((categoriesFiltered.indexOf(d[categoryRow]) == -1) || (primaryKeys[pos] != d[primaryRow])){
+                if ((categoriesFiltered.indexOf(d[categoryCol]) == -1) || (primaryKeys[pos] != d[primaryCol])){
                     return 0;
                 }else{
                     return 1;
@@ -146,12 +147,12 @@ function discreteGraphicPaint (dynamicDistributionObject) {
             var width = boxes.attr("width");
             var border = Math.floor(width * BORDER_PROPORTION);
             var width_borderless = width - border * 2;
-            var primary_row_width = Math.floor(width_borderless / charts.length);
-            boxes.attr("width",primary_row_width);
+            var primary_col_width = Math.floor(width_borderless / charts.length);
+            boxes.attr("width",primary_col_width);
 //            boxes.attr("width",(width / 2)-22);
             for (var i = 0; i < charts.length; i ++){
                 var element_name = "g._"+i;
-                var movement = primary_row_width * i  + border / 2;
+                var movement = primary_col_width * i  + border / 2;
 //                movement = border / 2;
                 var translate_cad = "translate(" + movement + ", 0)"
                 chart.selectAll(element_name).attr("transform", translate_cad);
@@ -162,11 +163,11 @@ function discreteGraphicPaint (dynamicDistributionObject) {
 
 
 function setCategoryList(keys) {
-    createPanelButtons("Category attribute",DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_ROW_ID,keys,BUTTON_CATEGORY_CLASS,BUTTON_ID_PREFIX_CATEGORY,setCategory);
+    createPanelButtons("Category attribute",DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_COL_ID,keys,BUTTON_CATEGORY_CLASS,BUTTON_ID_PREFIX_CATEGORY,setCategory);
 }
 
 function setPrimaryList(keys) {
-    createPanelButtons("Primary attribute",DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_ROW_ID,keys,BUTTON_PRIMARY_CLASS,BUTTON_ID_PREFIX_PRIMARY,setPrimary)
+    createPanelButtons("Primary attribute",DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_COL_ID,keys,BUTTON_PRIMARY_CLASS,BUTTON_ID_PREFIX_PRIMARY,setPrimary)
 }
 
 function setCategoryFilterList(keys){
@@ -177,26 +178,27 @@ function setCategoryFilterList(keys){
     var all= jQuery('<div/>', {
             class: 'btn-group'
         }
-    ).appendTo(body)
+    ).appendTo(body);
+
+
+    // Adding "All" button
     jQuery('<button/>',{
+        id : BUTTON_ID_CATEGORY_FILTER_ALL,
         onclick:"clickOnCategoryAllNone()",
         text: "All/None",
         type: 'button',
-        class: 'btn btn-default '
+        class: 'btn btn-default'
+    }).appendTo(all);
 
-    }).appendTo(all)
-//    heading.innerHTML =     heading.innerText + '<small>(<a href="#" onclick="clickOnCategoryAll()">all</a>/' +
-//
-//    '<a href="#" onclick="clickOnCategoryNone()">none</a>)</small>'
     return panel;
 }
 
 function createPanelButtons(title, parentId , keys, buttonsClass,buttons_id_prefix,callback){
-    $("#"+parentId).empty()
+    $("#"+parentId).empty();
     var panel = jQuery('<div/>',{
            class : "panel panel-default"
         }
-    ).appendTo("#"+parentId)
+    ).appendTo("#"+parentId);
     var panelHeader = jQuery('<div/>', {
             class: "panel-heading",
             text: title
@@ -226,17 +228,15 @@ function createPanelButtons(title, parentId , keys, buttonsClass,buttons_id_pref
 }
 
 function setCategory(newCategory){
-    var prevCategory = dynamicDistributionObject.getCategoryRow();
+    var prevCategory = dynamicDistributionObject.getCategoryCol();
 
     if (newCategory == "") {
         $("#"+DYNAMIC_DISTRIBUTION_FILTER_CATEGORY).empty();
-        document.getElementById(DYNAMIC_DISTRIBUTION_FILTER_CATEGORY).innerHTML = "";
-        return;
     } else if (newCategory != prevCategory){
         $("."+BUTTON_CATEGORY_CLASS).removeClass("active");
         $("#"+BUTTON_ID_PREFIX_CATEGORY + newCategory).addClass("active")
         dynamicDistributionObject.categorizedBy(newCategory);
-        var categoryInfo = dynamicDistributionObject.getCategoryRowInfo();
+        var categoryInfo = dynamicDistributionObject.getCategoryColInfo();
         var categoryType = categoryInfo.type;
         if (categoryType == undefined) {
             document.getElementById(DYNAMIC_DISTRIBUTION_FILTER_CATEGORY).innerHTML = "";
@@ -246,13 +246,10 @@ function setCategory(newCategory){
 
 
             categoryFiltered = new Object;
+            $("."+BUTTON_CATEGORY_FILTER_CLASS).addClass("active")
             for (var key in categoryInfo.keys){
                 categoryFiltered[categoryInfo.keys[key]] = true;
-                // Adding all and none
-
-//                panel.
-                $("#"+BUTTON_ID_PREFIX_CATEGORY_FILTER+categoryInfo.keys[key]).addClass("active")
-
+//                $("#"+BUTTON_ID_PREFIX_CATEGORY_FILTER+categoryInfo.keys[key]).addClass("active")
             }
             discreteGraphicPaint(dynamicDistributionObject)
             return;
@@ -261,11 +258,11 @@ function setCategory(newCategory){
 }
 
 function setPrimary(newPrimary){
-    var prevPrimary = dynamicDistributionObject.getPrimaryRowInfo();
+    var prevPrimary = dynamicDistributionObject.getPrimaryColInfo();
     if(prevPrimary != newPrimary){
         $("."+BUTTON_PRIMARY_CLASS).removeClass("active");
-        $("#"+BUTTON_ID_PREFIX_PRIMARY + newPrimary).addClass("active")
-        dynamicDistributionObject.setPrimaryRow(newPrimary);
+        $(document.getElementById(BUTTON_ID_PREFIX_PRIMARY + newPrimary)).addClass("active")
+        dynamicDistributionObject.setPrimaryCol(newPrimary);
         discreteGraphicPaint(dynamicDistributionObject)
     }
 
@@ -273,25 +270,21 @@ function setPrimary(newPrimary){
 
 function clickOnCategoryFilter(category) {
     categoryFiltered[category] =!categoryFiltered[category];
-    $("#"+BUTTON_ID_PREFIX_CATEGORY_FILTER+category).toggleClass("active")
+    $(document.getElementById(BUTTON_ID_PREFIX_CATEGORY_FILTER+category)).toggleClass("active")
+    $("#"+BUTTON_ID_CATEGORY_FILTER_ALL).removeClass("active")
     discreteGraphicPaint(dynamicDistributionObject)
 }
 function clickOnCategoryAllNone(){
+    $(document.getElementById(BUTTON_ID_CATEGORY_FILTER_ALL)).toggleClass("active")
+    var result = $("#"+BUTTON_ID_CATEGORY_FILTER_ALL).hasClass("active");
+    $("."+BUTTON_CATEGORY_FILTER_CLASS).toggleClass("active",result);
     for (var key in categoryFiltered){
-        categoryFiltered[key] = true;
+        categoryFiltered[key] = result;
     }
-    $("."+DYNAMIC_DISTRIBUTION_FILTER_CATEGORY_CLASS).prop("checked",true);
     discreteGraphicPaint(dynamicDistributionObject)
 }
 
-function clickOnCategoryNone(){
-    for (var key in categoryFiltered){
-        categoryFiltered[key] = false;
-    }
-    $("."+DYNAMIC_DISTRIBUTION_FILTER_CATEGORY_CLASS).prop("checked",false)
-    discreteGraphicPaint(dynamicDistributionObject)
-    document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none';
-}
+
 
 
 function getCategoriesFiltered(){
@@ -306,6 +299,7 @@ function getCategoriesFiltered(){
 
 var color20 = d3.scale.category20();
 function myColors(pos){
+    pos = pos % 20;
     return color20(pos);
 }
 
