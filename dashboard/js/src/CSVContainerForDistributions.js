@@ -29,6 +29,9 @@
      * @param dimension
      */
     CSVContainer.prototype.loadDimension = function(dimension,type) {
+        if (this.currentDimension !== undefined){
+            this.currentDimension.dispose();
+        }
         var newDimension = new Object;
         newDimension.type = type;
         if (type == CSVContainer.TYPE_CONTINUOUS){
@@ -53,13 +56,16 @@
             // Ignored
 
         } else if (type == CSVContainer.TYPE_DISCRETE){
-            newDimension.dimension = this.data.dimension(function(d){return d[dimension]});
+            newDimension.dimension = this.data.dimension(function(d){
+                return d[dimension]}
+            );
             newDimension.values = newDimension.dimension.group().reduceCount();
             newDimension.keys = new Array();
             for (var key in newDimension.values.all()){
                 newDimension.keys.push(newDimension.values.all()[key].key)
             }
         }
+        this.currentDimension = newDimension.dimension;
         return newDimension;
 
     }
@@ -89,6 +95,7 @@
 
 
     CSVContainer.prototype.init = function (srcFile,colsTypes) {
+
         this.categoryCol = "";
         this.primaryCol = "";
         /*Cambiando el contexto al propio this*/

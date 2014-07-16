@@ -56,8 +56,6 @@ function clickSelect(){
 }
 
 function discreteGraphicPaint (dynamicDistributionObject) {
-    var compositeChart = dc.compositeChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
-    var categoriesFiltered = getCategoriesFiltered();
     if (dynamicDistributionObject.getPrimaryCol() == undefined ||
         dynamicDistributionObject.getPrimaryCol() == "" ||
         dynamicDistributionObject.getCategoryCol() == undefined ||
@@ -65,6 +63,8 @@ function discreteGraphicPaint (dynamicDistributionObject) {
         ){
         return;
     }
+    var compositeChart = dc.compositeChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
+    var categoriesFiltered = getCategoriesFiltered();
     if (categoriesFiltered.length == 0){
         document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'
         return;
