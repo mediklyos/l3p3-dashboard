@@ -33,7 +33,7 @@ var descriptions = {
 
 function streamStats() {
 
-    var ws = new ReconnectingWebSocket('ws://' + location.host + '/');
+    var ws = new ReconnectingWebSocket('ws://' + location.host + ':3389/');
     var lineCount;
     var colHeadings;
 
@@ -65,20 +65,21 @@ function streamStats() {
         }
     };
 }
-
+var count = 0;
 function initCharts() {
     Object.each(descriptions, function(sectionName, values) {
         //var section = $('#writeHere').clone().removeClass('template').appendTo('#charts');
         var section = $('.chart.template').clone().removeClass('template').appendTo('#charts');
 
         section.find('.title').text(sectionName);
-
+        timeRefresh = 1000 *-count++;
         var smoothie = new SmoothieChart({
             grid: {
                 sharpLines: true,
                 verticalSections: 5,
                 strokeStyle: 'rgba(119,119,119,0.45)',
-                millisPerLine: 1000
+                fillStyle:'rgba(0, 255, 0, 0)',
+                millisPerLine: (1000 * (count++)),
             },
             minValue: 0,
             labels: {

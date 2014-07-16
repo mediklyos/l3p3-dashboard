@@ -56,10 +56,17 @@ function clickSelect(){
 }
 
 function discreteGraphicPaint (dynamicDistributionObject) {
+    var compositeChart = dc.compositeChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
+    var categoriesFiltered = getCategoriesFiltered();
     if (dynamicDistributionObject.getPrimaryCol() == undefined ||
         dynamicDistributionObject.getPrimaryCol() == "" ||
         dynamicDistributionObject.getCategoryCol() == undefined ||
-        dynamicDistributionObject.getCategoryCol() == ""){
+        dynamicDistributionObject.getCategoryCol() == ""
+        ){
+        return;
+    }
+    if (categoriesFiltered.length == 0){
+        document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'
         return;
     }
     document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'block'
@@ -67,7 +74,6 @@ function discreteGraphicPaint (dynamicDistributionObject) {
 
 
 //    var chart = dc.barChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
-    var compositeChart = dc.compositeChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
     var categoryInfo = dynamicDistributionObject.getCategoryColInfo();
     var categoryKeys = categoryInfo.keys;
     var categoryCol = categoryInfo.key;
@@ -75,7 +81,6 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     var primaryColInfo = dynamicDistributionObject.getPrimaryColInfo();
     var primaryCol = primaryColInfo.key;
     var primaryKeys = primaryColInfo.keys;
-    var categoriesFiltered = getCategoriesFiltered();
 
 
 
@@ -148,12 +153,10 @@ function discreteGraphicPaint (dynamicDistributionObject) {
             var border = Math.floor(width * BORDER_PROPORTION);
             var width_borderless = width - border * 2;
             var primary_col_width = Math.floor(width_borderless / charts.length);
-            boxes.attr("width",primary_col_width);
-//            boxes.attr("width",(width / 2)-22);
-            for (var i = 0; i < charts.length; i ++){
-                var element_name = "g._"+i;
-                var movement = primary_col_width * i  + border / 2;
-//                movement = border / 2;
+            boxes.attr("width", primary_col_width);
+            for (var i = 0; i < charts.length; i++) {
+                var element_name = "g._" + i;
+                var movement = primary_col_width * i + border / 2;
                 var translate_cad = "translate(" + movement + ", 0)"
                 chart.selectAll(element_name).attr("transform", translate_cad);
             }

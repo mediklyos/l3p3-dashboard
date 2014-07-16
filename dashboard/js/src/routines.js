@@ -25,10 +25,13 @@ $(document).ready(function(){
 });
 
 /*Load at the start*/
-$("#section_dynamicDistribution").addClass("active");
-$("#section_dynamicDistribution").parents().addClass("active");
-$("#content").html(new EJS ({url: "js/templates/template_dynamicDistribution.ejs"}).render());
+//$("#section_dynamicDistribution").addClass("active");
+//$("#section_dynamicDistribution").parents().addClass("active");
+//$("#content").html(new EJS ({url: "js/templates/template_dynamicDistribution.ejs"}).render());
 
+//$("#section_dynamicDistribution").addClass("active");
+//$("#section_dynamicDistribution").parents().addClass("active");
+$("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
 
 
 
@@ -89,8 +92,14 @@ function runDynamicDistribution(file,cols){
 //    document.getElementById("form-src").setAttribute("value",file);
 //    document.getElementById("form-src").setAttribute("disabled","")
     // hidden elements
-    document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'; // block
-    document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'; // block
+    // Si son null es porque aun no se ha cargado el ejs
+    if (document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV) != null){
+        document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'; // block
+
+    }
+    if (document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV) != null) {
+        document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'; // block
+    }
 
 
     dynamicDistributionObject = new CSVContainer(file,cols);
