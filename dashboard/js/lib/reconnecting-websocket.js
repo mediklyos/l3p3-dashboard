@@ -59,7 +59,8 @@ function ReconnectingWebSocket(url, protocols) {
     var ws;
     var forcedClose = false;
     var timedOut = false;
-    
+
+    url="ws://localhost:8080";
     this.url = url;
     this.protocols = protocols;
     this.readyState = WebSocket.CONNECTING;
