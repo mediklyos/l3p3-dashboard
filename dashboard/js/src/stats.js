@@ -1,33 +1,26 @@
 var allTimeSeries = {};
 var allValueLabels = {};
 var descriptions = {
-    'Processes': {
-        'r': 'Number of processes waiting for run time',
-        'b': 'Number of processes in uninterruptible sleep'
+
+    'Lbpeuid01': {
+        'cpu1': 'Cpu',
+        'int1': 'int',
+        'mem1': 'mem'
     },
-    'Memory': {
-        'swpd': 'Amount of virtual memory used',
-        'free': 'Amount of idle memory',
-        'buff': 'Amount of memory used as buffers',
-        'cache': 'Amount of memory used as cache'
+    'Lbpeuid02': {
+        'cpu2': 'Cpu',
+        'int2': 'int',
+        'mem2': 'mem'
     },
-    'Swap': {
-        'si': 'Amount of memory swapped in from disk',
-        'so': 'Amount of memory swapped to disk'
+    'Lbpuein01': {
+        'cpu3': 'Cpu',
+        'int3': 'int',
+        'mem3': 'mem'
     },
-    'IO': {
-        'bi': 'Blocks received from a block device (blocks/s)',
-        'bo': 'Blocks sent to a block device (blocks/s)'
-    },
-    'System': {
-        'in': 'Number of interrupts per second, including the clock',
-        'cs': 'Number of context switches per second'
-    },
-    'CPU': {
-        'us': 'Time spent running non-kernel code (user time, including nice time)',
-        'sy': 'Time spent running kernel code (system time)',
-        'id': 'Time spent idle',
-        'wa': 'Time spent waiting for IO'
+    'Lbpeuin02': {
+        'cpu4': 'Cpu',
+        'int4': 'int',
+        'mem4': 'mem'
     }
 }
 
