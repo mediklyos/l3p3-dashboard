@@ -25,13 +25,11 @@ $(document).ready(function(){
 });
 
 /*Load at the start*/
-//$("#section_dynamicDistribution").addClass("active");
-//$("#section_dynamicDistribution").parents().addClass("active");
-//$("#content").html(new EJS ({url: "js/templates/template_dynamicDistribution.ejs"}).render());
+$("#section_dynamicDistribution").addClass("active");
+$("#section_dynamicDistribution").parents().addClass("active");
+$("#content").html(new EJS ({url: "js/templates/template_dynamicDistribution.ejs"}).render());
 
-//$("#section_dynamicDistribution").addClass("active");
-//$("#section_dynamicDistribution").parents().addClass("active");
-$("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
+//$("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
 
 
 

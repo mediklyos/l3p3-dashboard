@@ -178,11 +178,11 @@ function setCategoryFilterList(keys){
     var title = 'Categories'
     var panel = createPanelButtons(title,DYNAMIC_DISTRIBUTION_FILTER_CATEGORY,keys,BUTTON_CATEGORY_FILTER_CLASS,BUTTON_ID_PREFIX_CATEGORY_FILTER,clickOnCategoryFilter)
     var body = panel.find(".panel-body")
-    var all= jQuery('<div/>', {
+    body.append(" ")
+    var button_all_group= jQuery('<div/>', {
             class: 'btn-group'
         }
     ).appendTo(body);
-
 
     // Adding "All" button
     jQuery('<button/>',{
@@ -190,8 +190,8 @@ function setCategoryFilterList(keys){
         onclick:"clickOnCategoryAllNone()",
         text: "All/None",
         type: 'button',
-        class: 'btn btn-default'
-    }).appendTo(all);
+        class: 'btn btn-default active'
+    }).appendTo(button_all_group);
 
     return panel;
 }
@@ -207,9 +207,12 @@ function createPanelButtons(title, parentId , keys, buttonsClass,buttons_id_pref
             text: title
         }
     ).appendTo(panel);
-    var panelButtons = jQuery('<div/>', {
-        class: 'panel-body btn-group'
+    var panelBody = jQuery('<div/>', {
+        class: 'panel-body'
     }).appendTo(panel);
+    var panelButtons = jQuery('<div/>', {
+        class: 'btn-group'
+    }).appendTo(panelBody);
     jQuery('<div/>', {
             class: 'btn-group'
         }
