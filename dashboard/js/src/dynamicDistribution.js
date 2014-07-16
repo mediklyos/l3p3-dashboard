@@ -7,6 +7,7 @@ var DYNAMIC_DISTRIBUTION_GRAPHICS_DIV = "dd-graphics-col";
 var DYNAMIC_DISTRIBUTION_FILTERS_DIV = "dd-filters-col";
 
 var DYNAMIC_DISTRIBUTION_FILTER_CATEGORY = "dd-filter-category";
+var DYNAMIC_DISTRIBUTION_FILTER_PRIMARY = "dd-filter-primary";
 
 var DYNAMIC_DISTRIBUTION_FILTER_CATEGORY_CLASS = "dd-filter-category-class";
 
@@ -14,10 +15,12 @@ var BUTTON_ID_CATEGORY_FILTER_ALL = "dd-category-filter-all";
 var BUTTON_ID_PREFIX_PRIMARY = "dd-primary-";
 var BUTTON_ID_PREFIX_CATEGORY = "dd-button-";
 var BUTTON_ID_PREFIX_CATEGORY_FILTER = "dd-category-filter";
+var BUTTON_ID_PREFIX_PRIMARY_FILTER = "dd-primary-filter";
 
 var BUTTON_PRIMARY_CLASS = "dd-primary-class"
 
 var BUTTON_CATEGORY_FILTER_CLASS = "dd-category-filter-class"
+var BUTTON_PRIMARY_FILTER_CLASS = "dd-primary-filter-class"
 
 
 var BUTTON_CATEGORY_CLASS = "dd-category-class"
@@ -26,6 +29,7 @@ var BORDER_PROPORTION = 0.1
 var CHART_WIDTH = $(window).width() * 0.96;
 
 var categoryFiltered = new Object;
+var primaryFiltered = new Object;
 
 
 function discreteGraphicProcess (dynamicDistributionObject){
@@ -107,6 +111,9 @@ function discreteGraphicPaint (dynamicDistributionObject) {
             .dimension(dimension.dimension)
             .group(group, categoryCol)
             .brushOn(false)
+            .title(function (d) {
+                return d.key + ": " + d.value;
+            })
         charts.push(newChart)
     }else {
         for (var i = 0; i < primaryKeys.length;i++){
@@ -127,7 +134,7 @@ function discreteGraphicPaint (dynamicDistributionObject) {
                 .group(groupsReduced[key], cat)
                 .brushOn(false)
                 .title(function (d) {
-                    return "" + this + ": " + d.value;
+                    return "Category: "+d.key + "\nPrimary: " + this + "\nAppearances: " + d.value;
                 }.bind(cat))
             charts.push(newChart)
         }
@@ -195,7 +202,19 @@ function setCategoryFilterList(keys){
 
     return panel;
 }
+function setPrimaryFilterList(keys) {
+    createPanelButtons("Primary",DYNAMIC_DISTRIBUTION_FILTER_PRIMARY,keys,BUTTON_PRIMARY_FILTER_CLASS ,BUTTON_ID_PREFIX_PRIMARY_FILTER ,clickOnPrimaryFilter)
 
+}
+
+
+function clickOnPrimaryFilter (attribute){
+    primaryFiltered[attribute] =!categoryFiltered[attribute];
+    $(document.getElementById(BUTTON_ID_PREFIX_PRIMARY_FILTER+attribute)).toggleClass("active")
+//    $("#"+BUTTON_ID_CATEGORY_FILTER_ALL).removeClass("active")
+    discreteGraphicPaint(dynamicDistributionObject)
+
+}
 function createPanelButtons(title, parentId , keys, buttonsClass,buttons_id_prefix,callback){
     $("#"+parentId).empty();
     var panel = jQuery('<div/>',{
@@ -239,8 +258,9 @@ function setCategory(newCategory){
     if (newCategory == "") {
         $("#"+DYNAMIC_DISTRIBUTION_FILTER_CATEGORY).empty();
     } else if (newCategory != prevCategory){
+        // Active only one category
         $("."+BUTTON_CATEGORY_CLASS).removeClass("active");
-        $("#"+BUTTON_ID_PREFIX_CATEGORY + newCategory).addClass("active")
+        $(document.getElementById(BUTTON_ID_PREFIX_CATEGORY + newCategory)).addClass("active")
         dynamicDistributionObject.categorizedBy(newCategory);
         var categoryInfo = dynamicDistributionObject.getCategoryColInfo();
         var categoryType = categoryInfo.type;
@@ -248,7 +268,7 @@ function setCategory(newCategory){
             document.getElementById(DYNAMIC_DISTRIBUTION_FILTER_CATEGORY).innerHTML = "";
             return;
         } else if (categoryType == CSVContainer.TYPE_DISCRETE) {
-            var panel = setCategoryFilterList(categoryInfo.keys);
+            setCategoryFilterList(categoryInfo.keys);
 
 
             categoryFiltered = new Object;
@@ -265,11 +285,32 @@ function setCategory(newCategory){
 
 function setPrimary(newPrimary){
     var prevPrimary = dynamicDistributionObject.getPrimaryColInfo();
-    if(prevPrimary != newPrimary){
+    if (newPrimary == ""){
+
+    }
+    else if(prevPrimary != newPrimary){
+        // Active only one primary
         $("."+BUTTON_PRIMARY_CLASS).removeClass("active");
         $(document.getElementById(BUTTON_ID_PREFIX_PRIMARY + newPrimary)).addClass("active")
         dynamicDistributionObject.setPrimaryCol(newPrimary);
-        discreteGraphicPaint(dynamicDistributionObject)
+
+        var primaryColInfo = dynamicDistributionObject.getPrimaryColInfo();
+        var primaryType = primaryColInfo.type;
+
+        if (primaryType == undefined) {
+            document.getElementById(DYNAMIC_DISTRIBUTION_FILTER_PRIMARY).innerHTML = "";
+            return;
+        } else if (primaryType == CSVContainer.TYPE_DISCRETE) {
+            setPrimaryFilterList(primaryColInfo.keys);
+            primaryFiltered = new Object;
+            $("."+BUTTON_PRIMARY_FILTER_CLASS).addClass("active")
+            for (var key in primaryColInfo.keys){
+                primaryFiltered[primaryColInfo.keys[key]] = true;
+//                $("#"+BUTTON_ID_PREFIX_CATEGORY_FILTER+categoryInfo.keys[key]).addClass("active")
+            }
+            discreteGraphicPaint(dynamicDistributionObject)
+            return;
+        }
     }
 
 }
