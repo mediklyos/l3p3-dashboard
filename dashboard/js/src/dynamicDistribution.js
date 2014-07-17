@@ -63,14 +63,13 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     // Comprobar que se ha selecionado la columna de categoria y de atributo primario
     // Si no hay ninguna categoria no mostrar nada tampoco se muestra nada
     var categoriesFiltered = getCategoriesFiltered();
-    var primaryFiltered = getPrimaryFiltered();
     var primaryColInfo = dynamicDistributionObject.getPrimaryColInfo();
     var emptySecondary = false;
-    var emptyPrimary = (primaryColInfo !== undefined) && (false || (Object.keys(primaryFiltered).length == 0))
+    var emptyPrimary = false;//(primaryColInfo !== undefined) && (false || (Object.keys(primaryFiltered).length == 0))
 
-    for (var key1 in secondaryFilters){
-        emptySecondary = (Object.keys(secondaryFilters[key1]).length == 0) || emptySecondary;
-    }
+//    for (var key1 in secondaryFilters){
+//        emptySecondary = (Object.keys(secondaryFilters[key1]).length == 0) || emptySecondary;
+//    }
     if (dynamicDistributionObject.getCategoryCol() == undefined ||
         dynamicDistributionObject.getCategoryCol() == "" ||
         categoriesFiltered.length == 0 || emptyPrimary || emptySecondary
@@ -122,22 +121,29 @@ function discreteGraphicPaint (dynamicDistributionObject) {
         charts.push(newChart)
 
     }else {
-        for (var i = 0; i < primaryFiltered.length;i++){
-            groupsReduced[i] = dimension.dimension.group().reduceSum(function (pos,d) {
+        var primaryKeys = new Array;
+        for (var key in dynamicDistributionObject.getPrimaryColInfo().keys){
+            key = dynamicDistributionObject.getPrimaryColInfo().keys[key]
+            if(!primaryFiltered[key]){
+                primaryKeys.push(key);
+            }
+        }
+        for (var key in primaryKeys) {
+            groupsReduced[key] = dimension.dimension.group().reduceSum(function (pos,d) {
                 for (var secKey in secondaryFilters){
-                    if (secondaryFilters[secKey][d[secKey]] === undefined) {
+                    if (secondaryFilters[secKey][d[secKey]]) {
                         return 0
                     }
                 }
-                if ((categoriesFiltered.indexOf(d[categoryCol]) == -1) || (primaryFiltered[pos] != d[primaryCol])){
+                if ((categoriesFiltered.indexOf(d[categoryCol]) == -1) || (primaryKeys[pos] != d[primaryCol])){
                     return 0;
                 }else{
                     return 1;
                 }
-            }.bind(null,i));
+            }.bind(null,key));
         }
-        for (var key in primaryFiltered) {
-            var cat = primaryFiltered[key];
+        for (var key in primaryKeys) {
+            var cat = primaryKeys[key];
             var newChart = dc.barChart(compositeChart)
                 .colors(myColors(color++))
                 .gap(0)
@@ -166,18 +172,20 @@ function discreteGraphicPaint (dynamicDistributionObject) {
 
     compositeChart
         .renderlet(function (chart) {
-            // Este código mueve las columnas del gráfico para que se vean todas correctamente
-            var boxes = chart.selectAll("rect.bar");
-            var width = boxes.attr("width");
-            var border = Math.floor(width * BORDER_PROPORTION);
-            var width_borderless = width - border * 2;
-            var primary_col_width = Math.floor(width_borderless / charts.length);
-            boxes.attr("width", primary_col_width);
-            for (var i = 0; i < charts.length; i++) {
-                var element_name = "g._" + i;
-                var movement = primary_col_width * i + border / 2;
-                var translate_cad = "translate(" + movement + ", 0)"
-                chart.selectAll(element_name).attr("transform", translate_cad);
+            if (charts.length > 0) {
+                // Este código mueve las columnas del gráfico para que se vean todas correctamente
+                var boxes = chart.selectAll("rect.bar");
+                var width = boxes.attr("width");
+                var border = Math.floor(width * BORDER_PROPORTION);
+                var width_borderless = width - border * 2;
+                var primary_col_width = Math.floor(width_borderless / charts.length);
+                boxes.attr("width", primary_col_width);
+                for (var i = 0; i < charts.length; i++) {
+                    var element_name = "g._" + i;
+                    var movement = primary_col_width * i + border / 2;
+                    var translate_cad = "translate(" + movement + ", 0)"
+                    chart.selectAll(element_name).attr("transform", translate_cad);
+                }
             }
         });
     compositeChart.render();
@@ -297,9 +305,9 @@ function setPrimary(newPrimary){
             setPrimaryFilterList(primaryColInfo.keys);
             primaryFiltered = new Object;
             $("."+BUTTON_PRIMARY_FILTER_CLASS).addClass("active")
-            for (var key in primaryColInfo.keys){
-                primaryFiltered[primaryColInfo.keys[key]] = true;
-            }
+//            for (var key in primaryColInfo.keys){
+//                primaryFiltered[primaryColInfo.keys[key]] = true;
+//            }
         }
     }
     else if (newPrimary == "" || newPrimary == prevPrimary.key ){
@@ -334,10 +342,10 @@ function setPrimaryFilterList(keys) {
 }
 
 function clickOnPrimaryFilter (attribute){
-    if (primaryFiltered[attribute]){
-        delete primaryFiltered[attribute];
-    } else {
+    if (primaryFiltered[attribute] === undefined){
         primaryFiltered[attribute] = true;
+    } else {
+        delete primaryFiltered[attribute];
     }
 
     // Se ha hecho así por si el atributo tiene caracteres prohibidos para jQuery como "." y "/"
@@ -354,9 +362,9 @@ function clickOnPrimaryAllNone(){
     var keys = dynamicDistributionObject.getPrimaryColInfo().keys;
     for (var key in keys){
         if (result) {
-            primaryFiltered[keys[key]] = true;
-        } else {
             delete primaryFiltered[keys[key]];
+        } else {
+            primaryFiltered[keys[key]] = true;
         }
     }
     discreteGraphicPaint(dynamicDistributionObject)
@@ -397,7 +405,7 @@ function clickSecondary(attribute){
         secondaryFilters[attribute] = new Object
         $("."+BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute).addClass("active");
         for (var key in keys){
-            secondaryFilters[attribute][keys[key]] = true;
+//            secondaryFilters[attribute][keys[key]] = true;
         }
     } else {
         var panel = document.getElementById(DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute);
