@@ -89,6 +89,10 @@
         return this.distributions[this.categoryCol];
     }
 
+    CSVContainer.prototype.getAttributeInfo= function(attribute){
+        return this.distributions[attribute];
+    }
+
     CSVContainer.prototype.getKeys = function (){
         return this.keys;
     }

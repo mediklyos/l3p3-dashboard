@@ -113,6 +113,7 @@ function runDynamicDistribution(file,cols){
             }
             setCategoryList(keyList);
             setPrimaryList(keyList);
+            setSecondaryList(keyList);
             discreteGraphicProcess(dynamicDistributionObject);
         }
         return newValue;

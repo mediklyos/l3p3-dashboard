@@ -1,36 +1,58 @@
 var DYNAMIC_DISTRIBUTION_CHART_DIV = "dynamic-distribution-chart-div";
-var DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_COL_ID = "dd-select-category"
-var DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_COL_ID = "dd-select-primary-col"
 
 var DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV = "dd-attributes-col";
 var DYNAMIC_DISTRIBUTION_GRAPHICS_DIV = "dd-graphics-col";
 var DYNAMIC_DISTRIBUTION_FILTERS_DIV = "dd-filters-col";
 
-var DYNAMIC_DISTRIBUTION_FILTER_CATEGORY = "dd-filter-category";
-var DYNAMIC_DISTRIBUTION_FILTER_PRIMARY = "dd-filter-primary";
+
+
+
+
+// *_COL_ID = Ids de los div donde se muestran los atributos
+// *_FILTER = Ids de los div donde se muestran los filtros de los atributos
+// *_PANEL_FILTER_ID = Id del panel de filtro
+// *_ID_PREFIX = Prefijo para los botones que se usan para selecionar los atributos
+// *_CLASS = Clase para los botones que se usan para selecionar los atributos
+// *_ID_FILTER_ALL = Id del boton all/none en los filtros
+// *_ID_PREFIX_FILTER = Prefijo para el id de los botones de los valores para los filtros de cada atributo
+// *_ID_FILTER_CLASS = clase para los botones de los filtros
+var DYNAMIC_DISTRIBUTION_CATEGORY_SELECT_COL_ID = "dd-select-category"
+var DYNAMIC_DISTRIBUTION_CATEGORY_FILTER = "dd-filter-category";
+var DYNAMIC_DISTRIBUTION_CATEGORY_PANEL_FILTER = "dd-filter-category-panel-filter";
+var BUTTON_CATEGORY_ID_PREFIX = "dd-button-";
+var BUTTON_CATEGORY_CLASS = "dd-category-class"
+var BUTTON_CATEGORY_FILTER_CLASS = "dd-category-filter-class"
+var BUTTON_CATEGORY_ID_FILTER_ALL = "dd-category-filter-all";
+var BUTTON_CATEGORY_ID_PREFIX_FILTER = "dd-category-filter";
 
 var DYNAMIC_DISTRIBUTION_FILTER_CATEGORY_CLASS = "dd-filter-category-class";
 
-var BUTTON_ID_CATEGORY_FILTER_ALL = "dd-category-filter-all";
-var BUTTON_ID_PRIMARY_FILTER_ALL = "dd-primary-filter-all";
-var BUTTON_ID_PREFIX_PRIMARY = "dd-primary-";
-var BUTTON_ID_PREFIX_CATEGORY = "dd-button-";
-var BUTTON_ID_PREFIX_CATEGORY_FILTER = "dd-category-filter";
-var BUTTON_ID_PREFIX_PRIMARY_FILTER = "dd-primary-filter";
 
+var DYNAMIC_DISTRIBUTION_PRIMARY_SELECT_COL_ID = "dd-select-primary-col"
+var DYNAMIC_DISTRIBUTION_PRIMARY_FILTER = "dd-filter-primary";
+var DYNAMIC_DISTRIBUTION_PRIMARY_PANEL_FILTER = "dd-filter-primary-panel-filter";
+var BUTTON_PRIMARY_ID_PREFIX = "dd-primary-";
 var BUTTON_PRIMARY_CLASS = "dd-primary-class"
-
-var BUTTON_CATEGORY_FILTER_CLASS = "dd-category-filter-class"
+var BUTTON_PRIMARY_ID_FILTER_ALL = "dd-primary-filter-all";
+var BUTTON_PRIMARY_ID_PREFIX_FILTER = "dd-primary-filter";
 var BUTTON_PRIMARY_FILTER_CLASS = "dd-primary-filter-class"
 
+var DYNAMIC_DISTRIBUTION_SECONDARY_SELECT_COL_ID = "dd-select-secondary-col"
+var DYNAMIC_DISTRIBUTION_SECONDARY_FILTER = "dd-filter-secondary";
+var DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX = "dd-filter-secondary-panel-filter-";
+var BUTTON_SECONDARY_ID_PREFIX = "dd-secondary-";
+var BUTTON_SECONDARY_CLASS = "dd-secondary-class"
+var BUTTON_SECONDARY_ID_FILTER_ALL_PREFIX = "dd-secondary-filter-all-";
+var BUTTON_SECONDARY_ID_PREFIX_FILTER = "dd-secondary-filter-";
+var BUTTON_SECONDARY_FILTER_CLASS_PREFIX = "dd-secondary-filter-class-"
 
-var BUTTON_CATEGORY_CLASS = "dd-category-class"
 
 var BORDER_PROPORTION = 0.1
 var CHART_WIDTH = $(window).width() * 0.96;
 
 var categoryFiltered = new Object;
 var primaryFiltered = new Object;
+var secondaryFilters = new Object;
 
 
 function discreteGraphicProcess (dynamicDistributionObject){
@@ -42,11 +64,17 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     // Si no hay ninguna categoria no mostrar nada tampoco se muestra nada
     var categoriesFiltered = getCategoriesFiltered();
     var primaryFiltered = getPrimaryFiltered();
+    var emptySecondary = false;
+
+    for (var key1 in secondaryFilters){
+        emptySecondary = (Object.keys(secondaryFilters[key1]).length == 0) || emptySecondary;
+    }
+    secondaryFilters
     if (dynamicDistributionObject.getPrimaryCol() == undefined ||
         dynamicDistributionObject.getPrimaryCol() == "" ||
         dynamicDistributionObject.getCategoryCol() == undefined ||
         dynamicDistributionObject.getCategoryCol() == "" ||
-        categoriesFiltered.length == 0 || primaryFiltered.length == 0
+        categoriesFiltered.length == 0 || primaryFiltered.length == 0 || emptySecondary
         ){
         document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'
         return;
@@ -56,13 +84,11 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     var compositeChart = dc.compositeChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
 
 
-//    var chart = dc.barChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
     var categoryInfo = dynamicDistributionObject.getCategoryColInfo();
     var categoryCol = categoryInfo.key;
     var dimension = categoryInfo.dimension();
     var primaryColInfo = dynamicDistributionObject.getPrimaryColInfo();
     var primaryCol = primaryColInfo.key;
-//    var primaryFiltered;
 
 
 
@@ -95,9 +121,15 @@ function discreteGraphicPaint (dynamicDistributionObject) {
                 return d.key + ": " + d.value;
             })
         charts.push(newChart)
+
     }else {
         for (var i = 0; i < primaryFiltered.length;i++){
             groupsReduced[i] = dimension.dimension.group().reduceSum(function (pos,d) {
+                for (var secKey in secondaryFilters){
+                    if (secondaryFilters[secKey][d[secKey]] === undefined) {
+                        return 0
+                    }
+                }
                 if ((categoriesFiltered.indexOf(d[categoryCol]) == -1) || (primaryFiltered[pos] != d[primaryCol])){
                     return 0;
                 }else{
@@ -152,18 +184,57 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     compositeChart.render();
 }
 
-function setCategoryList(keys) {
-    createPanelButtons("Category attribute",DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_COL_ID,keys,BUTTON_CATEGORY_CLASS,BUTTON_ID_PREFIX_CATEGORY,setCategory);
+// CATEGORY FUNCTIONS
+function setCategory(newCategory){
+    var prevCategory = dynamicDistributionObject.getCategoryCol();
+
+    if (newCategory == "") {
+        $("#"+DYNAMIC_DISTRIBUTION_CATEGORY_FILTER).empty();
+    } else if (newCategory != prevCategory){
+        // Active only one category
+        $("."+BUTTON_CATEGORY_CLASS).removeClass("active");
+        $(document.getElementById(BUTTON_CATEGORY_ID_PREFIX + newCategory)).addClass("active")
+        dynamicDistributionObject.categorizedBy(newCategory);
+        var categoryInfo = dynamicDistributionObject.getCategoryColInfo();
+        var categoryType = categoryInfo.type;
+        if (categoryType == undefined) {
+            document.getElementById(DYNAMIC_DISTRIBUTION_CATEGORY_FILTER).innerHTML = "";
+            return;
+        } else if (categoryType == CSVContainer.TYPE_DISCRETE) {
+            setCategoryFilterList(categoryInfo.keys);
+
+
+            categoryFiltered = new Object;
+            $("."+BUTTON_CATEGORY_FILTER_CLASS).addClass("active")
+            for (var key in categoryInfo.keys){
+                categoryFiltered[categoryInfo.keys[key]] = true;
+//                $("#"+BUTTON_CATEGORY_ID_PREFIX_FILTER+categoryInfo.keys[key]).addClass("active")
+            }
+            discreteGraphicPaint(dynamicDistributionObject)
+            return;
+        }
+    }
 }
 
-function setPrimaryList(keys) {
-    createPanelButtons("Primary attribute",DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_COL_ID,keys,BUTTON_PRIMARY_CLASS,BUTTON_ID_PREFIX_PRIMARY,setPrimary)
+function setCategoryList(keys) {
+    $("#"+DYNAMIC_DISTRIBUTION_CATEGORY_SELECT_COL_ID).empty();
+    createPanelButtons("Category attribute",undefined,DYNAMIC_DISTRIBUTION_CATEGORY_SELECT_COL_ID,keys,BUTTON_CATEGORY_CLASS,BUTTON_CATEGORY_ID_PREFIX,setCategory);
+}
+
+function clickOnCategoryFilter(category) {
+    categoryFiltered[category] =!categoryFiltered[category];
+    $(document.getElementById(BUTTON_CATEGORY_ID_PREFIX_FILTER+category)).toggleClass("active")
+    $("#"+BUTTON_CATEGORY_ID_FILTER_ALL).removeClass("active")
+
+
+    discreteGraphicPaint(dynamicDistributionObject)
 }
 
 function setCategoryFilterList(keys){
 
-    var title = 'Categories'
-    var panel = createPanelButtons(title,DYNAMIC_DISTRIBUTION_FILTER_CATEGORY,keys,BUTTON_CATEGORY_FILTER_CLASS,BUTTON_ID_PREFIX_CATEGORY_FILTER,clickOnCategoryFilter)
+    var title = 'Categories ('+dynamicDistributionObject.getCategoryCol()+')';
+    $("#"+DYNAMIC_DISTRIBUTION_CATEGORY_FILTER).empty();
+    var panel = createPanelButtons(title,undefined,DYNAMIC_DISTRIBUTION_CATEGORY_FILTER,keys,BUTTON_CATEGORY_FILTER_CLASS,BUTTON_CATEGORY_ID_PREFIX_FILTER,clickOnCategoryFilter)
     var body = panel.find(".panel-body")
     body.append(" ")
     var button_all_group= jQuery('<div/>', {
@@ -173,8 +244,8 @@ function setCategoryFilterList(keys){
 
     // Adding "All" button
     jQuery('<button/>',{
-        id : BUTTON_ID_CATEGORY_FILTER_ALL,
-        onclick:"clickOnCategoryAllNone()",
+        id : BUTTON_CATEGORY_ID_FILTER_ALL,
+        onclick:"clickOnCategoryFilterAllNone()",
         text: "All/None",
         type: 'button',
         class: 'btn btn-default active'
@@ -182,8 +253,67 @@ function setCategoryFilterList(keys){
 
     return panel;
 }
+
+function clickOnCategoryFilterAllNone(){
+    $(document.getElementById(BUTTON_CATEGORY_ID_FILTER_ALL)).toggleClass("active")
+    var result = $("#"+BUTTON_CATEGORY_ID_FILTER_ALL).hasClass("active");
+    $("."+BUTTON_CATEGORY_FILTER_CLASS).toggleClass("active",result);
+    for (var key in categoryFiltered){
+        categoryFiltered[key] = result;
+    }
+    discreteGraphicPaint(dynamicDistributionObject)
+}
+
+function getCategoriesFiltered(){
+    var categories = new Array
+    for (var key in categoryFiltered ){
+        if (categoryFiltered[key]){
+            categories.push(key);
+        }
+    }
+    return categories;
+}
+
+// PRIMARY ATTRIBUTE FUNCTIONS
+function setPrimaryList(keys) {
+    $("#"+DYNAMIC_DISTRIBUTION_PRIMARY_SELECT_COL_ID).empty();
+    createPanelButtons("Primary attribute",undefined,DYNAMIC_DISTRIBUTION_PRIMARY_SELECT_COL_ID,keys,BUTTON_PRIMARY_CLASS,BUTTON_PRIMARY_ID_PREFIX,setPrimary)
+}
+
+function setPrimary(newPrimary){
+    var prevPrimary = dynamicDistributionObject.getPrimaryColInfo();
+    if (newPrimary == ""){
+
+    }
+    else if(prevPrimary != newPrimary){
+        // Active only one primary
+        $("."+BUTTON_PRIMARY_CLASS).removeClass("active");
+        $(document.getElementById(BUTTON_PRIMARY_ID_PREFIX + newPrimary)).addClass("active")
+        dynamicDistributionObject.setPrimaryCol(newPrimary);
+
+        var primaryColInfo = dynamicDistributionObject.getPrimaryColInfo();
+        var primaryType = primaryColInfo.type;
+
+        if (primaryType == undefined) {
+            document.getElementById(DYNAMIC_DISTRIBUTION_PRIMARY_FILTER).innerHTML = "";
+            return;
+        } else if (primaryType == CSVContainer.TYPE_DISCRETE) {
+            setPrimaryFilterList(primaryColInfo.keys);
+            primaryFiltered = new Object;
+            $("."+BUTTON_PRIMARY_FILTER_CLASS).addClass("active")
+            for (var key in primaryColInfo.keys){
+                primaryFiltered[primaryColInfo.keys[key]] = true;
+            }
+            discreteGraphicPaint(dynamicDistributionObject)
+            return;
+        }
+    }
+
+}
+
 function setPrimaryFilterList(keys) {
-    var panel = createPanelButtons("Primary",DYNAMIC_DISTRIBUTION_FILTER_PRIMARY,keys,BUTTON_PRIMARY_FILTER_CLASS ,BUTTON_ID_PREFIX_PRIMARY_FILTER ,clickOnPrimaryFilter);
+    $("#"+DYNAMIC_DISTRIBUTION_PRIMARY_FILTER).empty();
+    var panel = createPanelButtons("Primary attribute  ("+dynamicDistributionObject.getPrimaryCol()+")",undefined,DYNAMIC_DISTRIBUTION_PRIMARY_FILTER,keys,BUTTON_PRIMARY_FILTER_CLASS ,BUTTON_PRIMARY_ID_PREFIX_FILTER ,clickOnPrimaryFilter);
     var body = panel.find(".panel-body");
     body.append(" ");
     var button_all_group= jQuery('<div/>', {
@@ -191,7 +321,7 @@ function setPrimaryFilterList(keys) {
         }
     ).appendTo(body);
     jQuery('<button/>',{
-        id : BUTTON_ID_PRIMARY_FILTER_ALL,
+        id : BUTTON_PRIMARY_ID_FILTER_ALL,
         onclick:"clickOnPrimaryAllNone()",
         text: "All/None",
         type: 'button',
@@ -201,18 +331,95 @@ function setPrimaryFilterList(keys) {
 
 }
 
-
 function clickOnPrimaryFilter (attribute){
     primaryFiltered[attribute] =!primaryFiltered[attribute];
     // Se ha hecho así por si el atributo tiene caracteres prohibidos para jQuery como "." y "/"
-    $(document.getElementById(BUTTON_ID_PREFIX_PRIMARY_FILTER+attribute)).toggleClass("active")
+    $(document.getElementById(BUTTON_PRIMARY_ID_PREFIX_FILTER+attribute)).toggleClass("active")
     discreteGraphicPaint(dynamicDistributionObject)
 
 }
-function createPanelButtons(title, parentId , keys, buttonsClass,buttons_id_prefix,callback){
-    $("#"+parentId).empty();
+
+
+function clickOnPrimaryAllNone(){
+    $(document.getElementById(BUTTON_PRIMARY_ID_FILTER_ALL)).toggleClass("active")
+    var result = $("#"+BUTTON_PRIMARY_ID_FILTER_ALL).hasClass("active");
+    $("."+BUTTON_PRIMARY_FILTER_CLASS).toggleClass("active",result);
+    for (var key in primaryFiltered){
+        primaryFiltered[key] = result;
+    }
+    discreteGraphicPaint(dynamicDistributionObject)
+}
+
+
+
+function getPrimaryFiltered(){
+    var categories = new Array
+    for (var key in primaryFiltered ){
+        if (primaryFiltered[key]){
+            categories.push(key);
+        }
+    }
+    return categories;
+}
+
+
+// SECONDARY ATTRIBUTES FUNCTIONS
+function setSecondaryList(keys) {
+    $("#"+DYNAMIC_DISTRIBUTION_SECONDARY_SELECT_COL_ID).empty();
+    createPanelButtons("Secondary attributes",undefined,DYNAMIC_DISTRIBUTION_SECONDARY_SELECT_COL_ID,keys,BUTTON_SECONDARY_CLASS,BUTTON_SECONDARY_ID_PREFIX,clickSecondary)
+}
+
+function clickSecondary(attribute){
+    $(document.getElementById(BUTTON_SECONDARY_ID_PREFIX+attribute)).toggleClass("active")
+    var activeStatus = $(document.getElementById(BUTTON_SECONDARY_ID_PREFIX+attribute)).hasClass("active")
+    if (activeStatus){
+        var a = {
+            firstName:"John",
+            lastName:"Doe",
+            age:50,
+            eyeColor:"blue"
+        };
+
+        var keys = dynamicDistributionObject.getAttributeInfo(attribute).keys;
+        createPanelButtons("Filter by "+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_FILTER,keys,BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute,BUTTON_SECONDARY_ID_PREFIX_FILTER+attribute+"-",clickSecondaryFilter,{selfAttribute:attribute})
+        secondaryFilters[attribute] = new Object
+        $("."+BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute).addClass("active");
+        for (var key in keys){
+            secondaryFilters[attribute][keys[key]] = true;
+        }
+    } else {
+        var panel = document.getElementById(DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute);
+        delete secondaryFilters[attribute];
+        if (panel!== undefined){
+            panel.parentNode.removeChild(panel);
+        }
+        discreteGraphicPaint(dynamicDistributionObject)
+//        $("#"+DYNAMIC_DISTRIBUTION_SECONDARY_FILTER).remove();
+
+    }
+    return;
+}
+
+function clickSecondaryFilter (attribute) {
+    // Extraer el id porque no puedo pasarlo directamente, el id esta tres niveles de etiquetas encima
+    var idClicked = $(event.target).attr('selfAttribute');
+    if(secondaryFilters[idClicked][attribute]){
+        delete secondaryFilters[idClicked][attribute];
+    } else {
+        secondaryFilters[idClicked][attribute] = true;
+    }
+    // Se ha hecho así por si el atributo tiene caracteres prohibidos para jQuery como "." y "/"
+    $(document.getElementById(BUTTON_SECONDARY_ID_PREFIX_FILTER+idClicked+"-"+attribute)).toggleClass("active")
+    discreteGraphicPaint(dynamicDistributionObject)
+    return;
+}
+
+function createPanelButtons(title, id, parentId , keys, buttonsClass,buttons_id_prefix,callback,buttonAttr){
+
+//    $("#"+parentId).empty();
     var panel = jQuery('<div/>',{
-           class : "panel panel-default"
+           class : "panel panel-default",
+           id : id
         }
     ).appendTo("#"+parentId);
     var panelHeader = jQuery('<div/>', {
@@ -233,129 +440,18 @@ function createPanelButtons(title, parentId , keys, buttonsClass,buttons_id_pref
     $.each(keys,function(){
         var text = this;
         if (text == "") text = "#blank";
+        if (buttonAttr === undefined) {
+            buttonAttr = new Object
+        }
+        buttonAttr['type'] = 'button';
+        buttonAttr['class'] = 'btn btn-default '+buttonsClass;
+        buttonAttr['id'] = buttons_id_prefix + this;
+        buttonAttr['text'] = text;
+        buttonAttr['onclick'] = callback.name+'("' + this + '")';
 
-
-        var button = jQuery('<button/>', {
-            type: 'button',
-            class: 'btn btn-default '+buttonsClass,
-            id: buttons_id_prefix + this,
-            text: text,
-            onclick: callback.name+'("' + this + '")'
-        }).appendTo(panelButtons);
+        var button = jQuery('<button/>',buttonAttr ).appendTo(panelButtons);
     })
     return panel;
-}
-
-function setCategory(newCategory){
-    var prevCategory = dynamicDistributionObject.getCategoryCol();
-
-    if (newCategory == "") {
-        $("#"+DYNAMIC_DISTRIBUTION_FILTER_CATEGORY).empty();
-    } else if (newCategory != prevCategory){
-        // Active only one category
-        $("."+BUTTON_CATEGORY_CLASS).removeClass("active");
-        $(document.getElementById(BUTTON_ID_PREFIX_CATEGORY + newCategory)).addClass("active")
-        dynamicDistributionObject.categorizedBy(newCategory);
-        var categoryInfo = dynamicDistributionObject.getCategoryColInfo();
-        var categoryType = categoryInfo.type;
-        if (categoryType == undefined) {
-            document.getElementById(DYNAMIC_DISTRIBUTION_FILTER_CATEGORY).innerHTML = "";
-            return;
-        } else if (categoryType == CSVContainer.TYPE_DISCRETE) {
-            setCategoryFilterList(categoryInfo.keys);
-
-
-            categoryFiltered = new Object;
-            $("."+BUTTON_CATEGORY_FILTER_CLASS).addClass("active")
-            for (var key in categoryInfo.keys){
-                categoryFiltered[categoryInfo.keys[key]] = true;
-//                $("#"+BUTTON_ID_PREFIX_CATEGORY_FILTER+categoryInfo.keys[key]).addClass("active")
-            }
-            discreteGraphicPaint(dynamicDistributionObject)
-            return;
-        }
-    }
-}
-
-function setPrimary(newPrimary){
-    var prevPrimary = dynamicDistributionObject.getPrimaryColInfo();
-    if (newPrimary == ""){
-
-    }
-    else if(prevPrimary != newPrimary){
-        // Active only one primary
-        $("."+BUTTON_PRIMARY_CLASS).removeClass("active");
-        $(document.getElementById(BUTTON_ID_PREFIX_PRIMARY + newPrimary)).addClass("active")
-        dynamicDistributionObject.setPrimaryCol(newPrimary);
-
-        var primaryColInfo = dynamicDistributionObject.getPrimaryColInfo();
-        var primaryType = primaryColInfo.type;
-
-        if (primaryType == undefined) {
-            document.getElementById(DYNAMIC_DISTRIBUTION_FILTER_PRIMARY).innerHTML = "";
-            return;
-        } else if (primaryType == CSVContainer.TYPE_DISCRETE) {
-            setPrimaryFilterList(primaryColInfo.keys);
-            primaryFiltered = new Object;
-            $("."+BUTTON_PRIMARY_FILTER_CLASS).addClass("active")
-            for (var key in primaryColInfo.keys){
-                primaryFiltered[primaryColInfo.keys[key]] = true;
-//                $("#"+BUTTON_ID_PREFIX_CATEGORY_FILTER+categoryInfo.keys[key]).addClass("active")
-            }
-            discreteGraphicPaint(dynamicDistributionObject)
-            return;
-        }
-    }
-
-}
-
-function clickOnCategoryFilter(category) {
-    categoryFiltered[category] =!categoryFiltered[category];
-    $(document.getElementById(BUTTON_ID_PREFIX_CATEGORY_FILTER+category)).toggleClass("active")
-    $("#"+BUTTON_ID_CATEGORY_FILTER_ALL).removeClass("active")
-    discreteGraphicPaint(dynamicDistributionObject)
-}
-function clickOnCategoryAllNone(){
-    $(document.getElementById(BUTTON_ID_CATEGORY_FILTER_ALL)).toggleClass("active")
-    var result = $("#"+BUTTON_ID_CATEGORY_FILTER_ALL).hasClass("active");
-    $("."+BUTTON_CATEGORY_FILTER_CLASS).toggleClass("active",result);
-    for (var key in categoryFiltered){
-        categoryFiltered[key] = result;
-    }
-    discreteGraphicPaint(dynamicDistributionObject)
-}
-
-function clickOnPrimaryAllNone(){
-    $(document.getElementById(BUTTON_ID_PRIMARY_FILTER_ALL)).toggleClass("active")
-    var result = $("#"+BUTTON_ID_PRIMARY_FILTER_ALL).hasClass("active");
-    $("."+BUTTON_PRIMARY_FILTER_CLASS).toggleClass("active",result);
-    for (var key in primaryFiltered){
-        primaryFiltered[key] = result;
-    }
-    discreteGraphicPaint(dynamicDistributionObject)
-}
-
-
-
-
-function getCategoriesFiltered(){
-    var categories = new Array
-    for (var key in categoryFiltered ){
-        if (categoryFiltered[key]){
-            categories.push(key);
-        }
-    }
-    return categories;
-}
-
-function getPrimaryFiltered(){
-    var categories = new Array
-    for (var key in primaryFiltered ){
-        if (primaryFiltered[key]){
-            categories.push(key);
-        }
-    }
-    return categories;
 }
 
 var color20 = d3.scale.category20();
