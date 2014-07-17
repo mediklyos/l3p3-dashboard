@@ -60,8 +60,12 @@ function ReconnectingWebSocket(url, protocols) {
     var forcedClose = false;
     var timedOut = false;
 
+<<<<<<< HEAD
     url = "ws://localhost:8080";
 
+=======
+    url="ws://localhost:8080";
+>>>>>>> upstreamJ/devel
     this.url = url;
     this.protocols = protocols;
     this.readyState = WebSocket.CONNECTING;

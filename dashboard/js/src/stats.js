@@ -1,6 +1,7 @@
 var allTimeSeries = {};
 var allValueLabels = {};
 var descriptions = {
+<<<<<<< HEAD
     'Processes': {
         'r': 'Number of processes waiting for run time',
         'b': 'Number of processes in uninterruptible sleep'
@@ -28,6 +29,28 @@ var descriptions = {
         'sy': 'Time spent running kernel code (system time)',
         'id': 'Time spent idle',
         'wa': 'Time spent waiting for IO'
+=======
+
+    'Lbpeuid01': {
+        'cpu1': 'Cpu',
+        'int1': 'int',
+        'mem1': 'mem'
+    },
+    'Lbpeuid02': {
+        'cpu2': 'Cpu',
+        'int2': 'int',
+        'mem2': 'mem'
+    },
+    'Lbpuein01': {
+        'cpu3': 'Cpu',
+        'int3': 'int',
+        'mem3': 'mem'
+    },
+    'Lbpeuin02': {
+        'cpu4': 'Cpu',
+        'int4': 'int',
+        'mem4': 'mem'
+>>>>>>> upstreamJ/devel
     }
 }
 
@@ -68,7 +91,10 @@ function streamStats() {
 
 function initCharts() {
     Object.each(descriptions, function(sectionName, values) {
+<<<<<<< HEAD
         //var section = $('#writeHere').clone().removeClass('template').appendTo('#charts');
+=======
+>>>>>>> upstreamJ/devel
         var section = $('.chart.template').clone().removeClass('template').appendTo('#charts');
 
         section.find('.title').text(sectionName);
