@@ -101,14 +101,29 @@ function discreteGraphicPaint (dynamicDistributionObject) {
 
     // Si la categoria el atributo principal son el mismo se muestra la población de ese atributo
     //
-    if (primaryCol == categoryCol || primaryCol === undefined ||  primaryCol == ""){
-        var group = dimension.dimension.group().reduceSum(function(d){
-            if (categoriesFiltered.indexOf(d[categoryCol]) == -1){
-                return 0;
-            }else{
-                return 1;
+
+    // this is the primary row
+    function reduceSumFunctionReduced(d){
+        return reduceSumFunction(undefined,d);
+    }
+    function reduceSumFunction (cat,d) {
+        for (var secKey in secondaryFilters){
+            if (secondaryFilters[secKey][d[secKey]]) {
+                return 0
             }
-        });
+        }
+        if ((cat !== undefined) && (d[this] != cat)){
+            return 0;
+        }
+        if ((categoriesFiltered.indexOf(d[categoryCol]) == -1) ){
+            return 0;
+        }else{
+            return 1;
+        }
+    }
+    if (primaryCol == categoryCol || primaryCol === undefined ||  primaryCol == ""){
+        var group = dimension.dimension.group().reduceSum(reduceSumFunctionReduced);
+
         var newChart = dc.barChart(compositeChart)
             .colors(myColors(color++))
             .gap(0)
@@ -129,18 +144,7 @@ function discreteGraphicPaint (dynamicDistributionObject) {
             }
         }
         for (var key in primaryKeys) {
-            groupsReduced[key] = dimension.dimension.group().reduceSum(function (pos,d) {
-                for (var secKey in secondaryFilters){
-                    if (secondaryFilters[secKey][d[secKey]]) {
-                        return 0
-                    }
-                }
-                if ((categoriesFiltered.indexOf(d[categoryCol]) == -1) || (primaryKeys[pos] != d[primaryCol])){
-                    return 0;
-                }else{
-                    return 1;
-                }
-            }.bind(null,key));
+            groupsReduced[key] = dimension.dimension.group().reduceSum(reduceSumFunction.bind(primaryCol,primaryKeys[key]));
         }
         for (var key in primaryKeys) {
             var cat = primaryKeys[key];
@@ -215,7 +219,6 @@ function setCategory(newCategory){
             $("."+BUTTON_CATEGORY_FILTER_CLASS).addClass("active")
             for (var key in categoryInfo.keys){
                 categoryFiltered[categoryInfo.keys[key]] = true;
-//                $("#"+BUTTON_CATEGORY_ID_PREFIX_FILTER+categoryInfo.keys[key]).addClass("active")
             }
             discreteGraphicPaint(dynamicDistributionObject)
             return;
@@ -371,18 +374,6 @@ function clickOnPrimaryAllNone(){
 }
 
 
-
-function getPrimaryFiltered(){
-    var categories = new Array
-    for (var key in primaryFiltered ){
-        if (primaryFiltered[key]){
-            categories.push(key);
-        }
-    }
-    return categories;
-}
-
-
 // SECONDARY ATTRIBUTES FUNCTIONS
 function setSecondaryList(keys) {
     $("#"+DYNAMIC_DISTRIBUTION_SECONDARY_SELECT_COL_ID).empty();
@@ -401,12 +392,22 @@ function clickSecondary(attribute){
         };
 
         var keys = dynamicDistributionObject.getAttributeInfo(attribute).keys;
-        createPanelButtons("Filter by "+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_FILTER,keys,BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute,BUTTON_SECONDARY_ID_PREFIX_FILTER+attribute+"-",clickSecondaryFilter,{selfAttribute:attribute})
+        var panel = createPanelButtons("Filter by "+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_FILTER,keys,BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute,BUTTON_SECONDARY_ID_PREFIX_FILTER+attribute+"-",clickSecondaryFilter,{selfAttribute:attribute})
+        var body = panel.find(".panel-body");
+        body.append(" ");
+        var button_all_group= jQuery('<div/>', {
+                class: 'btn-group'
+            }
+        ).appendTo(body);
+        jQuery('<button/>',{
+            id : BUTTON_SECONDARY_ID_FILTER_ALL_PREFIX+attribute,
+            onclick:"clickOnSecondaryAllNone(\""+attribute+"\")",
+            text: "All/None",
+            type: 'button',
+            class: 'btn btn-default active'
+        }).appendTo(button_all_group)
         secondaryFilters[attribute] = new Object
         $("."+BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute).addClass("active");
-        for (var key in keys){
-//            secondaryFilters[attribute][keys[key]] = true;
-        }
     } else {
         var panel = document.getElementById(DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute);
         delete secondaryFilters[attribute];
@@ -420,12 +421,29 @@ function clickSecondary(attribute){
     return;
 }
 
+function clickOnSecondaryAllNone(col){
+    $(document.getElementById(BUTTON_SECONDARY_ID_FILTER_ALL_PREFIX+col)).toggleClass("active")
+    var result = $(document.getElementById(BUTTON_SECONDARY_ID_FILTER_ALL_PREFIX+col)).hasClass("active");
+    $(document.getElementsByClassName(BUTTON_SECONDARY_FILTER_CLASS_PREFIX+col)).toggleClass("active",result);
+    var keys = dynamicDistributionObject.getAttributeInfo(col).keys;
+    for (var key in keys){
+        if (result) {
+            delete secondaryFilters[col][keys[key]];
+        } else {
+            secondaryFilters[col][keys[key]] = true;
+        }
+    }
+    discreteGraphicPaint(dynamicDistributionObject)
+}
+
+
 function clickSecondaryFilter (attribute) {
     // Extraer el id porque no puedo pasarlo directamente, el id esta tres niveles de etiquetas encima
     var idClicked = $(event.target).attr('selfAttribute');
     if(secondaryFilters[idClicked][attribute]){
         delete secondaryFilters[idClicked][attribute];
     } else {
+        $(document.getElementById(BUTTON_SECONDARY_ID_FILTER_ALL_PREFIX+idClicked)).toggleClass("active",false)
         secondaryFilters[idClicked][attribute] = true;
     }
     // Se ha hecho así por si el atributo tiene caracteres prohibidos para jQuery como "." y "/"
