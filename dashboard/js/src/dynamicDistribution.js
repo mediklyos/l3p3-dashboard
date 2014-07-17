@@ -35,30 +35,6 @@ var primaryFiltered = new Object;
 function discreteGraphicProcess (dynamicDistributionObject){
 }
 
-
-function selectCategory(category){
-    var prevCategory = dynamicDistributionObject.getCategoryCol();
-    if (category != prevCategory){
-
-    }
-}
-
-
-function clickSelect(){
-
-    var needUpdate = false; // TODO cambiar
-    var prevPrimary = dynamicDistributionObject.getPrimaryColInfo();
-    var tmp =document.getElementById(DYNAMIC_DISTRIBUTION_SELECT_PRIMARY_COL_ID).selectedOptions[0];
-    var newPrimary = (tmp==undefined)?undefined:tmp.innerText;
-    if (prevPrimary != newPrimary){
-        dynamicDistributionObject.setPrimaryCol(newPrimary);
-        needUpdate = true;
-    }
-    if (needUpdate){
-        discreteGraphicPaint (dynamicDistributionObject);
-    }
-}
-
 function discreteGraphicPaint (dynamicDistributionObject) {
     if (dynamicDistributionObject.getPrimaryCol() == undefined ||
         dynamicDistributionObject.getPrimaryCol() == "" ||
@@ -67,7 +43,6 @@ function discreteGraphicPaint (dynamicDistributionObject) {
         ){
         return;
     }
-    var compositeChart = dc.compositeChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
     var categoriesFiltered = getCategoriesFiltered();
     if (categoriesFiltered.length == 0){
         document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'
@@ -75,6 +50,7 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     }
     document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'block'
     document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'block'
+    var compositeChart = dc.compositeChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
 
 
 //    var chart = dc.barChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
