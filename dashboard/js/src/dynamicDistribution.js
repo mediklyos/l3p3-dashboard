@@ -64,17 +64,16 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     // Si no hay ninguna categoria no mostrar nada tampoco se muestra nada
     var categoriesFiltered = getCategoriesFiltered();
     var primaryFiltered = getPrimaryFiltered();
+    var primaryColInfo = dynamicDistributionObject.getPrimaryColInfo();
     var emptySecondary = false;
+    var emptyPrimary = (primaryColInfo !== undefined) && (false || (Object.keys(primaryFiltered).length == 0))
 
     for (var key1 in secondaryFilters){
         emptySecondary = (Object.keys(secondaryFilters[key1]).length == 0) || emptySecondary;
     }
-    secondaryFilters
-    if (dynamicDistributionObject.getPrimaryCol() == undefined ||
-        dynamicDistributionObject.getPrimaryCol() == "" ||
-        dynamicDistributionObject.getCategoryCol() == undefined ||
+    if (dynamicDistributionObject.getCategoryCol() == undefined ||
         dynamicDistributionObject.getCategoryCol() == "" ||
-        categoriesFiltered.length == 0 || primaryFiltered.length == 0 || emptySecondary
+        categoriesFiltered.length == 0 || emptyPrimary || emptySecondary
         ){
         document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'
         return;
@@ -87,8 +86,8 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     var categoryInfo = dynamicDistributionObject.getCategoryColInfo();
     var categoryCol = categoryInfo.key;
     var dimension = categoryInfo.dimension();
-    var primaryColInfo = dynamicDistributionObject.getPrimaryColInfo();
-    var primaryCol = primaryColInfo.key;
+    var primaryCol = dynamicDistributionObject.getPrimaryCol();
+
 
 
 
@@ -103,7 +102,7 @@ function discreteGraphicPaint (dynamicDistributionObject) {
 
     // Si la categoria el atributo principal son el mismo se muestra la población de ese atributo
     //
-    if (primaryCol == categoryCol){
+    if (primaryCol == categoryCol || primaryCol === undefined ||  primaryCol == ""){
         var group = dimension.dimension.group().reduceSum(function(d){
             if (categoriesFiltered.indexOf(d[categoryCol]) == -1){
                 return 0;
@@ -282,10 +281,7 @@ function setPrimaryList(keys) {
 
 function setPrimary(newPrimary){
     var prevPrimary = dynamicDistributionObject.getPrimaryColInfo();
-    if (newPrimary == ""){
-
-    }
-    else if(prevPrimary != newPrimary){
+    if(prevPrimary === undefined || prevPrimary.key != newPrimary){
         // Active only one primary
         $("."+BUTTON_PRIMARY_CLASS).removeClass("active");
         $(document.getElementById(BUTTON_PRIMARY_ID_PREFIX + newPrimary)).addClass("active")
@@ -304,10 +300,16 @@ function setPrimary(newPrimary){
             for (var key in primaryColInfo.keys){
                 primaryFiltered[primaryColInfo.keys[key]] = true;
             }
-            discreteGraphicPaint(dynamicDistributionObject)
-            return;
         }
     }
+    else if (newPrimary == "" || newPrimary == prevPrimary.key ){
+        $(document.getElementById(BUTTON_PRIMARY_ID_PREFIX + newPrimary)).toggleClass("active")
+        dynamicDistributionObject.setPrimaryCol(undefined);
+        primaryFiltered = undefined;
+        $("#"+DYNAMIC_DISTRIBUTION_PRIMARY_FILTER).empty();
+
+    }
+    discreteGraphicPaint(dynamicDistributionObject)
 
 }
 
@@ -332,7 +334,12 @@ function setPrimaryFilterList(keys) {
 }
 
 function clickOnPrimaryFilter (attribute){
-    primaryFiltered[attribute] =!primaryFiltered[attribute];
+    if (primaryFiltered[attribute]){
+        delete primaryFiltered[attribute];
+    } else {
+        primaryFiltered[attribute] = true;
+    }
+
     // Se ha hecho así por si el atributo tiene caracteres prohibidos para jQuery como "." y "/"
     $(document.getElementById(BUTTON_PRIMARY_ID_PREFIX_FILTER+attribute)).toggleClass("active")
     discreteGraphicPaint(dynamicDistributionObject)
@@ -344,8 +351,13 @@ function clickOnPrimaryAllNone(){
     $(document.getElementById(BUTTON_PRIMARY_ID_FILTER_ALL)).toggleClass("active")
     var result = $("#"+BUTTON_PRIMARY_ID_FILTER_ALL).hasClass("active");
     $("."+BUTTON_PRIMARY_FILTER_CLASS).toggleClass("active",result);
-    for (var key in primaryFiltered){
-        primaryFiltered[key] = result;
+    var keys = dynamicDistributionObject.getPrimaryColInfo().keys;
+    for (var key in keys){
+        if (result) {
+            primaryFiltered[keys[key]] = true;
+        } else {
+            delete primaryFiltered[keys[key]];
+        }
     }
     discreteGraphicPaint(dynamicDistributionObject)
 }
