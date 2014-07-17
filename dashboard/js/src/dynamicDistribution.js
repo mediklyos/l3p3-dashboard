@@ -12,6 +12,7 @@ var DYNAMIC_DISTRIBUTION_FILTER_PRIMARY = "dd-filter-primary";
 var DYNAMIC_DISTRIBUTION_FILTER_CATEGORY_CLASS = "dd-filter-category-class";
 
 var BUTTON_ID_CATEGORY_FILTER_ALL = "dd-category-filter-all";
+var BUTTON_ID_PRIMARY_FILTER_ALL = "dd-primary-filter-all";
 var BUTTON_ID_PREFIX_PRIMARY = "dd-primary-";
 var BUTTON_ID_PREFIX_CATEGORY = "dd-button-";
 var BUTTON_ID_PREFIX_CATEGORY_FILTER = "dd-category-filter";
@@ -36,15 +37,17 @@ function discreteGraphicProcess (dynamicDistributionObject){
 }
 
 function discreteGraphicPaint (dynamicDistributionObject) {
+
+    // Comprobar que se ha selecionado la columna de categoria y de atributo primario
+    // Si no hay ninguna categoria no mostrar nada tampoco se muestra nada
+    var categoriesFiltered = getCategoriesFiltered();
+    var primaryFiltered = getPrimaryFiltered();
     if (dynamicDistributionObject.getPrimaryCol() == undefined ||
         dynamicDistributionObject.getPrimaryCol() == "" ||
         dynamicDistributionObject.getCategoryCol() == undefined ||
-        dynamicDistributionObject.getCategoryCol() == ""
+        dynamicDistributionObject.getCategoryCol() == "" ||
+        categoriesFiltered.length == 0 || primaryFiltered.length == 0
         ){
-        return;
-    }
-    var categoriesFiltered = getCategoriesFiltered();
-    if (categoriesFiltered.length == 0){
         document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'
         return;
     }
@@ -55,12 +58,11 @@ function discreteGraphicPaint (dynamicDistributionObject) {
 
 //    var chart = dc.barChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
     var categoryInfo = dynamicDistributionObject.getCategoryColInfo();
-    var categoryKeys = categoryInfo.keys;
     var categoryCol = categoryInfo.key;
     var dimension = categoryInfo.dimension();
     var primaryColInfo = dynamicDistributionObject.getPrimaryColInfo();
     var primaryCol = primaryColInfo.key;
-    var primaryKeys = primaryColInfo.keys;
+//    var primaryFiltered;
 
 
 
@@ -73,6 +75,8 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     var charts = new Array;
     var color = 0;
 
+    // Si la categoria el atributo principal son el mismo se muestra la población de ese atributo
+    //
     if (primaryCol == categoryCol){
         var group = dimension.dimension.group().reduceSum(function(d){
             if (categoriesFiltered.indexOf(d[categoryCol]) == -1){
@@ -92,17 +96,17 @@ function discreteGraphicPaint (dynamicDistributionObject) {
             })
         charts.push(newChart)
     }else {
-        for (var i = 0; i < primaryKeys.length;i++){
+        for (var i = 0; i < primaryFiltered.length;i++){
             groupsReduced[i] = dimension.dimension.group().reduceSum(function (pos,d) {
-                if ((categoriesFiltered.indexOf(d[categoryCol]) == -1) || (primaryKeys[pos] != d[primaryCol])){
+                if ((categoriesFiltered.indexOf(d[categoryCol]) == -1) || (primaryFiltered[pos] != d[primaryCol])){
                     return 0;
                 }else{
                     return 1;
                 }
-            }.bind(null,i))
+            }.bind(null,i));
         }
-        for (var key in primaryKeys) {
-            var cat = primaryKeys[key];
+        for (var key in primaryFiltered) {
+            var cat = primaryFiltered[key];
             var newChart = dc.barChart(compositeChart)
                 .colors(myColors(color++))
                 .gap(0)
@@ -131,6 +135,7 @@ function discreteGraphicPaint (dynamicDistributionObject) {
 
     compositeChart
         .renderlet(function (chart) {
+            // Este código mueve las columnas del gráfico para que se vean todas correctamente
             var boxes = chart.selectAll("rect.bar");
             var width = boxes.attr("width");
             var border = Math.floor(width * BORDER_PROPORTION);
@@ -146,7 +151,6 @@ function discreteGraphicPaint (dynamicDistributionObject) {
         });
     compositeChart.render();
 }
-
 
 function setCategoryList(keys) {
     createPanelButtons("Category attribute",DYNAMIC_DISTRIBUTION_SELECT_CATEGORY_COL_ID,keys,BUTTON_CATEGORY_CLASS,BUTTON_ID_PREFIX_CATEGORY,setCategory);
@@ -179,15 +183,29 @@ function setCategoryFilterList(keys){
     return panel;
 }
 function setPrimaryFilterList(keys) {
-    createPanelButtons("Primary",DYNAMIC_DISTRIBUTION_FILTER_PRIMARY,keys,BUTTON_PRIMARY_FILTER_CLASS ,BUTTON_ID_PREFIX_PRIMARY_FILTER ,clickOnPrimaryFilter)
+    var panel = createPanelButtons("Primary",DYNAMIC_DISTRIBUTION_FILTER_PRIMARY,keys,BUTTON_PRIMARY_FILTER_CLASS ,BUTTON_ID_PREFIX_PRIMARY_FILTER ,clickOnPrimaryFilter);
+    var body = panel.find(".panel-body");
+    body.append(" ");
+    var button_all_group= jQuery('<div/>', {
+            class: 'btn-group'
+        }
+    ).appendTo(body);
+    jQuery('<button/>',{
+        id : BUTTON_ID_PRIMARY_FILTER_ALL,
+        onclick:"clickOnPrimaryAllNone()",
+        text: "All/None",
+        type: 'button',
+        class: 'btn btn-default active'
+    }).appendTo(button_all_group)
+
 
 }
 
 
 function clickOnPrimaryFilter (attribute){
-    primaryFiltered[attribute] =!categoryFiltered[attribute];
+    primaryFiltered[attribute] =!primaryFiltered[attribute];
+    // Se ha hecho así por si el atributo tiene caracteres prohibidos para jQuery como "." y "/"
     $(document.getElementById(BUTTON_ID_PREFIX_PRIMARY_FILTER+attribute)).toggleClass("active")
-//    $("#"+BUTTON_ID_CATEGORY_FILTER_ALL).removeClass("active")
     discreteGraphicPaint(dynamicDistributionObject)
 
 }
@@ -307,6 +325,16 @@ function clickOnCategoryAllNone(){
     discreteGraphicPaint(dynamicDistributionObject)
 }
 
+function clickOnPrimaryAllNone(){
+    $(document.getElementById(BUTTON_ID_PRIMARY_FILTER_ALL)).toggleClass("active")
+    var result = $("#"+BUTTON_ID_PRIMARY_FILTER_ALL).hasClass("active");
+    $("."+BUTTON_PRIMARY_FILTER_CLASS).toggleClass("active",result);
+    for (var key in primaryFiltered){
+        primaryFiltered[key] = result;
+    }
+    discreteGraphicPaint(dynamicDistributionObject)
+}
+
 
 
 
@@ -314,6 +342,16 @@ function getCategoriesFiltered(){
     var categories = new Array
     for (var key in categoryFiltered ){
         if (categoryFiltered[key]){
+            categories.push(key);
+        }
+    }
+    return categories;
+}
+
+function getPrimaryFiltered(){
+    var categories = new Array
+    for (var key in primaryFiltered ){
+        if (primaryFiltered[key]){
             categories.push(key);
         }
     }
