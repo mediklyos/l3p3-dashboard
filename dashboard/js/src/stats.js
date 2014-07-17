@@ -1,36 +1,6 @@
 var allTimeSeries = {};
 var allValueLabels = {};
 var descriptions = {
-<<<<<<< HEAD
-    'Processes': {
-        'r': 'Number of processes waiting for run time',
-        'b': 'Number of processes in uninterruptible sleep'
-    },
-    'Memory': {
-        'swpd': 'Amount of virtual memory used',
-        'free': 'Amount of idle memory',
-        'buff': 'Amount of memory used as buffers',
-        'cache': 'Amount of memory used as cache'
-    },
-    'Swap': {
-        'si': 'Amount of memory swapped in from disk',
-        'so': 'Amount of memory swapped to disk'
-    },
-    'IO': {
-        'bi': 'Blocks received from a block device (blocks/s)',
-        'bo': 'Blocks sent to a block device (blocks/s)'
-    },
-    'System': {
-        'in': 'Number of interrupts per second, including the clock',
-        'cs': 'Number of context switches per second'
-    },
-    'CPU': {
-        'us': 'Time spent running non-kernel code (user time, including nice time)',
-        'sy': 'Time spent running kernel code (system time)',
-        'id': 'Time spent idle',
-        'wa': 'Time spent waiting for IO'
-=======
-
     'Lbpeuid01': {
         'cpu1': 'Cpu',
         'int1': 'int',
@@ -50,7 +20,6 @@ var descriptions = {
         'cpu4': 'Cpu',
         'int4': 'int',
         'mem4': 'mem'
->>>>>>> upstreamJ/devel
     }
 }
 
@@ -91,10 +60,7 @@ function streamStats() {
 
 function initCharts() {
     Object.each(descriptions, function(sectionName, values) {
-<<<<<<< HEAD
-        //var section = $('#writeHere').clone().removeClass('template').appendTo('#charts');
-=======
->>>>>>> upstreamJ/devel
+
         var section = $('.chart.template').clone().removeClass('template').appendTo('#charts');
 
         section.find('.title').text(sectionName);
