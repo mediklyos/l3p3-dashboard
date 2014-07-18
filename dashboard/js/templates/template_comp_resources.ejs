@@ -73,8 +73,16 @@
             </li>
         </ul>
     </section>
+
+    <script>
+        function updateTime_out(slideAmount) {
+            console.log("Slide ha cambiado:"+slideAmount);
+            update_TimeOUT(slideAmount);
+
+        }
+    </script>
     <div id="slider">
-        <input class="bar" type="range" id="rangeinput" value="50" from="0" to="100" step="10" onchange="ws.send(value);" />
+        <input class="bar" type="range" id="rangeinput" value="50" from="0" to="100" step="10" onchange="updateTime_out(value);"/>
     </div>
 </main>
 </div>
