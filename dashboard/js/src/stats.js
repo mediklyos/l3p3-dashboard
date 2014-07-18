@@ -1,27 +1,6 @@
 var allTimeSeries = {};
 var allValueLabels = {};
-var descriptions = {
-    'Lbpeuid01': {
-        'cpu1': 'Cpu',
-        'int1': 'int',
-        'mem1': 'mem'
-    },
-    'Lbpeuid02': {
-        'cpu2': 'Cpu',
-        'int2': 'int',
-        'mem2': 'mem'
-    },
-    'Lbpuein01': {
-        'cpu3': 'Cpu',
-        'int3': 'int',
-        'mem3': 'mem'
-    },
-    'Lbpeuin02': {
-        'cpu4': 'Cpu',
-        'int4': 'int',
-        'mem4': 'mem'
-    }
-}
+var descriptions = {};
 
 function streamStats() {
 
@@ -45,6 +24,31 @@ function streamStats() {
 
             case 1: // column headings
                 colHeadings = e.data.trim().split(/ +/);
+                var num_node ;
+                var ultima_cuenta=0;
+                var length = e.data.trim().split(/ +/).length;
+                var last_node=colHeadings[length-1].toString().replace(/[^\d]/g, '');
+                console.log("el ultimo nodo es:"+last_node);
+                for(num_node=1;num_node<=last_node;num_node++){
+                    var cuenta_variables=0;
+                    for(var i=0;i<length;i++){
+                       if(colHeadings[i].replace(/[^\d]/g, '')==num_node){
+                           cuenta_variables++;
+                       }
+                    }
+
+                    var nomb_node="Node"+num_node;
+                    descriptions[nomb_node] = {};
+
+                    for(var j=0;j<cuenta_variables;j++) {
+                        var columna=ultima_cuenta+j;
+                        descriptions[nomb_node][colHeadings[columna]]=colHeadings[columna];
+
+                    }
+                    ultima_cuenta+=cuenta_variables;
+                }
+                initCharts();
+
                 break;
 
             default: // subsequent lines
@@ -111,6 +115,5 @@ function receiveStats(stats) {
 }
 
 $(function() {
-    initCharts();
     streamStats();
 });
