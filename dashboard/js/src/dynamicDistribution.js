@@ -58,6 +58,8 @@ var secondaryFilters = new Object;
 function discreteGraphicProcess (dynamicDistributionObject){
 }
 
+
+
 function discreteGraphicPaint (dynamicDistributionObject) {
 
     // Comprobar que se ha selecionado la columna de categoria y de atributo primario
@@ -67,9 +69,6 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     var emptySecondary = false;
     var emptyPrimary = false;//(primaryColInfo !== undefined) && (false || (Object.keys(primaryFiltered).length == 0))
 
-//    for (var key1 in secondaryFilters){
-//        emptySecondary = (Object.keys(secondaryFilters[key1]).length == 0) || emptySecondary;
-//    }
     if (dynamicDistributionObject.getCategoryCol() == undefined ||
         dynamicDistributionObject.getCategoryCol() == "" ||
         categoriesFiltered.length == 0 || emptyPrimary || emptySecondary
@@ -87,25 +86,20 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     var dimension = categoryInfo.dimension();
     var primaryCol = dynamicDistributionObject.getPrimaryCol();
 
-
-
-
-
-    var groupsReduced = new Object;
-
-
-
-    // Filtrar tambien aqui porque si no lo suma y luego no sabe donde ponerlo
-    var charts = new Array;
-    var color = 0;
-
-    // Si la categoria el atributo principal son el mismo se muestra la población de ese atributo
-    //
-
-    // this is the primary row
+    /**
+     * Function reduce sum when there are not a primary col selected
+     * @param d
+     * @returns {*}
+     */
     function reduceSumFunctionReduced(d){
         return reduceSumFunction(undefined,d);
     }
+    /**
+     * Reduce function , must be called with bind with the category that is been reduced
+     * @param cat
+     * @param d
+     * @returns {number}
+     */
     function reduceSumFunction (cat,d) {
         for (var secKey in secondaryFilters){
             if (secondaryFilters[secKey][d[secKey]]) {
@@ -121,9 +115,24 @@ function discreteGraphicPaint (dynamicDistributionObject) {
             return 1;
         }
     }
+
+
+
+
+    var groupsReduced = new Object;
+
+
+
+    // Filtrar tambien aqui porque si no lo suma y luego no sabe donde ponerlo
+    var charts = new Array;
+
+    // Si la categoria el atributo principal son el mismo se muestra la población de ese atributo
+    //
+
+
     if (primaryCol == categoryCol || primaryCol === undefined ||  primaryCol == ""){
         var group = dimension.dimension.group().reduceSum(reduceSumFunctionReduced);
-
+        var color = 0;
         var newChart = dc.barChart(compositeChart)
             .colors(myColors(color++))
             .gap(0)
@@ -137,6 +146,7 @@ function discreteGraphicPaint (dynamicDistributionObject) {
 
     }else {
         var primaryKeys = new Array;
+        var color = 0;
         for (var key in dynamicDistributionObject.getPrimaryColInfo().keys){
             key = dynamicDistributionObject.getPrimaryColInfo().keys[key]
             if(!primaryFiltered[key]){
@@ -195,7 +205,10 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     compositeChart.render();
 }
 
-// CATEGORY FUNCTIONS
+/**
+ * set a new category attribute. This routine contains all actions needed to set this category.
+ * @param newCategory
+ */
 function setCategory(newCategory){
     var prevCategory = dynamicDistributionObject.getCategoryCol();
 
@@ -226,11 +239,20 @@ function setCategory(newCategory){
     }
 }
 
+/**
+ * Create a panel with the buttons with all categories
+ * @param keys
+ */
 function setCategoryList(keys) {
     $("#"+DYNAMIC_DISTRIBUTION_CATEGORY_SELECT_COL_ID).empty();
     createPanelButtons("Category attribute",undefined,DYNAMIC_DISTRIBUTION_CATEGORY_SELECT_COL_ID,keys,BUTTON_CATEGORY_CLASS,BUTTON_CATEGORY_ID_PREFIX,setCategory);
 }
 
+
+/**
+ * Function contains the routines executed when a category value is clicked
+ * @param category
+ */
 function clickOnCategoryFilter(category) {
     categoryFiltered[category] =!categoryFiltered[category];
     $(document.getElementById(BUTTON_CATEGORY_ID_PREFIX_FILTER+category)).toggleClass("active")
@@ -240,6 +262,11 @@ function clickOnCategoryFilter(category) {
     discreteGraphicPaint(dynamicDistributionObject)
 }
 
+/**
+ * Create a panel with all category values
+ * @param keys
+ * @returns {*}
+ */
 function setCategoryFilterList(keys){
 
     var title = 'Categories ('+dynamicDistributionObject.getCategoryCol()+')';
@@ -264,6 +291,9 @@ function setCategoryFilterList(keys){
     return panel;
 }
 
+/**
+ * Function that contains the routine of all/none button
+ */
 function clickOnCategoryFilterAllNone(){
     $(document.getElementById(BUTTON_CATEGORY_ID_FILTER_ALL)).toggleClass("active")
     var result = $("#"+BUTTON_CATEGORY_ID_FILTER_ALL).hasClass("active");
@@ -274,6 +304,10 @@ function clickOnCategoryFilterAllNone(){
     discreteGraphicPaint(dynamicDistributionObject)
 }
 
+/**
+ * get all categories that are not filtered
+ * @returns {Array}
+ */
 function getCategoriesFiltered(){
     var categories = new Array
     for (var key in categoryFiltered ){
@@ -292,7 +326,13 @@ function setPrimaryList(keys) {
 
 function setPrimary(newPrimary){
     var prevPrimary = dynamicDistributionObject.getPrimaryColInfo();
-    if(prevPrimary === undefined || prevPrimary.key != newPrimary){
+    var cleanPrimaryFunction = function () {
+        $(document.getElementById(BUTTON_PRIMARY_ID_PREFIX + newPrimary)).toggleClass("active")
+        dynamicDistributionObject.setPrimaryCol(undefined);
+        primaryFiltered = undefined;
+        $("#"+DYNAMIC_DISTRIBUTION_PRIMARY_FILTER).empty();
+    }
+    var newPrimaryFunction = function () {
         // Active only one primary
         $("."+BUTTON_PRIMARY_CLASS).removeClass("active");
         $(document.getElementById(BUTTON_PRIMARY_ID_PREFIX + newPrimary)).addClass("active")
@@ -308,17 +348,18 @@ function setPrimary(newPrimary){
             setPrimaryFilterList(primaryColInfo.keys);
             primaryFiltered = new Object;
             $("."+BUTTON_PRIMARY_FILTER_CLASS).addClass("active")
-//            for (var key in primaryColInfo.keys){
-//                primaryFiltered[primaryColInfo.keys[key]] = true;
-//            }
         }
+
+    }
+
+    if (newPrimary == ""){
+        cleanPrimaryFunction();
+    }
+    else if(prevPrimary === undefined || prevPrimary.key != newPrimary){
+        newPrimaryFunction();
     }
     else if (newPrimary == "" || newPrimary == prevPrimary.key ){
-        $(document.getElementById(BUTTON_PRIMARY_ID_PREFIX + newPrimary)).toggleClass("active")
-        dynamicDistributionObject.setPrimaryCol(undefined);
-        primaryFiltered = undefined;
-        $("#"+DYNAMIC_DISTRIBUTION_PRIMARY_FILTER).empty();
-
+        cleanPrimaryFunction();
     }
     discreteGraphicPaint(dynamicDistributionObject)
 
@@ -421,6 +462,11 @@ function clickSecondary(attribute){
     return;
 }
 
+function removeAllSecondaries(){
+    $("#"+DYNAMIC_DISTRIBUTION_SECONDARY_FILTER).empty();
+    secondaryFilters = new Object
+}
+
 function clickOnSecondaryAllNone(col){
     $(document.getElementById(BUTTON_SECONDARY_ID_FILTER_ALL_PREFIX+col)).toggleClass("active")
     var result = $(document.getElementById(BUTTON_SECONDARY_ID_FILTER_ALL_PREFIX+col)).hasClass("active");
@@ -435,7 +481,6 @@ function clickOnSecondaryAllNone(col){
     }
     discreteGraphicPaint(dynamicDistributionObject)
 }
-
 
 function clickSecondaryFilter (attribute) {
     // Extraer el id porque no puedo pasarlo directamente, el id esta tres niveles de etiquetas encima
@@ -502,6 +547,7 @@ function reset(){
     dynamicDistributionObject.init(dynamicDistributionObject.src,dynamicDistributionObject.keys)
     setCategory("");
     setPrimary("")
+    removeAllSecondaries("");
     document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'; // block
     document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'; // block
 }
