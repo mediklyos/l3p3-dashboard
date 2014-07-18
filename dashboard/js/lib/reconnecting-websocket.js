@@ -47,6 +47,15 @@
  * Latest version: https://github.com/joewalnes/reconnecting-websocket/
  * - Joe Walnes
  */
+
+
+var ws;
+var update_TimeOUT= function(sourceFile){
+
+    ws.send(sourceFile);
+
+};
+
 function ReconnectingWebSocket(url, protocols) {
     protocols = protocols || [];
 
@@ -56,7 +65,7 @@ function ReconnectingWebSocket(url, protocols) {
     this.timeoutInterval = 2000;
 
     var self = this;
-    var ws;
+
     var forcedClose = false;
     var timedOut = false;
 
@@ -171,10 +180,13 @@ function ReconnectingWebSocket(url, protocols) {
             ws.close();
         }
     };
+
 }
 
 /**
  * Setting this to true is the equivalent of setting all instances of ReconnectingWebSocket.debug to true.
  */
 ReconnectingWebSocket.debugAll = false;
+
+
 
