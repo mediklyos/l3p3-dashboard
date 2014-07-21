@@ -4,7 +4,8 @@ var descriptions = {};
 
 function streamStats() {
 
-    var ws = new ReconnectingWebSocket('ws://' + location.host + '/');
+    var ws = new ReconnectingWebSocket('ws://' + location.hostname + ':8080');
+    console.log(location.host);
     var lineCount;
     var colHeadings;
 
