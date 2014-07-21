@@ -50,6 +50,10 @@
 
 
 var ws;
+var color_Map_Tx=function(resource){
+    ws.send(resource);
+    console.log(location.host);
+}
 var update_TimeOUT= function(sourceFile){
 
     ws.send(sourceFile);
@@ -69,7 +73,6 @@ function ReconnectingWebSocket(url, protocols) {
     var forcedClose = false;
     var timedOut = false;
 
-    url="ws://localhost:8080";
     this.url = url;
     this.protocols = protocols;
     this.readyState = WebSocket.CONNECTING;

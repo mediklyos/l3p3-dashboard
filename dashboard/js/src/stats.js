@@ -6,7 +6,7 @@ var descriptions = {
 
 function streamStats() {
 
-    var ws = new ReconnectingWebSocket('ws://' + location.host + '/');
+    var ws = new ReconnectingWebSocket('ws://' + location.hostname + ':8080');
     var lineCount;
     var colHeadings;
 
@@ -100,6 +100,8 @@ function initCharts() {
             var statLine = section.find('.stat.template').clone().removeClass('template').appendTo(section.find('.stats'));
             statLine.attr('title', valueDescription).css('color', color);
             statLine.find('.stat-name').text(name);
+            statLine.find('.stat-name').attr('id',name);
+            statLine.find('.stat-button').attr('onclick','color_map(document.getElementById("'+name+'"))');
             allValueLabels[name] = statLine.find('.stat-value');
         });
     });
