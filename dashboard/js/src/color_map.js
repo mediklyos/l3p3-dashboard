@@ -3,7 +3,6 @@ function eventWindowLoaded() {
     add_coloring_book_events();
 }
 function add_coloring_book_events() {
-    console.log('coloring function entered');
     $('rect[class="colorable"]').bind("click", function(event) {
         event.preventDefault();
         color_chosen = $("#color_chosen").html();
