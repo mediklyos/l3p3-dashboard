@@ -3,31 +3,40 @@ function stream() {
     var ws = new ReconnectingWebSocket('ws://' + location.hostname + ':8080');
     var lineCount;
     var colHeadings;
+    var recurso;
 
-    ws.onopen = function() {
+    ws.onopen = function () {
         console.log('connect');
+        ws.send("Color Map request");
         lineCount = 0;
     };
 
-    ws.onclose = function() {
+    ws.onclose = function () {
         console.log('disconnect');
     };
+    ws.onmessage = function (message) {
+        console.log(location.host+" Ha recibido el mensaje");
 
-    ws.onmessage = function(e) {
         switch (lineCount++) {
-            case 0:
-                colHeadings=e.data.trim().split(/ +/);
-                console.log(colHeadings);
-                break;
+        case 0: recurso=message;
+        break;
 
+        case 1: // column headings
+        colHeadings = message.data.trim().split(/ +/);
+        var length = e.data.trim().split(/ +/).length;
+        break;
 
-
+        default: // subsequent lines
+        var colValues = e.data.trim().split(/ +/);
+        var stats = {};
+        for (var i = 0; i < colHeadings.length; i++) {
+            stats[colHeadings[i]] = parseInt(colValues[i]);
         }
+        receiveStats(stats);
+    }
+
     };
 }
-
-
-
     stream();
 
 
