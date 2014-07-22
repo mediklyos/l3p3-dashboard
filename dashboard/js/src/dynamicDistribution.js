@@ -1,8 +1,8 @@
 var DYNAMIC_DISTRIBUTION_CHART_DIV = "dynamic-distribution-chart-div";
 
-var DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV = "dd-attributes-col";
-var DYNAMIC_DISTRIBUTION_GRAPHICS_DIV = "dd-graphics-col";
-var DYNAMIC_DISTRIBUTION_FILTERS_DIV = "dd-filters-col";
+var DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV = "dd-attributes-row";
+var DYNAMIC_DISTRIBUTION_GRAPHICS_DIV = "dd-graphics-row";
+var DYNAMIC_DISTRIBUTION_FILTERS_DIV = "dd-filters-row";
 
 
 
@@ -46,19 +46,27 @@ var BUTTON_SECONDARY_ID_FILTER_ALL_PREFIX = "dd-secondary-filter-all-";
 var BUTTON_SECONDARY_ID_PREFIX_FILTER = "dd-secondary-filter-";
 var BUTTON_SECONDARY_FILTER_CLASS_PREFIX = "dd-secondary-filter-class-"
 
-
+var BUTTON_INPUT_FILE = "dd-input-button"
+var UPLOAD_FORM = "dd-upload"
+var DYNAMIC_DISTRIBUTION_DROP_AREA = "dd-dropArea";
 var BORDER_PROPORTION = 0.1
 var CHART_WIDTH = $(window).width() * 0.96;
+var BUTTON_TYPE_DATA_SELECT = "dd-button-type-select"
+var BUTTON_TYPE_DATA_TRASH = "dd-button-type-trash"
+var BUTTON_ID_DATA_PREFIX = "dd-button-data-"
+var DYNAMIC_DISTRIBUTION_DATABASE_ENTRY ="dd-database-entry"
+var DYNAMIC_DISTRIBUTION_DATABASE_LIST ="dd-databases"
+
+var DYNAMIC_DISTRIBUTION_COLUMNS_TYPES_PUP_UP_ID = "dd-cols-pup-up"
+var DYNAMIC_DISTRIBUTION_BUTTONS_ATTR_TYPE_PREFIX = "dd-btns-attr-type-"
+
+var DYNAMIC_DISTRIBUTION_CLASS_LIST_ATTRS = "dd-class-div-select-attr"
+
+
 
 var categoryFiltered = new Object;
 var primaryFiltered = new Object;
 var secondaryFilters = new Object;
-
-
-function discreteGraphicProcess (dynamicDistributionObject){
-}
-
-
 
 function discreteGraphicPaint (dynamicDistributionObject) {
 
@@ -224,7 +232,7 @@ function setCategory(newCategory){
         if (categoryType == undefined) {
             document.getElementById(DYNAMIC_DISTRIBUTION_CATEGORY_FILTER).innerHTML = "";
             return;
-        } else if (categoryType == CSVContainer.TYPE_DISCRETE) {
+        } else if (categoryType == CSVContainerForDistributions.TYPE_DISCRETE) {
             setCategoryFilterList(categoryInfo.keys);
 
 
@@ -344,7 +352,7 @@ function setPrimary(newPrimary){
         if (primaryType == undefined) {
             document.getElementById(DYNAMIC_DISTRIBUTION_PRIMARY_FILTER).innerHTML = "";
             return;
-        } else if (primaryType == CSVContainer.TYPE_DISCRETE) {
+        } else if (primaryType == CSVContainerForDistributions.TYPE_DISCRETE) {
             setPrimaryFilterList(primaryColInfo.keys);
             primaryFiltered = new Object;
             $("."+BUTTON_PRIMARY_FILTER_CLASS).addClass("active")
@@ -550,4 +558,227 @@ function reset(){
     removeAllSecondaries("");
     document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'; // block
     document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'; // block
+}
+
+function clearPanel(){
+    $("#titanic-button").removeAttr("active")
+    $("#events-button").removeAttr("active")
+    if (document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV) != null){
+        document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'; // block
+    }
+    if (document.getElementById(DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV) != null){
+        document.getElementById(DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV).style.display = 'none'; // block
+    }
+    if (document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV) != null) {
+        document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'; // block
+    }
+}
+
+function upload(){
+    $("#"+BUTTON_INPUT_FILE).click();
+}
+
+function postLoad() {
+// Drag and drop code
+    $('#'+UPLOAD_FORM).fileupload({
+        // This element will accept file drag/drop uploading
+        dropZone: $('#dd-dropArea'),
+        add: function (e, data) {
+            console.log("add")
+            for (var key in data.files) {
+                var file = data.files[key];
+                processNewFile(file);
+
+            }
+        },
+
+        progress: function(e, data){
+            console.log("progress")
+        },
+
+        fail:function(e, data){
+            console.log("Error")
+        }
+
+    });
+}
+
+
+function processNewFile(file) {
+    var name = file.name;
+    var reader = new FileReader();
+    reader.onload = function(fileName,e) {
+        console.log("database readed");
+        filesInMemory[fileName] = new Object;
+        filesInMemory[fileName].data = d3.csv.parse(e.target.result);
+        if (filesInMemory[fileName].data.length > 0) {
+            var keys = new Array
+            for (var key in filesInMemory[fileName].data[0]) {
+                keys.push(key);
+            }
+            filesInMemory[fileName].colsTypes = pupUpCols(keys);
+        }
+        jQuery('<div/>', {
+            class: "btn-group " + DYNAMIC_DISTRIBUTION_DATABASE_ENTRY
+        }).append(jQuery('<a/>', {
+            class: "btn btn-default " + BUTTON_TYPE_DATA_SELECT,
+            onclick: 'setData("' + fileName + '")',
+            id: BUTTON_ID_DATA_PREFIX + fileName,
+            text: fileName
+        })).append(jQuery('<a/>', {
+            class: "btn btn-default " + BUTTON_TYPE_DATA_TRASH,
+            onclick: 'deleteData(\''+fileName+'\')'
+        }).append('<span class="glyphicon glyphicon-trash"></span>'))
+            .appendTo("#" + DYNAMIC_DISTRIBUTION_DATABASE_LIST)
+    }.bind(this,name)
+    reader.readAsText(file);
+}
+
+
+function loadDataSetFromUrl(url,columns ){
+    $.get(url,{},function (data) {
+        filesInMemory[url] = new Object;
+        filesInMemory[url].data = d3.csv.parse(data);
+        if (filesInMemory[url].data.length > 0){
+            var keys = new Array
+            for (var key in filesInMemory[url].data[0]){
+                keys.push(key);
+            }
+            if (url.indexOf('events') > -1) {
+//                 = new Object;
+                filesInMemory[url].colsTypes = pupUpCols(keys);
+                return;
+            }
+        }
+        if (columns !== undefined){
+            filesInMemory[url].colsTypes = columns;
+        } else {
+            filesInMemory[url].colsTypes = {
+                date: CSVContainerForDistributions.TYPE_DATE,
+                node: CSVContainerForDistributions.TYPE_DISCRETE,
+                type: CSVContainerForDistributions.TYPE_DISCRETE,
+                variable: CSVContainerForDistributions.TYPE_DISCRETE,
+                value: CSVContainerForDistributions.TYPE_CONTINUOUS
+            }
+        }
+    })
+}
+function createPupUp(id,title, body,footer){
+    var panel = $('<div class="modal fade">' +
+        '<div class="modal-dialog">' +
+        '<div class="modal-content">' +
+        '<div class="modal-header">' +
+        '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
+        '<h4 class="modal-title">'+title+'</h4>' +
+        '</div>' +
+        '<div class="modal-body">' +
+//        '<p>'+body+'</p>' +
+        '</div>' +
+        '<div class="modal-footer">' +
+        footer +
+        '</div>' +
+        '</div><!-- /.modal-content -->' +
+        '</div><!-- /.modal-dialog -->' +
+        '</div><!-- /.modal -->')
+
+    panel.find(".modal-body").append(body)
+    panel.attr('id',id);
+
+    return panel[0];
+}
+function pupUpCols(cols) {
+    var oldPanel = document.getElementById(DYNAMIC_DISTRIBUTION_COLUMNS_TYPES_PUP_UP_ID);
+    if (oldPanel != null){
+        oldPanel.parentNode.removeChild(oldPanel);
+    }
+    var title = "Attributes"
+    var body = "";
+    body = '<form class="form">' +
+        '<div onclick="toggleButtonsFunction(\'myId\')" id="myId" class="btn-group btn-toggle" data-toggle="buttons">' +
+        '<label class="btn btn-primary active">' +
+        '<input type="radio" name="options" value="option1"> Option 1' +
+        '</label>' +
+        '<label class="btn btn-default">' +
+        '<input type="radio" name="options" value="option2" checked=""> Option 2' +
+        '</label>' +
+        '</div>' +
+        '<button class="btn btn-default">Submit</button>' +
+        '</form>'
+    body = $('<ul class="list-group"/>');
+    var colTypes = new Object;
+
+    for (var key in cols){
+        colTypes[cols[key]] = CSVContainerForDistributions.TYPE_ID;
+        var entry = $('<li class="row list-group-item"/>');
+        var buttons = $('<div class="btn-group btn-toggle col-lg-7" data-toggle="buttons"/>');
+        buttons.attr('id',DYNAMIC_DISTRIBUTION_BUTTONS_ATTR_TYPE_PREFIX+cols[key]);
+        buttons.click(toggleButtonsFunction.bind(undefined,DYNAMIC_DISTRIBUTION_BUTTONS_ATTR_TYPE_PREFIX+cols[key],function(attribute,value){
+            colTypes[attribute] = value;
+        }));
+        var buttonA = $('<label class="btn btn-primary active">' +
+            '<input name="'+cols[key]+'" value="'+CSVContainerForDistributions.TYPE_ID+'" checked="" type="radio">'+ CSVContainerForDistributions.TYPE_ID +
+            '</label>')
+        var buttonB = $('<label class="btn btn-default">' +
+            '<input name="'+cols[key]+'" value="'+CSVContainerForDistributions.TYPE_DISCRETE+'" type="radio">'+ CSVContainerForDistributions.TYPE_DISCRETE +
+            '</label>')
+        var buttonC =$('<label class="btn btn-default">' +
+            '<input name="'+cols[key]+'" value="'+CSVContainerForDistributions.TYPE_DATE+'" checked="" type="radio">'+ CSVContainerForDistributions.TYPE_DATE +
+            '</label>')
+        var buttonD =$('<label class="btn btn-default">' +
+            '<input name="'+cols[key]+'" value="'+CSVContainerForDistributions.TYPE_CONTINUOUS+'" type="radio">' + CSVContainerForDistributions.TYPE_CONTINUOUS +
+            '</label>')
+        buttons.append(buttonA)
+        buttons.append(buttonB)
+        buttons.append(buttonC)
+        buttons.append(buttonD)
+        $('<div/>',{text:cols[key],class:"col-lg-4 "+DYNAMIC_DISTRIBUTION_CLASS_LIST_ATTRS}).appendTo(entry);
+
+        buttons.appendTo(entry)
+        var attib = $('<div/>')
+        entry.appendTo(body);
+
+
+
+    }
+
+    var footer =
+        '<button type="button" class="btn btn-primary btn-default" data-dismiss="modal">Close</button>'
+    var panel =createPupUp(DYNAMIC_DISTRIBUTION_COLUMNS_TYPES_PUP_UP_ID,title, body,footer);
+    $(panel).appendTo('body');
+    $(panel).modal('show');
+    return colTypes;
+}
+
+function setData(name){
+    $("."+BUTTON_TYPE_DATA_SELECT).removeClass("active")
+    $(document.getElementById(BUTTON_ID_DATA_PREFIX + name)).addClass("active")
+    var file = name;
+    runDynamicDistribution(file);
+}
+
+function deleteData(name){
+    var div = document.getElementById(BUTTON_ID_DATA_PREFIX + name).parentNode;
+    if ($(document.getElementById(BUTTON_ID_DATA_PREFIX + name)).hasClass('active')){
+        clearPanel();
+    }
+
+    delete filesInMemory[name];
+    div.parentNode.removeChild(div);
+
+}
+
+function onLoadedCSV() {
+    console.log("The data has been loaded")
+    if (document.getElementById(DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV) != null) {
+        document.getElementById(DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV).style.display = 'block'; // block
+    }
+    var keyList = new Array;
+    for (var key in dynamicDistributionObject.getKeys()){
+        if (dynamicDistributionObject.getKeys()[key] == CSVContainerForDistributions.TYPE_DISCRETE){
+            keyList.push(key)
+        }
+    }
+    setCategoryList(keyList);
+    setPrimaryList(keyList);
+    setSecondaryList(keyList);
 }

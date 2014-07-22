@@ -6,6 +6,8 @@
 
 var dynamicDistributionObject;
 
+var filesInMemory= new Object
+
 // Rutina del menu izquierdo que permite cambiar dinamicamente el contenido del centro al hacer link.
 // Los links que son de la clase CONTENT_LINK_CLASS_NAME se le activa y desactiva la clase active para
 $(document).ready(function(){
@@ -24,6 +26,20 @@ $(document).ready(function(){
 
 });
 
+
+
+// Toggle buttons color too
+var toggleButtonsFunction = function(id,callback,event) {
+    var div = $(document.getElementById(id));
+    div.find('.btn').toggleClass('btn-default',true).toggleClass('btn-primary',false);
+    $(window.event.target).toggleClass('btn-default',false).toggleClass('btn-primary',true);
+    var name = $(window.event.target).find('input').attr('name');
+    var value = $(window.event.target).find('input').attr('value');
+    callback(name,value)
+}
+
+
+
 /*Load at the start*/
 $("#section_dynamicDistribution").addClass("active");
 $("#section_dynamicDistribution").parents().addClass("active");
@@ -38,7 +54,7 @@ $("#content").html(new EJS ({url: "js/templates/template_dynamicDistribution.ejs
 //dynamicDistributionLoadData(DISTRIBUTION_SOURCE_FILE);
 /*
     dynamicDistributionObject
-        | csv (CSVContainer)
+        | csv (CSVContainerForDistributions)
         | category (String)
         | primary (String)
         | Secondary (Array(String))
@@ -47,48 +63,35 @@ $("#content").html(new EJS ({url: "js/templates/template_dynamicDistribution.ejs
 
 
 
-function setTitanicSet(){
-    $("#titanic-button").attr("active",'')
-    $("#events-button").removeAttr("active")
 
-    var file = DATA_URL + "titanic/titaniccomplete.csv";
-    var cols  =
-    {
-        PassengerId: CSVContainer.TYPE_ID,
-        Survived: CSVContainer.TYPE_DISCRETE,
-        Pclass: CSVContainer.TYPE_DISCRETE,
-        Name: CSVContainer.TYPE_ID,
-        Sex: CSVContainer.TYPE_DISCRETE,
-        Age: CSVContainer.TYPE_CONTINUOUS,
-        SibSp: CSVContainer.TYPE_DISCRETE,
-        Parch: CSVContainer.TYPE_DISCRETE,
-        Ticket: CSVContainer.TYPE_ID,
-        Fare: CSVContainer.TYPE_CONTINUOUS,
-        Cabin: CSVContainer.TYPE_DISCRETE,
-        Embarked: CSVContainer.TYPE_DISCRETE
-    };
-    runDynamicDistribution(file,cols);
-}
 
-function setEventsSet() {
-    $("#titanic-button").removeAttr("active")
-    $("#events-button").attr("active",'')
-    var file = DISTRIBUTION_SOURCE_FILE
-    var cols = {
-        date: CSVContainer.TYPE_DATE,
-        node: CSVContainer.TYPE_DISCRETE,
-        type: CSVContainer.TYPE_DISCRETE,
-        variable: CSVContainer.TYPE_DISCRETE,
-        value: CSVContainer.TYPE_CONTINUOUS
-    }
-    runDynamicDistribution(file,cols);
-}
 
-setTitanicSet();
+loadDataSetFromUrl("data/titanic.csv",{
+    PassengerId: CSVContainerForDistributions.TYPE_ID,
+    Survived: CSVContainerForDistributions.TYPE_DISCRETE,
+    Pclass: CSVContainerForDistributions.TYPE_DISCRETE,
+    Name: CSVContainerForDistributions.TYPE_ID,
+    Sex: CSVContainerForDistributions.TYPE_DISCRETE,
+    Age: CSVContainerForDistributions.TYPE_CONTINUOUS,
+    SibSp: CSVContainerForDistributions.TYPE_DISCRETE,
+    Parch: CSVContainerForDistributions.TYPE_DISCRETE,
+    Ticket: CSVContainerForDistributions.TYPE_ID,
+    Fare: CSVContainerForDistributions.TYPE_CONTINUOUS,
+    Cabin: CSVContainerForDistributions.TYPE_DISCRETE,
+    Embarked: CSVContainerForDistributions.TYPE_DISCRETE
+})
+loadDataSetFromUrl("data/events.csv",{
+    date: CSVContainerForDistributions.TYPE_DATE,
+    node: CSVContainerForDistributions.TYPE_DISCRETE,
+    type: CSVContainerForDistributions.TYPE_DISCRETE,
+    variable: CSVContainerForDistributions.TYPE_DISCRETE,
+    value: CSVContainerForDistributions.TYPE_CONTINUOUS
+})
 
-function runDynamicDistribution(file,cols){
-//    document.getElementById("form-src").setAttribute("value",file);
-//    document.getElementById("form-src").setAttribute("disabled","")
+
+clearPanel();
+
+function runDynamicDistribution(file){
     // hidden elements
     // Si son null es porque aun no se ha cargado el ejs
     if (document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV) != null){
@@ -98,27 +101,8 @@ function runDynamicDistribution(file,cols){
     if (document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV) != null) {
         document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'; // block
     }
-
-
-    dynamicDistributionObject = new CSVContainer(file,cols);
-    dynamicDistributionObject.watch("loaded",function (id,oldValue,newValue) {
-        console.log("ID: " + id + ". Old value: " + oldValue + ", new value: " + newValue);
-        if (newValue){
-            console.log("The data has been loaded")
-            var keyList = new Array;
-            for (var key in dynamicDistributionObject.getKeys()){
-                if (dynamicDistributionObject.getKeys()[key] == CSVContainer.TYPE_DISCRETE){
-                    keyList.push(key)
-                }
-            }
-            setCategoryList(keyList);
-            setPrimaryList(keyList);
-            setSecondaryList(keyList);
-            discreteGraphicProcess(dynamicDistributionObject);
-        }
-        return newValue;
-    });
-
+    dynamicDistributionObject = new CSVContainerForDistributions(file);
+    onLoadedCSV()
 }
 
 

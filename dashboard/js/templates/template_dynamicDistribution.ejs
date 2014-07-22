@@ -1,24 +1,45 @@
 <div>
-    <div class="col-lg-4">
-        <h1 class="page-header">Dynamic population distribution</h1>
-    </div>
-
-
     <div class="row" id="source-row">
         <div class="col-lg-4">
-            <div class="navbar navbar-default navbar-left" role="search">
-                <form class="navbar-form navbar-left" role="search">
-                    <img src="icons/database.png"/>
-                    <a class="btn btn-default" id="titanic-button" onclick="setTitanicSet()">Titanic</a>
-                    <a class="btn btn-default" id="events-button" onclick="setEventsSet()">Events</a>
-                </form>
-
-            </div>
+            <h1 class="page-header">Dynamic population distribution</h1>
         </div>
-        <div class="col-lg-2">
+        <div id="dd-dropArea" class="col-lg-2 dropArea">
+            <!--<div id="dd-dropArea" class="dropArea">-->
+            Drop Here<br>
+            <button class="btn btn-default" id="dd-upload-button" onclick="upload()">Upload</button>
             <button class="btn btn-default" onclick="reset()">Reset</button>
+            <!--<button class="btn btn-default" onclick="$('#dd-cols-pup-up').modal('show')">modal</button>-->
+            <!--<script>-->
+<!--//                pupUpCols(["uno","dos"])-->
+            <!--</script>-->
+
+
+            <!--</div>-->
+
         </div>
-        <div class="col-lg-2">
+        <div class="col-lg-5">
+            <div class="navbar-left col-xs-12 col-sm-12 col-md-12 col-lg-12" role="search">
+                <form class="navbar-left" id="dd-upload" role="search">
+                    <input id="dd-input-button" type="file" name="upl" multiple style="display: none"/>
+                </form>
+                <div class="panel panel-default ">
+                    <div class="panel-heading">
+                        <span style="font-weight: bold">Data bases</span>
+                    </div>
+                    <div class="panel-body">
+                        <div class="dd-database-entry col-xs-12 col-sm-12 col-md-12 col-lg-12" id="dd-databases">
+                            <div class="btn-group dd-database-entry" >
+                                <a class="btn btn-default dd-button-type-select" id="dd-button-data-data/titanic.csv" onclick="setData('data/titanic.csv')">Titanic</a>
+                                <a class="btn btn-default pull-right dd-button-type-trash" onclick="deleteData('data/titanic.csv')"><span class="glyphicon glyphicon-trash"></span></a>
+                            </div>
+                            <div class="btn-group dd-database-entry" >
+                                <a class="btn btn-default dd-button-type-select" id="dd-button-data-data/events.csv" onclick="setData('data/events.csv')">Event</a>
+                                <a class="btn btn-default pull-right dd-button-type-trash" onclick="deleteData('data/events.csv')"><span class="glyphicon glyphicon-trash"></span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -49,13 +70,13 @@
 
     </div>
 
-    <div class="row" id="dd-graphics-col">
+    <div class="row" id="dd-graphics-row">
         <h3>Graphic</h3>
         <div id="dynamic-distribution-chart-div">
         </div>
     </div>
 
-    <div class="row" id="dd-filters-col" hidden>
+    <div class="row" id="dd-filters-row" hidden>
         <h3>Filters</h3>
         <div class="col-lg-4" id="dd-filter-category">
         </div>
@@ -70,6 +91,9 @@
         if (dynamicDistributionObject !== undefined) {
             reset();
         }
+//        reset();
+        postLoad();
+
 
 
     </script>
