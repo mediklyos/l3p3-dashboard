@@ -68,9 +68,9 @@
         <canvas width="600" height="80"></canvas>
         <ul class="stats">
             <li class="stat template">
-                <span  id="resource" class="stat-name"></span>
+                <span class="stat-name"></span>
                 <span class="stat-value"></span>
-                <input type="button" onclick="color_map($('resource').text().toString())" class="stat-name" value="Color Map" style="width: 75px; height: 25px;"/>
+                <input type="button" class="stat-button" value="Color Map" style="width: 75px; height: 25px;"/>
             </li>
         </ul>
 
@@ -78,7 +78,7 @@
 
     <script>
         function color_map(param){
-            console.log(param);
+            color_Map_Tx(param.innerHTML);
         }
         function updateTime_out(slideAmount) {
             console.log("Slide ha cambiado:"+slideAmount);
