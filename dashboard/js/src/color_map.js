@@ -15,24 +15,35 @@ function stream() {
         console.log('disconnect');
     };
     ws.onmessage = function (message) {
-        console.log(location.host+" Ha recibido el mensaje");
+
 
         switch (lineCount++) {
-        case 0: recurso=message;
+        case 0:
         break;
 
         case 1: // column headings
         colHeadings = message.data.trim().split(/ +/);
-        var length = e.data.trim().split(/ +/).length;
+
+
+        break;
+
+        case 2://Recurso de Color Map
+
+                recurso=message;
+
         break;
 
         default: // subsequent lines
-        var colValues = e.data.trim().split(/ +/);
-        var stats = {};
+        var colValues = message.data.trim().split(/ +/);
+            var stats = {};
+            console.log(recurso.data);
         for (var i = 0; i < colHeadings.length; i++) {
-            stats[colHeadings[i]] = parseInt(colValues[i]);
-        }
-        receiveStats(stats);
+
+            if(colHeadings[i].toString()==recurso.data){
+            //stats[colHeadings[i]] = parseInt(colValues[i]);
+                stats=colValues[i];
+        }}
+        console.log(stats);
     }
 
     };
