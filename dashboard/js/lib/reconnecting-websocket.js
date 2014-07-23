@@ -52,6 +52,7 @@
 var ws;
 var color_Map_Tx=function(resource){
     ws.send(resource);
+
 }
 var update_TimeOUT= function(sourceFile){
 

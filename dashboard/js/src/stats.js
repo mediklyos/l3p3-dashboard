@@ -56,7 +56,8 @@ function streamStats() {
                 var colValues = e.data.trim().split(/ +/);
                 var stats = {};
                 for (var i = 0; i < colHeadings.length; i++) {
-                    stats[colHeadings[i]] = parseInt(colValues[i]);
+                    if(!(isNaN(colValues[i]))){
+                    stats[colHeadings[i]] = parseInt(colValues[i]);}
                 }
                 receiveStats(stats);
         }
