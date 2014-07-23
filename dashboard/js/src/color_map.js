@@ -5,11 +5,13 @@ function stream() {
     var colHeadings;
     var recurso;
     var num_space=0;
+    var flag_cabeceras=0;
 
     ws.onopen = function () {
         console.log('connect');
         ws.send("Color Map request");
         lineCount=0;
+        flag_cabeceras=0;
 
     };
 
@@ -17,55 +19,52 @@ function stream() {
         console.log('disconnect');
     };
     ws.onmessage = function (message) {
-     switch (lineCount++) {
-        case 0:
+        var whitespaces;
+        var line = message.data.trim().toString();
+        //Count whitespaces in message.data
 
-        break;
+        line.indexOf(' ')==-1 ? whitespaces=false : whitespaces = true;
+        if(!isNaN(parseInt(line.charAt(0)))){
+            //most typical case: numbers
 
-
-         case 1://Recurso de Color Map y column headings
-         case 2:
-             for(i=0;i<message.data.trim().toString().length;i++){
-                 if(message.data.trim().toString().charAt(i)==" "){
-                     num_space++;
-                 }
-
-             }
-             console.log(num_space)
-            if(num_space==0){
-            recurso=message;
-            console.log(message)
-            }else{
-                colHeadings = message.data.trim().split(/ +/);
-                console.log(message)
-            }
-        break;
-
-        default: // subsequent lines
-            var colValues = message.data.trim().split(/ +/);
-            var stats = {};
-            var colors = ["#F9AFAD","#F99EA3","#F9827F","#F9848E","#FC6675",
-                "#F95E59","#FC4F59","#F43F4F","#EF2B2D","#D62100",
-                "#E23D28","#D62100","#D62828","#CC2D30","#C13828",
-                "#AF2626","#A03033","#7C2D23","#7C211E","#5B2D28"];
-            console.log(recurso.data);
-            for (var i = 0; i < colHeadings.length; i++) {
-                if(colHeadings[i].toString()==recurso.data){
-                    stats=colValues[i];
-
-                    if(stats>0 && stats<100){
-                        color_chosen = colors[Math.floor(stats/5)];
-                    }
-                    else{
-                        stats==100 ? color_chosen=colors[colors.length] : color_chosen = 'rgb(0,0,0)';
-                    }
-                    $('rect[class="colorable"]').attr("fill",color_chosen);
-                }}
-            console.log(stats);
-
-    }
-
+            paint(recurso,colHeadings,line);
+        }
+        else if(!whitespaces && line.length!=0){
+            //it is a resource
+            recurso=line;
+            $("#recurso").text(recurso);
+        }
+        else {
+            //column headings
+            colHeadings = line.split(/ +/);
+        }
     };
+}
+
+
+
+function paint(recurso,colHeadings,line){
+
+
+    var colValues = line.split(/ +/);
+    var stats = {};
+    var colors = ["#F9AFAD","#F99EA3","#F9827F","#F9848E","#FC6675",
+        "#F95E59","#FC4F59","#F43F4F","#EF2B2D","#D62100",
+        "#E23D28","#D62100","#D62828","#CC2D30","#C13828",
+        "#AF2626","#A03033","#7C2D23","#7C211E","#5B2D28"];
+    for (var i = 0; i < colHeadings.length; i++) {
+        if(colHeadings[i].toString()==recurso){
+            stats=colValues[i];
+
+            if(stats>0 && stats<100){
+                color_chosen = colors[Math.floor(stats/5)];
+            }
+            else{
+                stats==100 ? color_chosen=colors[colors.length] : color_chosen = 'rgb(0,0,0)';
+            }
+            $('rect[class="colorable"]').attr("fill",color_chosen);
+        }}
+
 }
     stream();
 
