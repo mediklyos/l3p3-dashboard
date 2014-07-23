@@ -1,12 +1,15 @@
+/**
+ * This code is based on https://github.com/joewalnes/web-vmstats
+ * It has been modified to show values from a .csv file instead of computer system stats.
+ * Creates graphs on the go depending on the .csv file
+ */
 var allTimeSeries = {};
 var allValueLabels = {};
-var descriptions = {
-
-}
+var descriptions = {};
 
 function streamStats() {
-
     var ws = new ReconnectingWebSocket('ws://' + location.hostname + ':8080');
+
     var lineCount;
     var colHeadings;
 
@@ -26,38 +29,33 @@ function streamStats() {
 
             case 1: // column headings
                 colHeadings = e.data.trim().split(/ +/);
-                var num_node ;
-                var ultima_cuenta=0;
-                var length = e.data.trim().split(/ +/).length;
-                var last_node=colHeadings[length-1].toString().replace(/[^\d]/g, '');
-                console.log("el ultimo nodo es:"+last_node);
-                for(num_node=1;num_node<=last_node;num_node++){
-                    var cuenta_variables=0;
-                    for(var i=0;i<length;i++){
+                var last_count=0;
+                var last_node = colHeadings[colHeadings.length-1].toString().replace(/[^\d]/g, '');//takes last char to get the number of nodes
+                //counts variables in each node to be represented
+                for(var num_node=1;num_node<=last_node;num_node++){
+                    var variable_count=0;
+                    for(var i=0;i<colHeadings.length;i++){
                        if(colHeadings[i].replace(/[^\d]/g, '')==num_node){
-                           cuenta_variables++;
+                           variable_count++;
                        }
                     }
-
-                    var nomb_node="Node"+num_node;
+                    var nomb_node="Node "+num_node;
                     descriptions[nomb_node] = {};
-
-                    for(var j=0;j<cuenta_variables;j++) {
-                        var columna=ultima_cuenta+j;
-                        descriptions[nomb_node][colHeadings[columna]]=colHeadings[columna];
-
+                    //save the variables inside each node
+                    for(var j=0;j<variable_count;j++) {
+                        var column=last_count+j;
+                        descriptions[nomb_node][colHeadings[column]]=colHeadings[column];
                     }
-                    ultima_cuenta+=cuenta_variables;
+                    last_count+=variable_count; //counts the number of items saved
                 }
                 initCharts();
-
                 break;
 
-            default: // subsequent lines
+            default: // subsequent lines: get number values
                 var colValues = e.data.trim().split(/ +/);
                 var stats = {};
                 for (var i = 0; i < colHeadings.length; i++) {
-                    if(!(isNaN(colValues[i]))){
+                    if(!(isNaN(colValues[i]))){//ignore NaN lines
                     stats[colHeadings[i]] = parseInt(colValues[i]);}
                 }
                 receiveStats(stats);
@@ -67,6 +65,7 @@ function streamStats() {
 
 function initCharts() {
     Object.each(descriptions, function(sectionName, values) {
+
         var section = $('.chart.template').clone().removeClass('template').appendTo('#charts');
 
         section.find('.title').text(sectionName);
@@ -102,7 +101,7 @@ function initCharts() {
             statLine.attr('title', valueDescription).css('color', color);
             statLine.find('.stat-name').text(name);
             statLine.find('.stat-name').attr('id',name);
-            statLine.find('.stat-button').attr('onclick','color_map(document.getElementById("'+name+'"))');
+            statLine.find('.stat-button').attr('onclick','sendToServer(document.getElementById("'+name+'").innerHTML)');//add ColorMap request button
             allValueLabels[name] = statLine.find('.stat-value');
         });
     });
@@ -113,12 +112,11 @@ function receiveStats(stats) {
         var timeSeries = allTimeSeries[name];
         if (timeSeries) {
             timeSeries.append(Date.now(), value);
-            allValueLabels[name].text(value);
+            allValueLabels[name].text(value + '%');
         }
     });
 }
 
 $(function() {
-
     streamStats();
 });

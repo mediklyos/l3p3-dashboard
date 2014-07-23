@@ -46,19 +46,11 @@
  *
  * Latest version: https://github.com/joewalnes/reconnecting-websocket/
  * - Joe Walnes
+ *
+ * NOTE: some modifications have been made in comparison with the code in the link above.
  */
 
-
 var ws;
-var color_Map_Tx=function(resource){
-    ws.send(resource);
-
-}
-var update_TimeOUT= function(sourceFile){
-
-    ws.send(sourceFile);
-
-};
 
 function ReconnectingWebSocket(url, protocols) {
     protocols = protocols || [];
@@ -191,5 +183,13 @@ function ReconnectingWebSocket(url, protocols) {
  */
 ReconnectingWebSocket.debugAll = false;
 
-
-
+/**
+ * This function has been added and does not belong to the original reconnecting-websocket code.
+ * It is used in two cases:
+ *   #1 when the client sends to the server the source to be shown in a ColorMap
+ *   #2 when the client sends a new timeout value to the server so that it handles the CompResources graphs speed
+ * @param resource (the server handles the content of the message (a number means timeout and a string means a source name)
+ */
+var sendToServer = function(resource){
+    ws.send(resource);
+}
