@@ -16,51 +16,51 @@ var DYNAMIC_DISTRIBUTION_FILTERS_DIV = "dd-filters-row";
 // *_ID_FILTER_ALL = Id del boton all/none en los filtros
 // *_ID_PREFIX_FILTER = Prefijo para el id de los botones de los valores para los filtros de cada atributo
 // *_ID_FILTER_CLASS = clase para los botones de los filtros
-var DYNAMIC_DISTRIBUTION_CATEGORY_SELECT_COL_ID = "dd-select-category"
+var DYNAMIC_DISTRIBUTION_CATEGORY_SELECT_COL_ID = "dd-select-category";
 var DYNAMIC_DISTRIBUTION_CATEGORY_FILTER = "dd-filter-category";
 var DYNAMIC_DISTRIBUTION_CATEGORY_PANEL_FILTER = "dd-filter-category-panel-filter";
 var BUTTON_CATEGORY_ID_PREFIX = "dd-button-";
-var BUTTON_CATEGORY_CLASS = "dd-category-class"
-var BUTTON_CATEGORY_FILTER_CLASS = "dd-category-filter-class"
+var BUTTON_CATEGORY_CLASS = "dd-category-class";
+var BUTTON_CATEGORY_FILTER_CLASS = "dd-category-filter-class";
 var BUTTON_CATEGORY_ID_FILTER_ALL = "dd-category-filter-all";
 var BUTTON_CATEGORY_ID_PREFIX_FILTER = "dd-category-filter";
 
 var DYNAMIC_DISTRIBUTION_FILTER_CATEGORY_CLASS = "dd-filter-category-class";
 
 
-var DYNAMIC_DISTRIBUTION_PRIMARY_SELECT_COL_ID = "dd-select-primary-col"
+var DYNAMIC_DISTRIBUTION_PRIMARY_SELECT_COL_ID = "dd-select-primary-col";
 var DYNAMIC_DISTRIBUTION_PRIMARY_FILTER = "dd-filter-primary";
 var DYNAMIC_DISTRIBUTION_PRIMARY_PANEL_FILTER = "dd-filter-primary-panel-filter";
 var BUTTON_PRIMARY_ID_PREFIX = "dd-primary-";
-var BUTTON_PRIMARY_CLASS = "dd-primary-class"
+var BUTTON_PRIMARY_CLASS = "dd-primary-class";
 var BUTTON_PRIMARY_ID_FILTER_ALL = "dd-primary-filter-all";
 var BUTTON_PRIMARY_ID_PREFIX_FILTER = "dd-primary-filter";
-var BUTTON_PRIMARY_FILTER_CLASS = "dd-primary-filter-class"
+var BUTTON_PRIMARY_FILTER_CLASS = "dd-primary-filter-class";
 
-var DYNAMIC_DISTRIBUTION_SECONDARY_SELECT_COL_ID = "dd-select-secondary-col"
+var DYNAMIC_DISTRIBUTION_SECONDARY_SELECT_COL_ID = "dd-select-secondary-col";
 var DYNAMIC_DISTRIBUTION_SECONDARY_FILTER = "dd-filter-secondary";
 var DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX = "dd-filter-secondary-panel-filter-";
 var BUTTON_SECONDARY_ID_PREFIX = "dd-secondary-";
-var BUTTON_SECONDARY_CLASS = "dd-secondary-class"
+var BUTTON_SECONDARY_CLASS = "dd-secondary-class";
 var BUTTON_SECONDARY_ID_FILTER_ALL_PREFIX = "dd-secondary-filter-all-";
 var BUTTON_SECONDARY_ID_PREFIX_FILTER = "dd-secondary-filter-";
-var BUTTON_SECONDARY_FILTER_CLASS_PREFIX = "dd-secondary-filter-class-"
+var BUTTON_SECONDARY_FILTER_CLASS_PREFIX = "dd-secondary-filter-class-";
 
-var BUTTON_INPUT_FILE = "dd-input-button"
-var UPLOAD_FORM = "dd-upload"
+var BUTTON_INPUT_FILE = "dd-input-button";
+var UPLOAD_FORM = "dd-upload";
 var DYNAMIC_DISTRIBUTION_DROP_AREA = "dd-dropArea";
-var BORDER_PROPORTION = 0.1
+var BORDER_PROPORTION = 0.1;
 var CHART_WIDTH = $(window).width() * 0.96;
-var BUTTON_TYPE_DATA_SELECT = "dd-button-type-select"
-var BUTTON_TYPE_DATA_TRASH = "dd-button-type-trash"
-var BUTTON_ID_DATA_PREFIX = "dd-button-data-"
-var DYNAMIC_DISTRIBUTION_DATABASE_ENTRY ="dd-database-entry"
-var DYNAMIC_DISTRIBUTION_DATABASE_LIST ="dd-databases"
+var BUTTON_TYPE_DATA_SELECT = "dd-button-type-select";
+var BUTTON_TYPE_DATA_TRASH = "dd-button-type-trash";
+var BUTTON_ID_DATA_PREFIX = "dd-button-data-";
+var DYNAMIC_DISTRIBUTION_DATABASE_ENTRY ="dd-database-entry";
+var DYNAMIC_DISTRIBUTION_DATABASE_LIST ="dd-databases";
 
-var DYNAMIC_DISTRIBUTION_COLUMNS_TYPES_PUP_UP_ID = "dd-cols-pup-up"
-var DYNAMIC_DISTRIBUTION_BUTTONS_ATTR_TYPE_PREFIX = "dd-btns-attr-type-"
+var DYNAMIC_DISTRIBUTION_COLUMNS_TYPES_PUP_UP_ID = "dd-cols-pup-up";
+var DYNAMIC_DISTRIBUTION_BUTTONS_ATTR_TYPE_PREFIX = "dd-btns-attr-type-";
 
-var DYNAMIC_DISTRIBUTION_CLASS_LIST_ATTRS = "dd-class-div-select-attr"
+var DYNAMIC_DISTRIBUTION_CLASS_LIST_ATTRS = "dd-class-div-select-attr";
 
 
 
@@ -236,13 +236,12 @@ function setCategory(newCategory){
             setCategoryFilterList(categoryInfo.keys);
 
 
-            categoryFiltered = new Object;
+            categoryFiltered = {};
             $("."+BUTTON_CATEGORY_FILTER_CLASS).addClass("active")
             for (var key in categoryInfo.keys){
                 categoryFiltered[categoryInfo.keys[key]] = true;
             }
             discreteGraphicPaint(dynamicDistributionObject)
-            return;
         }
     }
 }
@@ -432,6 +431,7 @@ function setSecondaryList(keys) {
 function clickSecondary(attribute){
     $(document.getElementById(BUTTON_SECONDARY_ID_PREFIX+attribute)).toggleClass("active")
     var activeStatus = $(document.getElementById(BUTTON_SECONDARY_ID_PREFIX+attribute)).hasClass("active")
+    var panel;
     if (activeStatus){
         var a = {
             firstName:"John",
@@ -441,7 +441,7 @@ function clickSecondary(attribute){
         };
 
         var keys = dynamicDistributionObject.getAttributeInfo(attribute).keys;
-        var panel = createPanelButtons("Filter by "+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_FILTER,keys,BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute,BUTTON_SECONDARY_ID_PREFIX_FILTER+attribute+"-",clickSecondaryFilter,{selfAttribute:attribute})
+        panel = createPanelButtons("Filter by "+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_FILTER,keys,BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute,BUTTON_SECONDARY_ID_PREFIX_FILTER+attribute+"-",clickSecondaryFilter,{selfAttribute:attribute})
         var body = panel.find(".panel-body");
         body.append(" ");
         var button_all_group= jQuery('<div/>', {
@@ -458,21 +458,18 @@ function clickSecondary(attribute){
         secondaryFilters[attribute] = new Object
         $("."+BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute).addClass("active");
     } else {
-        var panel = document.getElementById(DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute);
+        panel = document.getElementById(DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute);
         delete secondaryFilters[attribute];
         if (panel!== undefined){
             panel.parentNode.removeChild(panel);
         }
         discreteGraphicPaint(dynamicDistributionObject)
-//        $("#"+DYNAMIC_DISTRIBUTION_SECONDARY_FILTER).remove();
-
     }
-    return;
 }
 
 function removeAllSecondaries(){
     $("#"+DYNAMIC_DISTRIBUTION_SECONDARY_FILTER).empty();
-    secondaryFilters = new Object
+    secondaryFilters = {}
 }
 
 function clickOnSecondaryAllNone(col){
@@ -502,7 +499,6 @@ function clickSecondaryFilter (attribute) {
     // Se ha hecho así por si el atributo tiene caracteres prohibidos para jQuery como "." y "/"
     $(document.getElementById(BUTTON_SECONDARY_ID_PREFIX_FILTER+idClicked+"-"+attribute)).toggleClass("active")
     discreteGraphicPaint(dynamicDistributionObject)
-    return;
 }
 
 function createPanelButtons(title, id, parentId , keys, buttonsClass,buttons_id_prefix,callback,buttonAttr){
@@ -644,11 +640,6 @@ function loadDataSetFromUrl(url,columns ){
             for (var key in filesInMemory[url].data[0]){
                 keys.push(key);
             }
-            if (url.indexOf('events') > -1) {
-//                 = new Object;
-                filesInMemory[url].colsTypes = pupUpCols(keys);
-                return;
-            }
         }
         if (columns !== undefined){
             filesInMemory[url].colsTypes = columns;
@@ -663,48 +654,14 @@ function loadDataSetFromUrl(url,columns ){
         }
     })
 }
-function createPupUp(id,title, body,footer){
-    var panel = $('<div class="modal fade">' +
-        '<div class="modal-dialog">' +
-        '<div class="modal-content">' +
-        '<div class="modal-header">' +
-        '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-        '<h4 class="modal-title">'+title+'</h4>' +
-        '</div>' +
-        '<div class="modal-body">' +
-//        '<p>'+body+'</p>' +
-        '</div>' +
-        '<div class="modal-footer">' +
-        footer +
-        '</div>' +
-        '</div><!-- /.modal-content -->' +
-        '</div><!-- /.modal-dialog -->' +
-        '</div><!-- /.modal -->')
 
-    panel.find(".modal-body").append(body)
-    panel.attr('id',id);
-
-    return panel[0];
-}
 function pupUpCols(cols) {
     var oldPanel = document.getElementById(DYNAMIC_DISTRIBUTION_COLUMNS_TYPES_PUP_UP_ID);
     if (oldPanel != null){
         oldPanel.parentNode.removeChild(oldPanel);
     }
     var title = "Attributes"
-    var body = "";
-    body = '<form class="form">' +
-        '<div onclick="toggleButtonsFunction(\'myId\')" id="myId" class="btn-group btn-toggle" data-toggle="buttons">' +
-        '<label class="btn btn-primary active">' +
-        '<input type="radio" name="options" value="option1"> Option 1' +
-        '</label>' +
-        '<label class="btn btn-default">' +
-        '<input type="radio" name="options" value="option2" checked=""> Option 2' +
-        '</label>' +
-        '</div>' +
-        '<button class="btn btn-default">Submit</button>' +
-        '</form>'
-    body = $('<ul class="list-group"/>');
+    var body = $('<ul class="list-group"/>');
     var colTypes = new Object;
 
     for (var key in cols){
@@ -734,11 +691,7 @@ function pupUpCols(cols) {
         $('<div/>',{text:cols[key],class:"col-lg-4 "+DYNAMIC_DISTRIBUTION_CLASS_LIST_ATTRS}).appendTo(entry);
 
         buttons.appendTo(entry)
-        var attib = $('<div/>')
         entry.appendTo(body);
-
-
-
     }
 
     var footer =
@@ -774,7 +727,8 @@ function onLoadedCSV() {
     }
     var keyList = new Array;
     for (var key in dynamicDistributionObject.getKeys()){
-        if (dynamicDistributionObject.getKeys()[key] == CSVContainerForDistributions.TYPE_DISCRETE){
+        if (dynamicDistributionObject.getKeys()[key] == CSVContainerForDistributions.TYPE_DISCRETE ||
+            dynamicDistributionObject.getKeys()[key] == CSVContainerForDistributions.TYPE_CONTINUOUS){
             keyList.push(key)
         }
     }
