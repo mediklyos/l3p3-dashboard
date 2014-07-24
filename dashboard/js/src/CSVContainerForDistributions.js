@@ -75,17 +75,17 @@
     CSVContainerForDistributions.prototype.categorizedBy = function(col){
         this.populationCol = col;
     }
-    CSVContainerForDistributions.prototype.setPrimaryCol = function(col){
+    CSVContainerForDistributions.prototype.setCategoryCol = function(col){
         this.primaryCol = col;
     }
 
-    CSVContainerForDistributions.prototype.getPrimaryColInfo = function () {
+    CSVContainerForDistributions.prototype.getCategoryColInfo = function () {
         return this.distributions[this.primaryCol];
     }
     CSVContainerForDistributions.prototype.getPopulationCol= function(){
         return this.populationCol;
     }
-    CSVContainerForDistributions.prototype.getPrimaryCol= function(){
+    CSVContainerForDistributions.prototype.getCategoryCol= function(){
         return this.primaryCol;
     }
     CSVContainerForDistributions.prototype.getPopulationColInfo= function(){
