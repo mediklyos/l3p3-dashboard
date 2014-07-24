@@ -43,15 +43,17 @@
                     return +d[dimension];
                 }
             });
-            newDimension.dimension.filter(function(d){
-                if (d == null){
-                    return false;
-                }else {
-                    return true;
-                }
-            });
+//            newDimension.dimension.filter([1,100]);
 
-            newDimension.keys = [newDimension.dimension.bottom(1)[0],newDimension.dimension.top(1)[0]];
+//            newDimension.dimension.filter(function(d){
+//                if (d == null){
+//                    return false;
+//                }else {
+//                    return true;
+//                }
+//            });
+
+            newDimension.keys = [newDimension.dimension.bottom(1)[0][dimension],newDimension.dimension.top(1)[0][dimension]];
 
         } else if (type == CSVContainerForDistributions.TYPE_ID){
             // Ignored
@@ -71,7 +73,7 @@
 
     }
     CSVContainerForDistributions.prototype.categorizedBy = function(col){
-        this.categoryCol = col;
+        this.populationCol = col;
     }
     CSVContainerForDistributions.prototype.setPrimaryCol = function(col){
         this.primaryCol = col;
@@ -80,14 +82,14 @@
     CSVContainerForDistributions.prototype.getPrimaryColInfo = function () {
         return this.distributions[this.primaryCol];
     }
-    CSVContainerForDistributions.prototype.getCategoryCol= function(){
-        return this.categoryCol;
+    CSVContainerForDistributions.prototype.getPopulationCol= function(){
+        return this.populationCol;
     }
     CSVContainerForDistributions.prototype.getPrimaryCol= function(){
         return this.primaryCol;
     }
-    CSVContainerForDistributions.prototype.getCategoryColInfo= function(){
-        return this.distributions[this.categoryCol];
+    CSVContainerForDistributions.prototype.getPopulationColInfo= function(){
+        return this.distributions[this.populationCol];
     }
 
     CSVContainerForDistributions.prototype.getAttributeInfo= function(attribute){
@@ -113,7 +115,7 @@
 }())
 
 function processCSV(srcFile,colsTypes, resourceData) {
-    this.categoryCol = "";
+    this.populationCol = "";
     this.primaryCol = "";
     /* Reset the principal object */
     if (resourceData.length > 0){

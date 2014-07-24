@@ -55,7 +55,7 @@ $("#content").html(new EJS ({url: "js/templates/template_dynamicDistribution.ejs
 /*
     dynamicDistributionObject
         | csv (CSVContainerForDistributions)
-        | category (String)
+        | population (String)
         | primary (String)
         | Secondary (Array(String))
 
