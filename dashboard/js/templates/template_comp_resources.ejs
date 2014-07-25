@@ -1,0 +1,30 @@
+<div>
+    <!-- Everything must be inside a div so that the ejs works -->
+    <head>
+        <meta charset="utf-8">
+        <title>Computer Resources</title>
+        <script src="js/src/stats.js"></script>
+    </head>
+
+    <header>
+        <h1> Computer Resources</h1>
+    </header>
+
+    <main id="charts">
+        <!-- Structure needed by stats.js to make the graphs -->
+        <section class="chart template">
+            <h2 class="title"></h2>
+            <canvas width="600" height="80"></canvas>
+            <ul class="stats">
+                <li class="stat template">
+                    <span class="stat-name"></span>
+                    <span class="stat-value"></span>
+                    <input type="button" class="stat-button" value="Color Map" style="width: 75px; height: 25px;"/>
+                </li>
+            </ul>
+        </section>
+        <div id="slider">
+            <input class="bar" type="range" id="rangeinput" value="50" from="0" to="100" step="10" onchange="sendToServer(value);"/>
+        </div>
+    </main>
+</div>

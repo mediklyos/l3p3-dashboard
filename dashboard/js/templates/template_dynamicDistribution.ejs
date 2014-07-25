@@ -1,0 +1,77 @@
+<div><h1 class="page-header">Dynamic population distribution</h1>
+
+    <div class="row" id="source-row">
+        <div class="col-lg-4">
+            <div class="input-group input-group-lg">
+            <span class="input-group-addon">
+              <span class="glyphicon glyphicon-file"></span>
+            </span>
+                <input id="form-src" class="form-control" type="text" placeholder="souce file" />
+            </div>
+        </div>
+        <div class="col-lg-2">
+            <button class="btn btn-default" onclick="clickSelect()">Apply</button>
+            <button class="btn btn-default" onclick="reset()">Reset</button>
+        </div>
+        <script>
+
+
+        </script>
+    </div>
+
+
+
+    <div class="row" id="dd-attributes-row">
+
+        <h3>Attributes</h3>
+        <div id="dd-attributes" class="row">
+            <div class="col-lg-4">
+                <div class="input-group input-group-sm" id="group-select-category-row">
+                    <span class="input-group-addon">
+                        Category row
+                    </span>
+                    <select id="select-category" class="form-control" onclick="clickSelect()"></select>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="input-group input-group-sm" id="group-select-primary-row" >
+                <span class="input-group-addon">
+                    Primary row
+                </span>
+                    <select id="select-primary-row" class="form-control" onclick="clickSelect()"></select>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="row" id="dd-graphics-row">
+        <h3>Graphic</h3>
+        <div class="col-lg-12" id="graphics_col">
+            <div class="row">
+                <div class="col-lg-8"><div id="dynamic-distribution-chart-div"></div></div>
+                <div class="col-lg-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="dd-filters-row" hidden>
+        <h3>Filters</h3>
+        <div class="col-lg-4" id="dd-filter-category">
+        </div>
+        <div class="col-lg-4" id="filter_primary">
+        </div>
+        <div class="col-lg-4" id="filter_secondary">
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("form-src").setAttribute("value",DISTRIBUTION_SOURCE_FILE);
+        if (dynamicDistributionObject !== undefined)
+            discreteGraphicPaint(dynamicDistributionObject)
+        document.getElementById("select-category").selectedIndex = -1
+        document.getElementById("select-primary-row").selectedIndex = -1
+
+    </script>
+</div>

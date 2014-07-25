@@ -1,0 +1,32 @@
+<div>
+    <!-- Everything must be inside a div so that the ejs works -->
+    <head>
+        <meta charset="utf-8">
+        <title>Color Map</title>
+        <!-- Required libraries -->
+        <script src="js/src/color_map.js"></script>
+    </head>
+
+
+    <header>
+        <h1> Color Map</h1>
+    </header>
+
+    <body>
+
+        <h3 id="resource" style="color:sienna;margin-left:35px;">Seleccione Recurso</h3>
+        <div class="ColorMap" style=" height:250px;">
+            <!-- ColorMap -->
+            <div class="Square" style="float:left">
+            <svg width="400" height="180">
+                <rect x="50" y="20" rx="20" ry="20" width="150" height="150"
+                      style="fill-rule:evenodd"  class="colorable" />
+                <text class="percent" x="90" y="100" font-size="40" ></text>
+            </svg>
+            </div>
+            <div class="flag" style="float:left"> <!-- Paint the caution flag -->
+            </div>
+        </div>
+
+    </body>
+</div>

@@ -1,3 +1,4 @@
+<html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
@@ -13,12 +14,19 @@
     <link href="css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="http://getbootstrap.com/examples/dashboard/dashboard.css" rel="stylesheet">
+    <link href="css/dashboard.css" rel="stylesheet">
     <style type="text/css"></style>
     <style id="holderjs-style" type="text/css"></style>
     <link rel="stylesheet" type="text/css" href="./css/dc.css" media="screen" />
     <!--<link rel="stylesheet" type="text/css" href="css/custom.css" media="screen" />-->
     <link rel="stylesheet" href="js/lib/select2-3.4.8/select2.css"/>
+    <link rel="stylesheet" href="./css/stats.css"/>
+
+    <!-- stylesheet for Computer Resources Monitor -->
+
+    <link rel="stylesheet" type="text/css" href="./css/stats.css">
+
+
 
 
 </head>
@@ -33,60 +41,94 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="https://sites.google.com/a/centeropenmiddleware.com/com-project-l3-p3/" >Center for Open Middleware L3P3</a>
+            <a class="navbar-brand" href="https://sites.google.com/a/centeropenmiddleware.com/com-project-l3-p3/" >Dashboard - Center for Open Middleware L3P3</a>
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right">
-                <li>
-                    <a href="http://localhost:8000/#">Dashboard</a>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Charts<span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#" class="contentLink" ref="js/templates/template_singleNodeViewer.ejs">Single Node Viewer</a></li>
+                        <li><a href="#" class="contentLink" ref="js/templates/template_globalEventsViewer.ejs" >Global Events Viewer</a></li>
+
+                        <li><a href="#" class="contentLink" ref="js/templates/template_dynamicDistribution.ejs" id="section_dynamicDistribution">Distributions</a></li>
+                        <li class="divider"></li>
+                        <li><a href="#"class="contentLink" ref="js/templates/template_blank.ejs">Node comparator</a></li>
+                        <li><a href="#"class="contentLink" ref="js/templates/example.ejs">Example</a></li>
+                        <li><a href="#" class="contentLink" ref="js/templates/template_comp_resources.ejs" >Computer Resources</a></li>
+                        <li><a href="#" class="contentLink" ref="js/templates/template_color_map.ejs" >Color Map</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">About<span class="caret"></span></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li><a href="#" class="contentLink" ref="js/templates/template_overview.ejs">Overview</a></li>
+                        <li><a href="#" class="contentLink" ref="js/templates/template_blank.ejs">Reports</a></li>
+                        <li><a href="#" class="contentLink" ref="js/templates/template_blank.ejs">Analytics</a></li>
+                        <li><a href="#" class="contentLink" ref="js/templates/template_blank.ejs">Export</a></li>
+                    </ul>
                 </li>
                 <li>
-                    <a href="http://localhost:8000/#">Settings</a>
+                    <a href="#">Settings</a>
                 </li>
                 <li>
-                    <a href="http://localhost:8000/#">Profile</a>
+                    <a href="#">Profile</a>
                 </li>
-                <li>
-                    <a href="http://localhost:8000/#">Help</a>
-                </li>
+
             </ul>
-            <form class="navbar-form navbar-right">
-                <input type="text" class="form-control" placeholder="Search...">
-            </form>
+            <!--<form class="navbar-form navbar-right">-->
+                <!--<input type="text" class="form-control" placeholder="Search...">-->
+            <!--</form>-->
         </div>
     </div>
 </div>
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-sm-3 col-md-2 sidebar">
-            <ul class="nav nav-sidebar">
-                <li >
-                    <a href="#" class="contentLink" ref="section_singleNodeViewer.html">Single Node Viewer</a>
-                </li>
-                <li>
-                    <a href="#" class="contentLink" ref="section_globalEventsViewer.html">Global Events Viewer</a>
-                </li>
-                <li>
-                    <a href="#"class="contentLink" ref="blank.html">Node comparator</a>
-                </li>
-            </ul>
-            <ul class="nav nav-sidebar">
-                <li>
-                    <a href="#" class="contentLink" ref="section_overview.html">Overview</a>
-                </li>
-                <li>
-                    <a href="#" class="contentLink" ref="blank.html">Reports</a>
-                </li>
-                <li>
-                    <a href="#" class="contentLink" ref="blank.html">Analytics</a>
-                </li>
-                <li>
-                    <a href="#" class="contentLink" ref="blank.html">Export</a>
-                </li>
-            </ul>
-        </div>
-        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <!--<div class="col-sm-3 col-md-2 sidebar">-->
+            <!--<ul class="nav nav-sidebar">-->
+                <!--<li >-->
+                    <!--<a href="#" class="contentLink" ref="js/templates/template_singleNodeViewer.ejs">Single Node Viewer</a>-->
+                <!--</li>-->
+                <!--<li>-->
+                    <!--<a href="#" class="contentLink" ref="js/templates/template_globalEventsViewer.ejs" >Global Events Viewer</a>-->
+                <!--</li>-->
+                <!--<li>-->
+                    <!--<a href="#" class="contentLink" ref="js/templates/template_dynamicDistribution.ejs" id="section_dynamicDistribution">Distributions</a>-->
+                <!--</li>-->
+                <!--<li>-->
+                    <!--<a href="#"class="contentLink" ref="js/templates/template_blank.ejs">Node comparator</a>-->
+                <!--</li>-->
+                <!--<li>-->
+                    <!--<a href="#"class="contentLink" ref="js/templates/example.ejs">Example</a>-->
+                <!--</li>-->
+            <!--</ul>-->
+            <!--<ul class="nav nav-sidebar">-->
+                <!--<li>-->
+                    <!--<a href="#" class="contentLink" ref="js/templates/template_overview.ejs">Overview</a>-->
+                <!--</li>-->
+                <!--<li>-->
+                    <!--<a href="#" class="contentLink" ref="js/templates/template_blank.ejs">Reports</a>-->
+                <!--</li>-->
+                <!--<li>-->
+                    <!--<a href="#" class="contentLink" ref="js/templates/template_blank.ejs">Analytics</a>-->
+                <!--</li>-->
+                <!--<li>-->
+                    <!--<a href="#" class="contentLink" ref="js/templates/template_blank.ejs">Export</a>-->
+                <!--</li>-->
+            <!--</ul>-->
+        <!--</div>-->
+        <!--<div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">-->
+            <div class="col-sm-12 main">
+            <!--<div class="row">-->
+                <!--<div class="span9">-->
+                    <!--Level 11 column-->
+                    <!--<div class="row">-->
+                        <!--<div class="span6">Level 2</div>-->
+                        <!--<div class="span3">Level 2</div>-->
+                    <!--</div>-->
+                <!--</div>-->
+            <!--</div>-->
             <div id="content"></div>
         </div>
     </div>
@@ -97,20 +139,33 @@
 <!-- Placed at the end of the document so the pages load faster -->
 <script src="js/lib/jquery/jquery-2.1.1.js"></script>
 <script src="js/lib/bootstrap/bootstrap.js"></script>
-
+<script src="js/lib/ejs_production.js"></script>
 <!-- JavaScript libraries-->
 <script src="js/lib/d3/d3.js"></script>
 <script src="js/lib/crossfilter.js"></script>
 <script src="js/lib/d3/dc.js"></script>
 <script src="js/lib/BigDecimal-all-last.js"></script>
 <script src="js/lib/melt.js"></script>
-<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
-<script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+<link rel="stylesheet" href="css/jquery-ui.css">
+<script src="css/jquery-ui.js"></script>
 <script src="js/lib/select2-3.4.8/select2.js"></script>
 <script src="js/src/contants.js"></script>
+<script src="js/src/common.js"></script>
+<script src="js/lib/objectWatch.js"></script>
+<script src="js/src/CSVContainer.js"></script>
 <script src="js/src/singleNodeViewer.js"></script>
 <script src="js/src/globalEventsViewer.js"></script>
-<script src="js/src/leftMenuRoutines/routines.js"></script>
+<script src="js/src/dynamicDistribution.js"></script>
+<script src="js/src/example.js"></script>
+<script src="js/src/routines.js"></script>
+
+<!-- Libs for Computer Resources -->
+<script src="js/lib/sugar-1.4.1.min.js"></script>
+<script src="js/lib/jquery/jquery-2.0.3.min.js"></script>
+<script src="js/lib/reconnecting-websocket.js"></script>
+<script src="js/lib/smoothie.js"></script>
+<script src="js/lib/chroma.min.js"></script>
+
 </body>
 
 </html>
