@@ -76,33 +76,22 @@ var continuousRepresentationType = null;
 
 function graphicPaint (dynamicDistributionObject) {
     var populationInfo = dynamicDistributionObject.getPopulationColInfo();
+    if (populationInfo == undefined) {
+        document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'
+        document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'
+        return;
+    }
+
     var populationType = populationInfo.type;
-    if (populationType == undefined) {
-        document.getElementById(DYNAMIC_DISTRIBUTION_POPULATION_FILTER).innerHTML = "";
-    } else if (populationType == CSVContainerForDistributions.TYPE_DISCRETE) {
+    if (populationType == CSVContainerForDistributions.TYPE_DISCRETE) {
         discreteGraphicPaint(dynamicDistributionObject)
     } else if (populationType == CSVContainerForDistributions.TYPE_CONTINUOUS) {
-//        populationFiltered = {};
-//
-//        for (var key in populationInfo.keys){
-//            populationFiltered[populationInfo.keys[key]] = true;
-//        }
-//
-//        setPopulationFilterBar(populationInfo.keys);
-////        discreteGraphicPaint(dynamicDistributionObject)
         continuousGraphicPaint (dynamicDistributionObject,continuousRepresentationType);
     } else {
         document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'
         document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'
 
     }
-//    var populationInfo = dynamicDistributionObject.getPopulationColInfo();
-//    if (populationInfo.type == CSVContainerForDistributions.TYPE_CONTINUOUS){
-//
-//    } else if (populationInfo.type == CSVContainerForDistributions.TYPE_DISCRETE) {
-//        discreteGraphicPaint (dynamicDistributionObject);
-//    }
-
 }
 
 function continuousGraphicPaint (dynamicDistributionObject,typeOfRepresentation){
@@ -129,6 +118,20 @@ function continuousGraphicPaint (dynamicDistributionObject,typeOfRepresentation)
         lineChart = currentChart;
     }
     var group = dimension.dimension.group();
+    function reduceSumFunction (cat,d) {
+        for (var secKey in secondaryFilters) {
+            if (secondaryFilters[secKey][d[secKey]]) {
+                return 0
+            }
+        }
+        if ((cat !== undefined) && (d[this] != cat)) {
+            return 0;
+        }
+        return 1;
+    }
+
+    var group = group.reduceSum(reduceSumFunction.bind(this,undefined));
+
     var values = new Object;
     var difference = populationFiltered[1] - populationFiltered[0]
     var min = (+populationFiltered[0]) - (difference * 0.05) ;
@@ -141,8 +144,7 @@ function continuousGraphicPaint (dynamicDistributionObject,typeOfRepresentation)
     var acc = false;
     if (typeOfRepresentation == DYNAMIC_DISTRIBUTION_CONTINUOUS_ACCUMULATED){
         for (var i = 0; i < groups.length; i++) {
-
-            if (groups[i].key == "null" ||
+        if (groups[i].key == "null" ||
                 groups[i].key == null ||
                 (groups[i].key - populationFiltered[0] < 0) ||
                 (groups[i].key - populationFiltered[1] > 0)) {
@@ -207,6 +209,10 @@ function continuousGraphicPaint (dynamicDistributionObject,typeOfRepresentation)
 
 }
 
+function continuousFilter() {
+
+}
+
 function discreteGraphicPaint (dynamicDistributionObject) {
 
     // Comprobar que se ha selecionado la columna de categoria y de atributo primario
@@ -229,98 +235,6 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     var dimension = populationInfo.dimension();
     var categoryCol = dynamicDistributionObject.getCategoryCol();
 
-
-    if (populationInfo.type == CSVContainerForDistributions.TYPE_CONTINUOUS ){
-        // a veces salen desordenadas (cosas de los decimales)
-        if ((populationFiltered[1] - populationFiltered[0]) < 0){
-            var temp = populationFiltered[0];
-            populationFiltered[0] = populationFiltered[1]
-            populationFiltered[1] = temp;
-        }
-        var lineChart
-        if (currentChart == null) {
-            lineChart = dc.lineChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
-        }
-        else {
-            lineChart = currentChart;
-        }
-        var group = dimension.dimension.group();
-        var values = new Object;
-        var difenrence = populationFiltered[1] - populationFiltered[0]
-        var min = (+populationFiltered[0]) - (difenrence * 0.05) ;
-        var max = (+populationFiltered[1]) + (difenrence * 0.05);
-        // process de groups
-        var groups = group.all();
-        var accumulated = 0;
-
-        // Process the group
-        var acc = false;
-        if (acc){
-            for (var i = 0; i < groups.length; i++) {
-
-                if (groups[i].key == "null" ||
-                    groups[i].key == null ||
-                    (groups[i].key - populationFiltered[0] < 0) ||
-                    (groups[i].key - populationFiltered[1] > 0)) {
-                    groups.splice(i, 1)
-                    i--;
-
-                } else {
-                    accumulated += groups[i].value;
-                    groups[i].value = accumulated;
-                }
-
-            }
-            groups.splice(0, 0, {key: min, value: 0})
-            groups.push({key: max, value: accumulated})
-        } else {
-            var newValues = [0]
-            for (var i = 0; i < groups.length; i++) {
-                for (var j = 0; j < groups[i].value;j++){
-                    if (groups[i].key == "null" ||
-                        groups[i].key == null ||
-                        (groups[i].key - populationFiltered[0] < 0) ||
-                        (groups[i].key - populationFiltered[1] > 0)) {
-                    } else {
-                        newValues.push(groups[i].key)
-                    }
-                }
-            }
-            var kde = science.stats.kde().sample(newValues);
-            var frequency = (max - min) / 500
-            var newData = kde(d3.range(min,max,frequency));
-            group.all().splice(0,group.all().length);
-            for (var i = 0; i < newData.length;i++){
-                group.all().push({key: newData[i][0],value: (newData[i][1])})
-            }
-//            for (var i = 0; i < group.all().length;i++){
-//                group.all()[i].push(newData[i])
-//            }
-
-        }
-
-
-        console.log()
-
-
-        lineChart
-            .width(CHART_WIDTH)
-            .height(300)
-            .x(d3.scale.linear().domain([min,max]))
-            .yAxisLabel("Population")
-            .renderHorizontalGridLines(true)
-            .renderVerticalGridLines(true)
-            .dimension(dimension.dimension)
-            .group(group)
-            .brushOn(false)
-            .valueAccessor(function (p){
-                return p.value;
-            })
-//            .legend(dc.legend().x(80).y(20).itemHeight(13).gap(5))
-        lineChart.render();
-
-        return;
-    }
     var compositeChart = dc.compositeChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
     /**
      * Function reduce sum when there are not a category col selected
@@ -345,7 +259,6 @@ function discreteGraphicPaint (dynamicDistributionObject) {
         if ((cat !== undefined) && (d[this] != cat)){
             return 0;
         }
-        Math.get
         if ((populationFiltered.indexOf(d[populationCol]) == -1) ){
             return 0;
         }else{
@@ -451,6 +364,8 @@ function setPopulation(newPopulation){
 
     if (newPopulation == "") {
         $("#"+DYNAMIC_DISTRIBUTION_POPULATION_FILTER).empty();
+        $("."+BUTTON_POPULATION_CLASS).toggleClass('active',false)
+
     } else if (newPopulation != prevPopulation){
         // Active only one population
         $("."+BUTTON_POPULATION_CLASS).removeClass("active");
@@ -608,7 +523,7 @@ function setCategoryList(keys) {
 function setCategory(newCategory){
     var prevCategory = dynamicDistributionObject.getCategoryColInfo();
     var cleanCategoryFunction = function () {
-        $(document.getElementById(BUTTON_CATEGORY_ID_PREFIX + newCategory)).toggleClass("active")
+        $("."+BUTTON_CATEGORY_CLASS).toggleClass("active",false)
         dynamicDistributionObject.setCategoryCol(undefined);
         categoryFiltered = undefined;
         $("#"+DYNAMIC_DISTRIBUTION_CATEGORY_FILTER).empty();
@@ -699,10 +614,10 @@ function clickOnCategoryAllNone(){
 // SECONDARY ATTRIBUTES FUNCTIONS
 function setSecondaryList(keys) {
     $("#"+DYNAMIC_DISTRIBUTION_SECONDARY_SELECT_COL_ID).empty();
-    createPanelButtons("Secondary attributes",undefined,DYNAMIC_DISTRIBUTION_SECONDARY_SELECT_COL_ID,keys,BUTTON_SECONDARY_CLASS,BUTTON_SECONDARY_ID_PREFIX,clickSecondary)
+    createPanelButtons("Secondary attributes",undefined,DYNAMIC_DISTRIBUTION_SECONDARY_SELECT_COL_ID,keys,BUTTON_SECONDARY_CLASS,BUTTON_SECONDARY_ID_PREFIX,setSecondary)
 }
 
-function clickSecondary(attribute){
+function setSecondary(attribute){
     $(document.getElementById(BUTTON_SECONDARY_ID_PREFIX+attribute)).toggleClass("active")
     var activeStatus = $(document.getElementById(BUTTON_SECONDARY_ID_PREFIX+attribute)).hasClass("active")
     var panel;
@@ -743,6 +658,7 @@ function clickSecondary(attribute){
 
 function removeAllSecondaries(){
     $("#"+DYNAMIC_DISTRIBUTION_SECONDARY_FILTER).empty();
+    $("."+BUTTON_SECONDARY_CLASS).toggleClass('active',false)
     secondaryFilters = {}
 }
 
@@ -863,7 +779,7 @@ function reset(){
     dynamicDistributionObject.init(dynamicDistributionObject.src,dynamicDistributionObject.keys)
     setPopulation("");
     setCategory("")
-    removeAllSecondaries("");
+    removeAllSecondaries();
     document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'; // block
     document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'; // block
 }
