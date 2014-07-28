@@ -24,6 +24,7 @@ var BUTTON_POPULATION_CLASS = "dd-population-class";
 var BUTTON_POPULATION_FILTER_CLASS = "dd-population-filter-class";
 var BUTTON_POPULATION_ID_FILTER_ALL = "dd-population-filter-all";
 var BUTTON_POPULATION_ID_PREFIX_FILTER = "dd-population-filter";
+var BUTTON_POPULATION_CONT_REPRESENTATION_TYPE = "dd-cont-representation-type";
 
 var DYNAMIC_DISTRIBUTION_FILTER_POPULATION_CLASS = "dd-filter-population-class";
 
@@ -62,24 +63,159 @@ var DYNAMIC_DISTRIBUTION_BUTTONS_ATTR_TYPE_PREFIX = "dd-btns-attr-type-";
 
 var DYNAMIC_DISTRIBUTION_CLASS_LIST_ATTRS = "dd-class-div-select-attr";
 
-
+var DYNAMIC_DISTRIBUTION_CONTINUOUS_ACCUMULATED = "dd-accumulated"
+var DYNAMIC_DISTRIBUTION_CONTINUOUS_DISTRIBUTION = "dd-distribution"
 
 var populationFiltered = new Object;
 var categoryFiltered = new Object;
 var secondaryFilters = new Object;
 
+var currentChart = null;
+
+var continuousRepresentationType = null;
+
+function graphicPaint (dynamicDistributionObject) {
+    var populationInfo = dynamicDistributionObject.getPopulationColInfo();
+    var populationType = populationInfo.type;
+    if (populationType == undefined) {
+        document.getElementById(DYNAMIC_DISTRIBUTION_POPULATION_FILTER).innerHTML = "";
+    } else if (populationType == CSVContainerForDistributions.TYPE_DISCRETE) {
+        discreteGraphicPaint(dynamicDistributionObject)
+    } else if (populationType == CSVContainerForDistributions.TYPE_CONTINUOUS) {
+//        populationFiltered = {};
+//
+//        for (var key in populationInfo.keys){
+//            populationFiltered[populationInfo.keys[key]] = true;
+//        }
+//
+//        setPopulationFilterBar(populationInfo.keys);
+////        discreteGraphicPaint(dynamicDistributionObject)
+        continuousGraphicPaint (dynamicDistributionObject,continuousRepresentationType);
+    } else {
+        document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'
+        document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'
+
+    }
+//    var populationInfo = dynamicDistributionObject.getPopulationColInfo();
+//    if (populationInfo.type == CSVContainerForDistributions.TYPE_CONTINUOUS){
+//
+//    } else if (populationInfo.type == CSVContainerForDistributions.TYPE_DISCRETE) {
+//        discreteGraphicPaint (dynamicDistributionObject);
+//    }
+
+}
+
+function continuousGraphicPaint (dynamicDistributionObject,typeOfRepresentation){
+    var populationInfo = dynamicDistributionObject.getPopulationColInfo();
+    var dimension = populationInfo.dimension();
+    var populationFiltered = getPopulationFiltered();
+
+    document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'block'
+    document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'block'
+
+
+
+    // a veces salen desordenadas (cosas de los decimales)
+    if ((populationFiltered[1] - populationFiltered[0]) < 0){
+        var temp = populationFiltered[0];
+        populationFiltered[0] = populationFiltered[1]
+        populationFiltered[1] = temp;
+    }
+    var lineChart
+    if (currentChart == null) {
+        lineChart = dc.lineChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
+    }
+    else {
+        lineChart = currentChart;
+    }
+    var group = dimension.dimension.group();
+    var values = new Object;
+    var difference = populationFiltered[1] - populationFiltered[0]
+    var min = (+populationFiltered[0]) - (difference * 0.05) ;
+    var max = (+populationFiltered[1]) + (difference * 0.05);
+    // process de groups
+    var groups = group.all();
+    var accumulated = 0;
+
+    // Process the group
+    var acc = false;
+    if (typeOfRepresentation == DYNAMIC_DISTRIBUTION_CONTINUOUS_ACCUMULATED){
+        for (var i = 0; i < groups.length; i++) {
+
+            if (groups[i].key == "null" ||
+                groups[i].key == null ||
+                (groups[i].key - populationFiltered[0] < 0) ||
+                (groups[i].key - populationFiltered[1] > 0)) {
+                groups.splice(i, 1)
+                i--;
+
+            } else {
+                accumulated += groups[i].value;
+                groups[i].value = accumulated;
+            }
+
+        }
+        groups.splice(0, 0, {key: min, value: 0})
+        groups.push({key: max, value: accumulated})
+    } else {
+        var newValues = [0]
+        for (var i = 0; i < groups.length; i++) {
+            for (var j = 0; j < groups[i].value;j++){
+                if (groups[i].key == "null" ||
+                    groups[i].key == null ||
+                    (groups[i].key - populationFiltered[0] < 0) ||
+                    (groups[i].key - populationFiltered[1] > 0)) {
+                } else {
+                    newValues.push(groups[i].key)
+                }
+            }
+        }
+        var kde = science.stats.kde().sample(newValues);
+        var frequency = (max - min) / 500
+        var newData = kde(d3.range(min,max,frequency));
+        group.all().splice(0,group.all().length);
+        for (var i = 0; i < newData.length;i++){
+            group.all().push({key: newData[i][0],value: (newData[i][1]*dimension.size)})
+        }
+//            for (var i = 0; i < group.all().length;i++){
+//                group.all()[i].push(newData[i])
+//            }
+
+    }
+
+
+    console.log()
+
+
+    lineChart
+        .width(CHART_WIDTH)
+        .height(300)
+        .x(d3.scale.linear().domain([min,max]))
+        .yAxisLabel("Population")
+        .renderHorizontalGridLines(true)
+        .renderVerticalGridLines(true)
+        .dimension(dimension.dimension)
+        .group(group)
+        .brushOn(false)
+        .valueAccessor(function (p){
+            return p.value;
+        })
+//            .legend(dc.legend().x(80).y(20).itemHeight(13).gap(5))
+    lineChart.render();
+
+
+
+}
+
 function discreteGraphicPaint (dynamicDistributionObject) {
 
     // Comprobar que se ha selecionado la columna de categoria y de atributo primario
     // Si no hay ninguna categoria no mostrar nada tampoco se muestra nada
-    var categoriesFiltered = getCategoriesFiltered();
-    var categoryColInfo = dynamicDistributionObject.getCategoryColInfo();
-    var emptySecondary = false;
-    var emptyCategory = false;//(categoryColInfo !== undefined) && (false || (Object.keys(categoryFiltered).length == 0))
+    var populationFiltered = getPopulationFiltered();
 
     if (dynamicDistributionObject.getPopulationCol() == undefined ||
         dynamicDistributionObject.getPopulationCol() == "" ||
-        categoriesFiltered.length == 0 || emptyCategory || emptySecondary
+        populationFiltered.length == 0
         ){
         document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'
         return;
@@ -95,33 +231,77 @@ function discreteGraphicPaint (dynamicDistributionObject) {
 
 
     if (populationInfo.type == CSVContainerForDistributions.TYPE_CONTINUOUS ){
-        var lineChart = dc.lineChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
+        // a veces salen desordenadas (cosas de los decimales)
+        if ((populationFiltered[1] - populationFiltered[0]) < 0){
+            var temp = populationFiltered[0];
+            populationFiltered[0] = populationFiltered[1]
+            populationFiltered[1] = temp;
+        }
+        var lineChart
+        if (currentChart == null) {
+            lineChart = dc.lineChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
+        }
+        else {
+            lineChart = currentChart;
+        }
         var group = dimension.dimension.group();
         var values = new Object;
-        var group2 = group.reduce(
-            // add
-            function (p, v) {
-                if (v[populationCol] == "" || categoriesFiltered[0] >= v[populationCol] || categoriesFiltered[1] <= v[populationCol]){
-                    return p;
-                }
-                if (p[v[populationCol]] === undefined){
-                    p[v[populationCol]] = 0;
-                }
-                p[v[populationCol]]++;
-                return p;
-            },
+        var difenrence = populationFiltered[1] - populationFiltered[0]
+        var min = (+populationFiltered[0]) - (difenrence * 0.05) ;
+        var max = (+populationFiltered[1]) + (difenrence * 0.05);
+        // process de groups
+        var groups = group.all();
+        var accumulated = 0;
 
-            function (p, v) {
-                return p - 1;
-            },
+        // Process the group
+        var acc = false;
+        if (acc){
+            for (var i = 0; i < groups.length; i++) {
 
-            function () {
-                return values;
-            }.bind(values)
-        )
-        var difenrence = categoriesFiltered[1] - categoriesFiltered[0]
-        var min = categoriesFiltered[0] - (difenrence * 0,1);
-        var max = categoriesFiltered[1] + (difenrence * 0,1);
+                if (groups[i].key == "null" ||
+                    groups[i].key == null ||
+                    (groups[i].key - populationFiltered[0] < 0) ||
+                    (groups[i].key - populationFiltered[1] > 0)) {
+                    groups.splice(i, 1)
+                    i--;
+
+                } else {
+                    accumulated += groups[i].value;
+                    groups[i].value = accumulated;
+                }
+
+            }
+            groups.splice(0, 0, {key: min, value: 0})
+            groups.push({key: max, value: accumulated})
+        } else {
+            var newValues = [0]
+            for (var i = 0; i < groups.length; i++) {
+                for (var j = 0; j < groups[i].value;j++){
+                    if (groups[i].key == "null" ||
+                        groups[i].key == null ||
+                        (groups[i].key - populationFiltered[0] < 0) ||
+                        (groups[i].key - populationFiltered[1] > 0)) {
+                    } else {
+                        newValues.push(groups[i].key)
+                    }
+                }
+            }
+            var kde = science.stats.kde().sample(newValues);
+            var frequency = (max - min) / 500
+            var newData = kde(d3.range(min,max,frequency));
+            group.all().splice(0,group.all().length);
+            for (var i = 0; i < newData.length;i++){
+                group.all().push({key: newData[i][0],value: (newData[i][1])})
+            }
+//            for (var i = 0; i < group.all().length;i++){
+//                group.all()[i].push(newData[i])
+//            }
+
+        }
+
+
+        console.log()
+
 
         lineChart
             .width(CHART_WIDTH)
@@ -131,23 +311,12 @@ function discreteGraphicPaint (dynamicDistributionObject) {
             .renderHorizontalGridLines(true)
             .renderVerticalGridLines(true)
             .dimension(dimension.dimension)
-            .group(group2)
+            .group(group)
             .brushOn(false)
-            .valueAccessor(function (d){
-                var accumulated = 0;
-                for (var key in d.value){
-                    if (key <= d.key) {
-                        accumulated += d.value[key];
-//                    } else if (key == d.key) {
-//                        accumulated += d.value[key];
-//                        return accumulated;
-//
-                    }
-
-                }
-                return accumulated;
+            .valueAccessor(function (p){
+                return p.value;
             })
-            .legend(dc.legend().x(80).y(20).itemHeight(13).gap(5))
+//            .legend(dc.legend().x(80).y(20).itemHeight(13).gap(5))
         lineChart.render();
 
         return;
@@ -177,7 +346,7 @@ function discreteGraphicPaint (dynamicDistributionObject) {
             return 0;
         }
         Math.get
-        if ((categoriesFiltered.indexOf(d[populationCol]) == -1) ){
+        if ((populationFiltered.indexOf(d[populationCol]) == -1) ){
             return 0;
         }else{
             return 1;
@@ -242,7 +411,7 @@ function discreteGraphicPaint (dynamicDistributionObject) {
         .width(CHART_WIDTH)
         .height(300)
         .xUnits(dc.units.ordinal)
-        .x(d3.scale.ordinal().domain(categoriesFiltered))
+        .x(d3.scale.ordinal().domain(populationFiltered))
         .yAxisLabel("Population")
         .renderHorizontalGridLines(true)
 //        .renderVerticalGridLines(true)
@@ -287,6 +456,8 @@ function setPopulation(newPopulation){
         $("."+BUTTON_POPULATION_CLASS).removeClass("active");
         $(document.getElementById(BUTTON_POPULATION_ID_PREFIX + newPopulation)).addClass("active")
         dynamicDistributionObject.categorizedBy(newPopulation);
+//        graphicPaint(dynamicDistributionObject);
+//        return;
         var populationInfo = dynamicDistributionObject.getPopulationColInfo();
         var populationType = populationInfo.type;
         if (populationType == undefined) {
@@ -301,15 +472,16 @@ function setPopulation(newPopulation){
             for (var key in populationInfo.keys){
                 populationFiltered[populationInfo.keys[key]] = true;
             }
-            discreteGraphicPaint(dynamicDistributionObject)
+            graphicPaint(dynamicDistributionObject)
         } else if (populationType == CSVContainerForDistributions.TYPE_CONTINUOUS) {
+
             populationFiltered = {};
             for (var key in populationInfo.keys){
                 populationFiltered[populationInfo.keys[key]] = true;
             }
 
             setPopulationFilterBar(populationInfo.keys);
-            discreteGraphicPaint(dynamicDistributionObject)
+            graphicPaint(dynamicDistributionObject)
         }
     }
 }
@@ -334,7 +506,15 @@ function clickOnPopulationFilter(population) {
     $("#"+BUTTON_POPULATION_ID_FILTER_ALL).removeClass("active")
 
 
-    discreteGraphicPaint(dynamicDistributionObject)
+    graphicPaint(dynamicDistributionObject)
+}
+
+function clickOkPopulationSliderFilter(start,end){
+    populationFiltered = {}
+    populationFiltered[start] = true;
+    populationFiltered[end] = true;
+    graphicPaint(dynamicDistributionObject)
+
 }
 
 /**
@@ -358,7 +538,7 @@ function setPopulationFilterList(keys){
     // Adding "All" button
     jQuery('<button/>',{
         id : BUTTON_POPULATION_ID_FILTER_ALL,
-        onclick:"clickOnPopulationFilterAllNone()",
+        onclick:clickOnPopulationFilterAllNone.name+"()",
         text: "All/None",
         type: 'button',
         class: 'btn btn-default active'
@@ -373,9 +553,23 @@ function setPopulationFilterBar(keys){
     $("#"+DYNAMIC_DISTRIBUTION_POPULATION_FILTER).empty();
 //    var panel = createPanelButtons(title,undefined,DYNAMIC_DISTRIBUTION_POPULATION_FILTER,keys,BUTTON_POPULATION_FILTER_CLASS,BUTTON_POPULATION_ID_PREFIX_FILTER,clickOnPopulationFilter)
 //    title, id, parentId , keys, buttonsClass,buttons_id_prefix,callback,buttonAttr
-    var panel = createSliderPanel(title,undefined,DYNAMIC_DISTRIBUTION_POPULATION_FILTER,keys,BUTTON_POPULATION_FILTER_CLASS,BUTTON_POPULATION_ID_PREFIX_FILTER,function(){});
+    var panel = createSliderPanel(title,undefined,DYNAMIC_DISTRIBUTION_POPULATION_FILTER,keys,BUTTON_POPULATION_FILTER_CLASS,BUTTON_POPULATION_ID_PREFIX_FILTER,clickOkPopulationSliderFilter);
     var body = panel.find(".panel-body")
+    continuousRepresentationType = DYNAMIC_DISTRIBUTION_CONTINUOUS_DISTRIBUTION;
+    var selectRepresentationTypeButton = jQuery('<button/>',{
+            id : BUTTON_POPULATION_CONT_REPRESENTATION_TYPE,
+            text: "Prov/Acc",
+            class: 'btn btn-default active'
+        }).appendTo(body)
+    selectRepresentationTypeButton.click(setContinuousType)
+    selectRepresentationTypeButton.appendTo(body);
     return panel;
+}
+
+function setContinuousType (){
+    continuousRepresentationType = ($("#"+BUTTON_POPULATION_CONT_REPRESENTATION_TYPE).toggleClass('active').hasClass('active'))?DYNAMIC_DISTRIBUTION_CONTINUOUS_DISTRIBUTION:DYNAMIC_DISTRIBUTION_CONTINUOUS_ACCUMULATED;
+    graphicPaint(dynamicDistributionObject)
+
 }
 
 /**
@@ -388,14 +582,14 @@ function clickOnPopulationFilterAllNone(){
     for (var key in populationFiltered){
         populationFiltered[key] = result;
     }
-    discreteGraphicPaint(dynamicDistributionObject)
+    graphicPaint(dynamicDistributionObject)
 }
 
 /**
  * get all categories that are not filtered
  * @returns {Array}
  */
-function getCategoriesFiltered(){
+function getPopulationFiltered(){
     var categories = new Array
     for (var key in populationFiltered ){
         if (populationFiltered[key]){
@@ -448,7 +642,7 @@ function setCategory(newCategory){
     else if (newCategory == "" || newCategory == prevCategory.key ){
         cleanCategoryFunction();
     }
-    discreteGraphicPaint(dynamicDistributionObject)
+    graphicPaint(dynamicDistributionObject)
 
 }
 
@@ -481,7 +675,7 @@ function clickOnCategoryFilter (attribute){
 
     // Se ha hecho así por si el atributo tiene caracteres prohibidos para jQuery como "." y "/"
     $(document.getElementById(BUTTON_CATEGORY_ID_PREFIX_FILTER+attribute)).toggleClass("active")
-    discreteGraphicPaint(dynamicDistributionObject)
+    graphicPaint(dynamicDistributionObject)
 
 }
 
@@ -498,7 +692,7 @@ function clickOnCategoryAllNone(){
             categoryFiltered[keys[key]] = true;
         }
     }
-    discreteGraphicPaint(dynamicDistributionObject)
+    graphicPaint(dynamicDistributionObject)
 }
 
 
@@ -543,7 +737,7 @@ function clickSecondary(attribute){
         if (panel!== undefined){
             panel.parentNode.removeChild(panel);
         }
-        discreteGraphicPaint(dynamicDistributionObject)
+        graphicPaint(dynamicDistributionObject)
     }
 }
 
@@ -564,7 +758,7 @@ function clickOnSecondaryAllNone(col){
             secondaryFilters[col][keys[key]] = true;
         }
     }
-    discreteGraphicPaint(dynamicDistributionObject)
+    graphicPaint(dynamicDistributionObject)
 }
 
 function clickSecondaryFilter (attribute) {
@@ -578,7 +772,7 @@ function clickSecondaryFilter (attribute) {
     }
     // Se ha hecho así por si el atributo tiene caracteres prohibidos para jQuery como "." y "/"
     $(document.getElementById(BUTTON_SECONDARY_ID_PREFIX_FILTER+idClicked+"-"+attribute)).toggleClass("active")
-    discreteGraphicPaint(dynamicDistributionObject)
+    graphicPaint(dynamicDistributionObject)
 }
 
 function createPanelButtons(title, id, parentId , keys, buttonsClass,buttons_id_prefix,callback,buttonAttr){
@@ -620,8 +814,9 @@ function createPanelButtons(title, id, parentId , keys, buttonsClass,buttons_id_
 
 
 function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_prefix,callback,buttonAttr){
-    var leftValue = Math.floor(keys[0])-Math.ceil(keys[0]-Math.floor(keys[0]));
-    var rightValue = Math.floor(keys[1]) + Math.ceil(keys[1]-Math.floor(keys[1]));
+    // TODO saltos
+    var leftValue = Math.floor(keys[0]);
+    var rightValue = Math.ceil(keys[1])
     var leftLength = (""+leftValue).length
     var rightLength = (""+rightValue).length
     var length = (leftLength > rightLength)?leftLength:rightLength;
@@ -655,6 +850,7 @@ function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_p
         }
     }).appendTo(panelBody);
     panelBody.append('<div id="'+buttons_id_prefix+'right">'+rightValue+'</div>')
+//    callback(leftValue,rightValue);
     return panel;
 }
 var color20 = d3.scale.category20();
@@ -841,14 +1037,20 @@ function onLoadedCSV() {
     if (document.getElementById(DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV) != null) {
         document.getElementById(DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV).style.display = 'block'; // block
     }
-    var keyList = new Array;
+    var PopulationKeysList = [];
+    var CategoryKeysList = [];
+    var SecondaryKeysList = []
     for (var key in dynamicDistributionObject.getKeys()){
-        if (dynamicDistributionObject.getKeys()[key] == CSVContainerForDistributions.TYPE_DISCRETE ||
-            dynamicDistributionObject.getKeys()[key] == CSVContainerForDistributions.TYPE_CONTINUOUS){
-            keyList.push(key)
+        if (dynamicDistributionObject.getKeys()[key] == CSVContainerForDistributions.TYPE_DISCRETE) {
+            PopulationKeysList.push(key)
+            SecondaryKeysList.push(key)
+            CategoryKeysList.push(key)
+        } else if (dynamicDistributionObject.getKeys()[key] == CSVContainerForDistributions.TYPE_CONTINUOUS) {
+            PopulationKeysList.push(key)
+            SecondaryKeysList.push(key)
         }
     }
-    setPopulationList(keyList);
-    setCategoryList(keyList);
-    setSecondaryList(keyList);
+    setPopulationList(PopulationKeysList);
+    setCategoryList(CategoryKeysList);
+    setSecondaryList(SecondaryKeysList);
 }

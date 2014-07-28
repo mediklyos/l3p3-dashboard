@@ -44,14 +44,15 @@
                 }
             });
 //            newDimension.dimension.filter([1,100]);
-
-//            newDimension.dimension.filter(function(d){
-//                if (d == null){
-//                    return false;
-//                }else {
-//                    return true;
-//                }
-//            });
+            newDimension.size = 0;
+            newDimension.dimension.filter(function(d){
+                if (d == null){
+                    return false;
+                }else {
+                    newDimension.size++;
+                    return true;
+                }
+            });
 
             newDimension.keys = [newDimension.dimension.bottom(1)[0][dimension],newDimension.dimension.top(1)[0][dimension]];
 
