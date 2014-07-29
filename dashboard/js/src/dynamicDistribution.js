@@ -96,8 +96,10 @@ function graphicPaint (dynamicDistributionObject) {
 
 function continuousGraphicPaint (dynamicDistributionObject,typeOfRepresentation){
     var populationInfo = dynamicDistributionObject.getPopulationColInfo();
+    var populationCol = populationInfo.key;
     var dimension = populationInfo.dimension();
     var populationFiltered = getPopulationFiltered();
+    var categoryCol = dynamicDistributionObject.getCategoryCol();
 
     document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'block'
     document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'block'
@@ -110,13 +112,13 @@ function continuousGraphicPaint (dynamicDistributionObject,typeOfRepresentation)
         populationFiltered[0] = populationFiltered[1]
         populationFiltered[1] = temp;
     }
-    var lineChart
-    if (currentChart == null) {
-        lineChart = dc.lineChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
-    }
-    else {
-        lineChart = currentChart;
-    }
+    var difference = populationFiltered[1] - populationFiltered[0]
+    var min = (+populationFiltered[0]) - (difference * 0.05) ;
+    var max = (+populationFiltered[1]) + (difference * 0.05);
+
+    var compositeChart = dc.compositeChart("#" + DYNAMIC_DISTRIBUTION_CHART_DIV);
+
+
     var group = dimension.dimension.group();
     function reduceSumFunction (cat,d) {
         for (var secKey in secondaryFilters) {
@@ -130,24 +132,160 @@ function continuousGraphicPaint (dynamicDistributionObject,typeOfRepresentation)
         return 1;
     }
 
-    var group = group.reduceSum(reduceSumFunction.bind(this,undefined));
 
-    var values = new Object;
-    var difference = populationFiltered[1] - populationFiltered[0]
-    var min = (+populationFiltered[0]) - (difference * 0.05) ;
-    var max = (+populationFiltered[1]) + (difference * 0.05);
+
+
+    console.log()
+
+
+    var charts = new Array;
+
+    // Si la categoria el atributo principal son el mismo se muestra la población de ese atributo
+    //
+//    var categoryCol = undefined
+
+    if (false && (categoryCol === undefined || categoryCol == populationCol ||  categoryCol == "")) {
+
+        group = group.reduceSum(reduceSumFunction.bind(this,undefined));
+
+//        var difference = populationFiltered[1] - populationFiltered[0]
+//        var min = (+populationFiltered[0]) - (difference * 0.05) ;
+//        var max = (+populationFiltered[1]) + (difference * 0.05);
+        // process de groups
+        var groups = group.all();
+
+        // Process the group
+
+        if (typeOfRepresentation == DYNAMIC_DISTRIBUTION_CONTINUOUS_ACCUMULATED){
+            var accumulated = 0;
+            for (var i = 0; i < groups.length; i++) {
+                if (groups[i].key == "null" ||
+                    groups[i].key == null ||
+                    (groups[i].key - populationFiltered[0] < 0) ||
+                    (groups[i].key - populationFiltered[1] > 0)) {
+                    groups.splice(i, 1)
+                    i--;
+
+                } else {
+                    accumulated += groups[i].value;
+                    groups[i].value = accumulated;
+                }
+
+            }
+            groups.splice(0, 0, {key: min, value: 0})
+            groups.push({key: max, value: accumulated})
+        } else {
+            var newValues = [0]
+            for (var i = 0; i < groups.length; i++) {
+                for (var j = 0; j < groups[i].value;j++){
+                    if (groups[i].key == "null" ||
+                        groups[i].key == null ||
+                        (groups[i].key - populationFiltered[0] < 0) ||
+                        (groups[i].key - populationFiltered[1] > 0)) {
+                    } else {
+                        newValues.push(groups[i].key)
+                    }
+                }
+            }
+            var kde = science.stats.kde().sample(newValues);
+            var frequency = (max - min) / 500
+            var newData = kde(d3.range(min,max,frequency));
+            group.all().splice(0,group.all().length);
+            for (var i = 0; i < newData.length;i++){
+                group.all().push({key: newData[i][0],value: (newData[i][1]*dimension.size)})
+            }
+        }
+
+        var color = 0;
+
+        var lineChart
+        lineChart = dc.lineChart(compositeChart);
+        lineChart
+            .colors(myColors(color++))
+//            .gap(0)
+            .dimension(dimension.dimension)
+            .group(group, populationCol)
+            .brushOn(false)
+            .title(function (d) {
+                return d.key + ": " + d.value;
+            })
+    }
+    var color = 0;
+    if (categoryCol === undefined || categoryCol == populationCol ||  categoryCol == ""){
+        lineChart = generateLinealChart(populationCol,typeOfRepresentation,color, compositeChart, populationFiltered[0],populationFiltered[1],undefined,undefined,secondaryFilters,dimension)
+        charts.push(lineChart)
+    } else {
+        var categoryKeys = dynamicDistributionObject.getCategoryColInfo().keys;
+        for (var key in categoryKeys) {
+            if (categoryFiltered[categoryKeys[key]] === undefined) {
+                var newChart = generateLinealChart(categoryKeys[key], typeOfRepresentation, color++, compositeChart, populationFiltered[0], populationFiltered[1], categoryKeys[key], categoryCol, secondaryFilters, dimension)
+                charts.push(newChart)
+            }
+        }
+    }
+
+
+
+
+//        lineChart
+//        .width(CHART_WIDTH)
+//        .height(300)
+//        .x(d3.scale.linear().domain([min,max]))
+//        .yAxisLabel("Population")
+//        .renderHorizontalGridLines(true)
+//        .renderVerticalGridLines(true)
+//        .dimension(dimension.dimension)
+//        .group(group)
+//        .brushOn(false)
+//        .valueAccessor(function (p){
+//            return p.value;
+//        })
+//            .legend(dc.legend().x(80).y(20).itemHeight(13).gap(5))
+//    lineChart.render();
+
+    compositeChart
+        .width(CHART_WIDTH)
+        .height(300)
+        .x(d3.scale.linear().domain([min,max]))
+        .yAxisLabel("Population")
+        .renderHorizontalGridLines(true)
+//        .renderVerticalGridLines(true)
+        .shareTitle(false)
+        .compose(charts)
+        .transitionDuration(0)
+        .brushOn(false)
+        .legend(dc.legend().x(80).y(20).itemHeight(13).gap(5))
+
+    compositeChart.render();
+
+
+}
+
+function generateLinealChart (name,type,color,parent, start,end,categoryValue,categoryName,secondaryFilters,dimension){
+    function reduceSumFunction (d) {
+        for (var secKey in secondaryFilters) {
+            if (secondaryFilters[secKey][d[secKey]]) {
+                return 0
+            }
+        }
+        if ((categoryName !== undefined) && (d[categoryName] != categoryValue)) {
+            return 0;
+        }
+        return 1;
+    }
+    var newGroup = dimension.dimension.group().reduceSum(reduceSumFunction);
+    var difference = parseFloat(end) - parseFloat(start)
+    var min = parseFloat(start) - (difference * 0.05) ;
+    var max = parseFloat(end) + (difference * 0.05);
     // process de groups
-    var groups = group.all();
-    var accumulated = 0;
-
-    // Process the group
-    var acc = false;
-    if (typeOfRepresentation == DYNAMIC_DISTRIBUTION_CONTINUOUS_ACCUMULATED){
+    var groups = newGroup.all();
+    if (type == DYNAMIC_DISTRIBUTION_CONTINUOUS_ACCUMULATED){
+        var accumulated = 0;
         for (var i = 0; i < groups.length; i++) {
-        if (groups[i].key == "null" ||
+            if (groups[i].key == "null" ||
                 groups[i].key == null ||
-                (groups[i].key - populationFiltered[0] < 0) ||
-                (groups[i].key - populationFiltered[1] > 0)) {
+                (groups[i].key - start < 0) ||
+                (groups[i].key - end > 0)) {
                 groups.splice(i, 1)
                 i--;
 
@@ -160,50 +298,42 @@ function continuousGraphicPaint (dynamicDistributionObject,typeOfRepresentation)
         groups.splice(0, 0, {key: min, value: 0})
         groups.push({key: max, value: accumulated})
     } else {
-        var newValues = [0]
+        var newValues = []
         for (var i = 0; i < groups.length; i++) {
             for (var j = 0; j < groups[i].value;j++){
                 if (groups[i].key == "null" ||
                     groups[i].key == null ||
-                    (groups[i].key - populationFiltered[0] < 0) ||
-                    (groups[i].key - populationFiltered[1] > 0)) {
+                    (groups[i].key - start < 0) ||
+                    (groups[i].key - end > 0)) {
                 } else {
-                    newValues.push(groups[i].key)
+                    newValues.push(parseFloat(groups[i].key))
                 }
             }
         }
+//        var size = newValues.length;
+        var size = newValues.length/dimension.size;
         var kde = science.stats.kde().sample(newValues);
-        var frequency = (max - min) / 500
+        var frequency = Math.abs(parseFloat(max) - parseFloat(min)) / 500
         var newData = kde(d3.range(min,max,frequency));
-        group.all().splice(0,group.all().length);
+        newGroup.all().splice(0,newGroup.all().length);
         for (var i = 0; i < newData.length;i++){
-            group.all().push({key: newData[i][0],value: (newData[i][1]*dimension.size)})
+            newGroup.all().push({key: newData[i][0],value: (newData[i][1])*size})//*dimension.size)})//
         }
-//            for (var i = 0; i < group.all().length;i++){
-//                group.all()[i].push(newData[i])
-//            }
-
     }
 
-
-    console.log()
-
-
+    var lineChart
+    lineChart = dc.lineChart(parent);
     lineChart
-        .width(CHART_WIDTH)
-        .height(300)
-        .x(d3.scale.linear().domain([min,max]))
-        .yAxisLabel("Population")
-        .renderHorizontalGridLines(true)
-        .renderVerticalGridLines(true)
+        .colors(myColors(color))
+//            .gap(0)
         .dimension(dimension.dimension)
-        .group(group)
+        .group(newGroup, name)
         .brushOn(false)
-        .valueAccessor(function (p){
-            return p.value;
+        .title(function (d) {
+            return d.key + ": " + d.value;
         })
-//            .legend(dc.legend().x(80).y(20).itemHeight(13).gap(5))
-    lineChart.render();
+    return lineChart;
+//    charts.push(lineChart)
 
 
 
@@ -305,8 +435,6 @@ function discreteGraphicPaint (dynamicDistributionObject) {
         }
         for (var key in categoryKeys) {
             groupsReduced[key] = dimension.dimension.group().reduceSum(reduceSumFunction.bind(categoryCol,categoryKeys[key]));
-        }
-        for (var key in categoryKeys) {
             var cat = categoryKeys[key];
             var newChart = dc.barChart(compositeChart)
                 .colors(myColors(color++))
