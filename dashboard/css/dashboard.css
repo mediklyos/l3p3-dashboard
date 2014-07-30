@@ -134,6 +134,11 @@ body {
     width: 100px;
 }
 
-.btn-default {
+/*.btn-default {*/
+    /*margin-bottom: 2px;*/
+/*}*/
+
+.btn-group {
     margin-bottom: 2px;
+    margin-right: 2px;
 }

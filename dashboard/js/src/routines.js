@@ -94,13 +94,6 @@ clearPanel();
 function runDynamicDistribution(file){
     // hidden elements
     // Si son null es porque aun no se ha cargado el ejs
-    if (document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV) != null){
-        document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'; // block
-
-    }
-    if (document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV) != null) {
-        document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'; // block
-    }
     dynamicDistributionObject = new CSVContainerForDistributions(file);
     onLoadedCSV()
 }

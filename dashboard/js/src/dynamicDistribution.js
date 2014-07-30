@@ -73,22 +73,19 @@ var currentChart = null;
 var continuousRepresentationType = null;
 
 function graphicPaint (dynamicDistributionObject) {
-    var populationInfo = dynamicDistributionObject.getPopulationColInfo();
-    if (populationInfo == undefined) {
-        document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'
-        document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'
+    if (dynamicDistributionObject === undefined || dynamicDistributionObject.getPopulationColInfo() === undefined) {
+
+        $("#"+DYNAMIC_DISTRIBUTION_CHART_DIV).empty();
+//        $("#"+DYNAMIC_DISTRIBUTION_FILTERS_DIV).empty();
         return;
     }
 
+    var populationInfo = dynamicDistributionObject.getPopulationColInfo();
     var populationType = populationInfo.type;
     if (populationType == CSVContainerForDistributions.TYPE_DISCRETE) {
         discreteGraphicPaint(dynamicDistributionObject)
     } else if (populationType == CSVContainerForDistributions.TYPE_CONTINUOUS) {
         continuousGraphicPaint (dynamicDistributionObject,continuousRepresentationType);
-    } else {
-        document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'
-        document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'
-
     }
 }
 
@@ -98,11 +95,6 @@ function continuousGraphicPaint (dynamicDistributionObject,typeOfRepresentation)
     var dimension = populationInfo.dimension();
     var populationFiltered = getPopulationFiltered();
     var categoryCol = dynamicDistributionObject.getCategoryCol();
-
-    document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'block'
-    document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'block'
-
-
 
     // a veces salen desordenadas (cosas de los decimales)
     if ((populationFiltered[1] - populationFiltered[0]) < 0){
@@ -140,7 +132,6 @@ function continuousGraphicPaint (dynamicDistributionObject,typeOfRepresentation)
         .x(d3.scale.linear().domain([min,max]))
         .yAxisLabel("Population")
         .renderHorizontalGridLines(true)
-//        .renderVerticalGridLines(true)
         .shareTitle(false)
         .compose(charts)
         .transitionDuration(0)
@@ -201,9 +192,7 @@ function generateLinealChart (name,type,color,parent, start,end,categoryValue,ca
                 }
             }
         }
-//        var size = newValues.length;
         var size = newValues.length/dimension.size;
-//        var size = 1;
         var kde = science.stats.kde().sample(newValues);
         kde.bandwidth(science.stats.bandwidth.nrd0);
         var frequency = Math.abs(parseFloat(max) - parseFloat(min)) / 512
@@ -241,14 +230,10 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     var populationFiltered = getPopulationFiltered();
 
     if (dynamicDistributionObject.getPopulationCol() == undefined ||
-        dynamicDistributionObject.getPopulationCol() == "" ||
-        populationFiltered.length == 0
+        dynamicDistributionObject.getPopulationCol() == ""
         ){
-        document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'
         return;
     }
-    document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'block'
-    document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'block'
 
 
     var populationInfo = dynamicDistributionObject.getPopulationColInfo();
@@ -341,12 +326,17 @@ function discreteGraphicPaint (dynamicDistributionObject) {
     }
 
     var dim = calculateDimensions();
-
+    var keys;
+    if (populationFiltered.length == 0){
+        keys = populationInfo.keys;
+    } else {
+        keys = populationFiltered;
+    }
     compositeChart
         .width(dim.width)
         .height(dim.height)
         .xUnits(dc.units.ordinal)
-        .x(d3.scale.ordinal().domain(populationFiltered))
+        .x(d3.scale.ordinal().domain(keys))
         .yAxisLabel("Population")
         .renderHorizontalGridLines(true)
         .shareTitle(false)
@@ -394,8 +384,6 @@ function setPopulation(newPopulation){
         $("."+BUTTON_POPULATION_CLASS).removeClass("active");
         $(document.getElementById(BUTTON_POPULATION_ID_PREFIX + newPopulation)).addClass("active")
         dynamicDistributionObject.categorizedBy(newPopulation);
-//        graphicPaint(dynamicDistributionObject);
-//        return;
         var populationInfo = dynamicDistributionObject.getPopulationColInfo();
         var populationType = populationInfo.type;
         if (populationType == undefined) {
@@ -429,6 +417,7 @@ function setPopulation(newPopulation){
  * @param keys
  */
 function setPopulationList(keys) {
+    //removeResizingWatcher(DYNAMIC_DISTRIBUTION_POPULATION_SELECT_COL_ID)
     $("#"+DYNAMIC_DISTRIBUTION_POPULATION_SELECT_COL_ID).empty();
     createPanelButtons("Population attribute",undefined,DYNAMIC_DISTRIBUTION_POPULATION_SELECT_COL_ID,keys,BUTTON_POPULATION_CLASS,BUTTON_POPULATION_ID_PREFIX,setPopulation);
 }
@@ -462,7 +451,7 @@ function clickOkPopulationSliderFilter(start,end){
  */
 function setPopulationFilterList(keys){
 
-    var title = 'Population Filter ('+dynamicDistributionObject.getPopulationCol()+')';
+    var title = 'Population filter ('+dynamicDistributionObject.getPopulationCol()+')';
     $("#"+DYNAMIC_DISTRIBUTION_POPULATION_FILTER).empty();
     var panel = createPanelButtons(title,undefined,DYNAMIC_DISTRIBUTION_POPULATION_FILTER,keys,BUTTON_POPULATION_FILTER_CLASS,BUTTON_POPULATION_ID_PREFIX_FILTER,clickOnPopulationFilter)
     var body = panel.find(".panel-body")
@@ -487,7 +476,7 @@ function setPopulationFilterList(keys){
 
 function setPopulationFilterBar(keys){
 
-    var title = 'Categories ('+dynamicDistributionObject.getPopulationCol()+')';
+    var title = 'Population filter ('+dynamicDistributionObject.getPopulationCol()+')';
     $("#"+DYNAMIC_DISTRIBUTION_POPULATION_FILTER).empty();
 //    var panel = createPanelButtons(title,undefined,DYNAMIC_DISTRIBUTION_POPULATION_FILTER,keys,BUTTON_POPULATION_FILTER_CLASS,BUTTON_POPULATION_ID_PREFIX_FILTER,clickOnPopulationFilter)
 //    title, id, parentId , keys, buttonsClass,buttons_id_prefix,callback,buttonAttr
@@ -528,13 +517,13 @@ function clickOnPopulationFilterAllNone(){
  * @returns {Array}
  */
 function getPopulationFiltered(){
-    var categories = new Array
+    var population = new Array
     for (var key in populationFiltered ){
         if (populationFiltered[key]){
-            categories.push(key);
+            population.push(key);
         }
     }
-    return categories;
+    return population;
 }
 
 // CATEGORY ATTRIBUTE FUNCTIONS
@@ -645,15 +634,9 @@ function setSecondary(attribute){
     var activeStatus = $(document.getElementById(BUTTON_SECONDARY_ID_PREFIX+attribute)).hasClass("active")
     var panel;
     if (activeStatus){
-        var a = {
-            firstName:"John",
-            lastName:"Doe",
-            age:50,
-            eyeColor:"blue"
-        };
 
         var keys = dynamicDistributionObject.getAttributeInfo(attribute).keys;
-        panel = createPanelButtons("Filter by "+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_FILTER,keys,BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute,BUTTON_SECONDARY_ID_PREFIX_FILTER+attribute+"-",clickSecondaryFilter,{selfAttribute:attribute})
+        panel = createPanelButtons("Filter by "+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_FILTER,keys,BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute,BUTTON_SECONDARY_ID_PREFIX_FILTER+attribute+"-",clickOnSecondaryFilter,{selfAttribute:attribute})
         var body = panel.find(".panel-body");
         body.append(" ");
         var button_all_group= jQuery('<div/>', {
@@ -673,6 +656,7 @@ function setSecondary(attribute){
         panel = document.getElementById(DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute);
         delete secondaryFilters[attribute];
         if (panel!== undefined){
+            removeResizingWatcher(DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute)
             panel.parentNode.removeChild(panel);
         }
         graphicPaint(dynamicDistributionObject)
@@ -700,7 +684,7 @@ function clickOnSecondaryAllNone(col){
     graphicPaint(dynamicDistributionObject);
 }
 
-function clickSecondaryFilter (attribute) {
+function clickOnSecondaryFilter (attribute) {
     // Extraer el id porque no puedo pasarlo directamente, el id esta tres niveles de etiquetas encima
     var idClicked = $(event.target).attr('selfAttribute');
     if(secondaryFilters[idClicked][attribute]){
@@ -715,8 +699,7 @@ function clickSecondaryFilter (attribute) {
 }
 
 function createPanelButtons(title, id, parentId , keys, buttonsClass,buttons_id_prefix,callback,buttonAttr){
-
-//    $("#"+parentId).empty();
+//    removeResizingWatcher(parentId);
     var panel = jQuery('<div/>',{
            class : "panel panel-default",
            id : id
@@ -733,7 +716,7 @@ function createPanelButtons(title, id, parentId , keys, buttonsClass,buttons_id_
     var panelButtons = jQuery('<div/>', {
         class: 'btn-group'
     }).appendTo(panelBody);
-
+    var pos = {top:-1, left:-1}
     $.each(keys,function(){
         var text = this;
         if (text == "") text = "#blank";
@@ -747,7 +730,61 @@ function createPanelButtons(title, id, parentId , keys, buttonsClass,buttons_id_
         buttonAttr['onclick'] = callback.name+'("' + this + '")';
 
         var button = jQuery('<button/>',buttonAttr ).appendTo(panelButtons);
+        var actualPos = button.offset()
+        if (pos.left > actualPos.left){
+            button.detach();
+            panelButtons = jQuery('<div/>', {
+                class: 'btn-group'
+            }).appendTo(panelBody);
+            button.appendTo(panelButtons)
+            pos = {top:-1, left:-1}
+        }else {
+            pos = actualPos;
+        }
+
     })
+    var func = function(buttonsClass,oldDimensions,event){
+        var prevWidth = oldDimensions.width;
+        var actualWidth = event.target.offsetWidth
+        if (prevWidth != actualWidth) {
+            var buttons = this.find("."+buttonsClass);
+//            this.find("."+buttonsClass).remove();
+            buttons.detach();
+            buttons.detach();
+//            var panelButtons =
+            var panelsToAddAfter = []
+            this.find(".btn-group").each(function(pos,btnGroup){
+                if (btnGroup.childElementCount != 0){
+                    panelsToAddAfter.push(btnGroup);
+                } else {
+                    btnGroup.remove()
+                }
+            })
+            var panelButtons = jQuery('<div/>', {
+                class: 'btn-group'
+            }).appendTo(panelBody);
+            var buttonPos = {top:-1, left:-1}
+            $.each(buttons,function(pos){
+                var button = $(buttons[pos]);
+                button.appendTo(panelButtons);
+                var actualPos = button.offset()
+                if (buttonPos.left > actualPos.left){
+                    button.detach();
+                    panelButtons = jQuery('<div/>', {
+                        class: 'btn-group'
+                    }).appendTo(panelBody);
+                    button.appendTo(panelButtons)
+                    buttonPos = {top:-1, left:-1}
+                }else {
+                    buttonPos = actualPos;
+                }
+
+            })
+
+            panelBody.append(panelsToAddAfter)
+        }
+    }.bind(panel,buttonsClass)
+    resizingWatcher(panel,func)
     return panel;
 }
 
@@ -764,6 +801,22 @@ function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_p
             id : id
         }
     ).appendTo("#"+parentId);
+    resizingWatcher(panel,function(oldSize,event){
+        if (oldSize.width != event.target.offsetWidth){
+            var children = this.find(".panel-body").children();
+            var width= 0;
+            $.each(children,function (pos,child){
+                if (!$(child).hasClass("ui-slider")){
+                    width += $(child).outerWidth(true);
+                }
+            })
+            $(event.target.parentNode).find(".panelBody")
+            var newSliderWidth = this.width() - width;
+            slider.css('width',newSliderWidth)
+        }
+
+    }.bind(panel))
+
     var panelHeader = jQuery('<div/>', {
             class: "panel-heading",
             text: title
@@ -773,7 +826,6 @@ function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_p
         class: 'panel-body slider-panel'
     }).appendTo(panel);
     panelBody.append('<div style="width:'+(length*7)+'px" id="'+buttons_id_prefix+'left">'+leftValue+'</div>')
-//    panelBody.append('<b>'+keys[1]+'</b>')
 
     var slider = jQuery('<div/>').slider({
         range: true,
@@ -788,8 +840,10 @@ function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_p
             callback(ui.values[0],ui.values[1])
         }
     }).appendTo(panelBody);
+    var sliderWidth = panel.offsetWidth /2;
+    slider.css('width',sliderWidth)
     panelBody.append('<div id="'+buttons_id_prefix+'right">'+rightValue+'</div>')
-//    callback(leftValue,rightValue);
+
     return panel;
 }
 var color20 = d3.scale.category20();
@@ -803,22 +857,12 @@ function reset(){
     setPopulation("");
     setCategory("")
     removeAllSecondaries();
-    document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'; // block
-    document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'; // block
+    graphicPaint()
 }
 
 function clearPanel(){
     $("#titanic-button").removeAttr("active")
     $("#events-button").removeAttr("active")
-    if (document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV) != null){
-        document.getElementById(DYNAMIC_DISTRIBUTION_GRAPHICS_DIV).style.display = 'none'; // block
-    }
-    if (document.getElementById(DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV) != null){
-        document.getElementById(DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV).style.display = 'none'; // block
-    }
-    if (document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV) != null) {
-        document.getElementById(DYNAMIC_DISTRIBUTION_FILTERS_DIV).style.display = 'none'; // block
-    }
 }
 
 function upload(){
@@ -975,10 +1019,7 @@ function deleteData(name){
 }
 
 function onLoadedCSV() {
-    console.log("The data has been loaded")
-    if (document.getElementById(DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV) != null) {
-        document.getElementById(DYNAMIC_DISTRIBUTION_ATTRIBUTES_DIV).style.display = 'block'; // block
-    }
+    console.log("The new data has been loaded")
     var PopulationKeysList = [];
     var CategoryKeysList = [];
     var SecondaryKeysList = []
@@ -998,18 +1039,35 @@ function onLoadedCSV() {
 }
 
 function calculateDimensions(){
-    var totalWidth = $(window).width();
-    var totalHeight = $(window).height();
+    var totalWidth = window.innerWidth;
+    var totalHeight = window.innerHeight;
     var position = $("#"+DYNAMIC_DISTRIBUTION_CHART_DIV).offset();
     var height = totalHeight - position.top;
-    if  (height < 0) {
-        height = totalHeight;
+    if  (height < 100) {
+        height = totalHeight*0.8;
     }
     var positionFilters = $("#"+DYNAMIC_DISTRIBUTION_FILTERS_DIV).offset()
     var width = positionFilters.left - position.left;
-    if (width < 0) {
+    if (width < 100) {
         width = totalWidth
     }
     return {width: width*0.95, height: height*0.95}
 
+}
+
+
+// resizing routines
+//
+function resizingWatcher(jqElement,resizingRoutine){
+    jqElement.resize(resizingRoutine)
+}
+
+function removeResizingWatcher(elementId){
+    $("#dd-select-population").children("div.resize-triggers").remove()
+    return;
+}
+
+
+window.onresize = function () {
+    graphicPaint(dynamicDistributionObject)
 }
