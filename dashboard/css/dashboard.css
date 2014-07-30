@@ -127,7 +127,7 @@ body {
 }
 .slider-panel div{
     display: inline-block;
-    margin: 0px 10px 0px 0px
+    margin: 0px 5px
 }
 
 .slider-panel div.ui-slider {

@@ -146,8 +146,14 @@ function continuousGraphicPaint (dynamicDistributionObject,typeOfRepresentation)
 function generateLinealChart (name,type,color,parent, start,end,categoryValue,categoryName,secondaryFilters,dimension){
     function reduceSumFunction (d) {
         for (var secKey in secondaryFilters) {
-            if (secondaryFilters[secKey][d[secKey]]) {
-                return 0
+            if (secondaryFilters[secKey].type == CSVContainerForDistributions.TYPE_CONTINUOUS){
+                if (secondaryFilters[secKey].range[0] > d[secKey] || secondaryFilters[secKey].range[1] < d[secKey]){
+                    return 0;
+                }
+            } else if (secondaryFilters[secKey].type == CSVContainerForDistributions.TYPE_DISCRETE){
+                if (secondaryFilters[secKey].keys[d[secKey]]) {
+                    return 0
+                }
             }
         }
         if ((categoryName !== undefined) && (d[categoryName] != categoryValue)) {
@@ -258,8 +264,14 @@ function discreteGraphicPaint (dynamicDistributionObject) {
      */
     function reduceSumFunction (cat,d) {
         for (var secKey in secondaryFilters){
-            if (secondaryFilters[secKey][d[secKey]]) {
-                return 0
+            if (secondaryFilters[secKey].type == CSVContainerForDistributions.TYPE_CONTINUOUS){
+                if (secondaryFilters[secKey].range[0] > d[secKey] || secondaryFilters[secKey].range[1] < d[secKey]){
+                    return 0;
+                }
+            } else if (secondaryFilters[secKey].type == CSVContainerForDistributions.TYPE_DISCRETE){
+                if (secondaryFilters[secKey].keys[d[secKey]]) {
+                    return 0
+                }
             }
         }
         if ((cat !== undefined) && (d[this] != cat)){
@@ -634,24 +646,37 @@ function setSecondary(attribute){
     var activeStatus = $(document.getElementById(BUTTON_SECONDARY_ID_PREFIX+attribute)).hasClass("active")
     var panel;
     if (activeStatus){
-
-        var keys = dynamicDistributionObject.getAttributeInfo(attribute).keys;
-        panel = createPanelButtons("Filter by "+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_FILTER,keys,BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute,BUTTON_SECONDARY_ID_PREFIX_FILTER+attribute+"-",clickOnSecondaryFilter,{selfAttribute:attribute})
-        var body = panel.find(".panel-body");
-        body.append(" ");
-        var button_all_group= jQuery('<div/>', {
-                class: 'btn-group'
-            }
-        ).appendTo(body);
-        jQuery('<button/>',{
-            id : BUTTON_SECONDARY_ID_FILTER_ALL_PREFIX+attribute,
-            onclick:"clickOnSecondaryAllNone(\""+attribute+"\")",
-            text: "All/None",
-            type: 'button',
-            class: 'btn btn-default active'
-        }).appendTo(button_all_group)
-        secondaryFilters[attribute] = new Object
-        $("."+BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute).addClass("active");
+        var attributeInfo = dynamicDistributionObject.getAttributeInfo(attribute);
+        if (attributeInfo === undefined || attributeInfo.type === undefined){
+            return
+        }
+        else  if (attributeInfo.type == CSVContainerForDistributions.TYPE_DISCRETE){
+            var keys = dynamicDistributionObject.getAttributeInfo(attribute).keys;
+            panel = createPanelButtons("Filter by "+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_FILTER,keys,BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute,BUTTON_SECONDARY_ID_PREFIX_FILTER+attribute+"-",clickOnSecondaryFilter)
+            var body = panel.find(".panel-body");
+            body.append(" ");
+            var button_all_group= jQuery('<div/>', {
+                    class: 'btn-group'
+                }
+            ).appendTo(body);
+            jQuery('<button/>',{
+                id : BUTTON_SECONDARY_ID_FILTER_ALL_PREFIX+attribute,
+                onclick:"clickOnSecondaryAllNone(\""+attribute+"\")",
+                text: "All/None",
+                type: 'button',
+                class: 'btn btn-default active'
+            }).appendTo(button_all_group)
+            secondaryFilters[attribute] = new Object
+            secondaryFilters[attribute].type= CSVContainerForDistributions.TYPE_DISCRETE;
+            secondaryFilters[attribute].keys = new Object
+            $("."+BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute).addClass("active");
+        } else if(attributeInfo.type == CSVContainerForDistributions.TYPE_CONTINUOUS){
+            secondaryFilters[attribute] = new Object
+            secondaryFilters[attribute].range = attributeInfo.keys;
+            secondaryFilters[attribute].type= CSVContainerForDistributions.TYPE_CONTINUOUS;
+            var keys = dynamicDistributionObject.getAttributeInfo(attribute).keys;
+            createSliderPanel("Filter by "+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute,DYNAMIC_DISTRIBUTION_SECONDARY_FILTER,keys,BUTTON_SECONDARY_FILTER_CLASS_PREFIX+attribute,BUTTON_SECONDARY_ID_PREFIX_FILTER+attribute+"-",clickOnSliderSecondary.bind(undefined,attribute))
+        }
     } else {
         panel = document.getElementById(DYNAMIC_DISTRIBUTION_SECONDARY_PANEL_FILTER_PREFIX+attribute);
         delete secondaryFilters[attribute];
@@ -676,22 +701,30 @@ function clickOnSecondaryAllNone(col){
     var keys = dynamicDistributionObject.getAttributeInfo(col).keys;
     for (var key in keys){
         if (result) {
-            delete secondaryFilters[col][keys[key]];
+            delete secondaryFilters[col].keys[keys[key]];
         } else {
-            secondaryFilters[col][keys[key]] = true;
+            secondaryFilters[col].keys[keys[key]] = true;
         }
     }
     graphicPaint(dynamicDistributionObject);
 }
 
+function clickOnSliderSecondary(attribute,start,end){
+    secondaryFilters[attribute].range = [start,end];
+    graphicPaint(dynamicDistributionObject);
+
+}
+
+
 function clickOnSecondaryFilter (attribute) {
     // Extraer el id porque no puedo pasarlo directamente, el id esta tres niveles de etiquetas encima
-    var idClicked = $(event.target).attr('selfAttribute');
-    if(secondaryFilters[idClicked][attribute]){
-        delete secondaryFilters[idClicked][attribute];
+
+    var idClicked = event.target.id.replace(BUTTON_SECONDARY_ID_PREFIX_FILTER,"").replace(new RegExp("-"+attribute + '$'),"")
+    if(secondaryFilters[idClicked].keys[attribute]){
+        delete secondaryFilters[idClicked].keys[attribute];
     } else {
         $(document.getElementById(BUTTON_SECONDARY_ID_FILTER_ALL_PREFIX+idClicked)).toggleClass("active",false)
-        secondaryFilters[idClicked][attribute] = true;
+        secondaryFilters[idClicked].keys[attribute] = true;
     }
     // Se ha hecho así por si el atributo tiene caracteres prohibidos para jQuery como "." y "/"
     $(document.getElementById(BUTTON_SECONDARY_ID_PREFIX_FILTER+idClicked+"-"+attribute)).toggleClass("active")
@@ -789,7 +822,7 @@ function createPanelButtons(title, id, parentId , keys, buttonsClass,buttons_id_
 }
 
 
-function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_prefix,callback,buttonAttr){
+function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_prefix,callback){
     // TODO saltos
     var leftValue = Math.floor(keys[0]);
     var rightValue = Math.ceil(keys[1])
@@ -801,21 +834,7 @@ function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_p
             id : id
         }
     ).appendTo("#"+parentId);
-    resizingWatcher(panel,function(oldSize,event){
-        if (oldSize.width != event.target.offsetWidth){
-            var children = this.find(".panel-body").children();
-            var width= 0;
-            $.each(children,function (pos,child){
-                if (!$(child).hasClass("ui-slider")){
-                    width += $(child).outerWidth(true);
-                }
-            })
-            $(event.target.parentNode).find(".panelBody")
-            var newSliderWidth = this.width() - width;
-            slider.css('width',newSliderWidth)
-        }
 
-    }.bind(panel))
 
     var panelHeader = jQuery('<div/>', {
             class: "panel-heading",
@@ -827,6 +846,21 @@ function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_p
     }).appendTo(panel);
     panelBody.append('<div style="width:'+(length*7)+'px" id="'+buttons_id_prefix+'left">'+leftValue+'</div>')
 
+    resizingWatcher(panel,function(oldSize,event){
+        if (oldSize.width != event.target.offsetWidth){
+            var children = this.children();
+            var width= 0;
+            $.each(children,function (pos,child){
+                if (!$(child).hasClass("ui-slider")){
+                    width += $(child).outerWidth(true);
+                }
+            })
+//            $(event.target.parentNode).find(".panelBody")
+            var newSliderWidth = this.width() - width -parseInt($(slider).css('margin-left'))-parseInt($(slider).css('margin-right'));
+            slider.css('width',newSliderWidth)
+        }
+
+    }.bind(panelBody))
     var slider = jQuery('<div/>').slider({
         range: true,
         min: leftValue,
