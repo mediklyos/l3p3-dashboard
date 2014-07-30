@@ -823,7 +823,6 @@ function createPanelButtons(title, id, parentId , keys, buttonsClass,buttons_id_
 
 
 function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_prefix,callback){
-    // TODO saltos
     var leftValue
     var rightValue
     var step = (keys[1] - keys[0]) / 100;
