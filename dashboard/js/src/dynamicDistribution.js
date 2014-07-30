@@ -824,10 +824,34 @@ function createPanelButtons(title, id, parentId , keys, buttonsClass,buttons_id_
 
 function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_prefix,callback){
     // TODO saltos
-    var leftValue = Math.floor(keys[0]);
-    var rightValue = Math.ceil(keys[1])
-    var leftLength = (""+leftValue).length
-    var rightLength = (""+rightValue).length
+    var leftValue
+    var rightValue
+    var step = (keys[1] - keys[0]) / 100;
+    var stringLeftValue
+    var stringRightValue
+    var decimals = 0;
+    if (step >= 1) {
+        step = Math.floor(step);
+        leftValue = Math.floor(keys[0]);
+        rightValue = Math.ceil(keys[1])
+        stringLeftValue = leftValue;
+        stringRightValue = rightValue
+    } else {
+        var pos = 1;
+        while (step < 1){
+            step = step*10;
+            pos *= 10;
+            decimals++;
+        }
+        step = 1/pos;
+        leftValue = parseFloat(parseFloat(keys[0]).toFixed(decimals))
+        rightValue = parseFloat(parseFloat(keys[1]).toFixed(decimals))
+        stringLeftValue  = parseFloat(keys[0]).toFixed(decimals)
+        stringRightValue = parseFloat(keys[1]).toFixed(decimals)
+
+    }
+    var leftLength = (""+stringLeftValue).length
+    var rightLength = (""+stringRightValue).length
     var length = (leftLength > rightLength)?leftLength:rightLength;
     var panel = jQuery('<div/>',{
             class : "panel panel-default",
@@ -844,8 +868,27 @@ function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_p
     var panelBody = jQuery('<div/>', {
         class: 'panel-body slider-panel'
     }).appendTo(panel);
-    panelBody.append('<div style="width:'+(length*7)+'px" id="'+buttons_id_prefix+'left">'+leftValue+'</div>')
+    panelBody.append('<div style="width:'+(length*7)+'px" id="'+buttons_id_prefix+'left">'+stringLeftValue+'</div>')
 
+
+    var slider = jQuery('<div/>').slider({
+        range: true,
+        min: leftValue,
+        max: rightValue,
+        values: [leftValue,rightValue],
+        step: step,
+
+        slide: function (decimals,event,ui) {
+            $("#"+buttons_id_prefix+"left").text(ui.values[0].toFixed(decimals))
+            $("#"+buttons_id_prefix+"right").text(ui.values[1].toFixed(decimals))
+        }.bind(undefined,decimals),
+        stop : function (event, ui){
+            callback(ui.values[0],ui.values[1])
+        }
+    }).appendTo(panelBody);
+    var sliderWidth = panel.offsetWidth /2;
+    slider.css('width',sliderWidth)
+        panelBody.append('<div style="width:'+(length*7)+'px" id="'+buttons_id_prefix+'right">'+stringRightValue+'</div>')
     resizingWatcher(panel,function(oldSize,event){
         if (oldSize.width != event.target.offsetWidth){
             var children = this.children();
@@ -861,23 +904,6 @@ function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_p
         }
 
     }.bind(panelBody))
-    var slider = jQuery('<div/>').slider({
-        range: true,
-        min: leftValue,
-        max: rightValue,
-        values: [leftValue,rightValue],
-        slide: function (event,ui) {
-            $("#"+buttons_id_prefix+"left").text(ui.values[0])
-            $("#"+buttons_id_prefix+"right").text(ui.values[1])
-        },
-        stop : function (event, ui){
-            callback(ui.values[0],ui.values[1])
-        }
-    }).appendTo(panelBody);
-    var sliderWidth = panel.offsetWidth /2;
-    slider.css('width',sliderWidth)
-    panelBody.append('<div id="'+buttons_id_prefix+'right">'+rightValue+'</div>')
-
     return panel;
 }
 var color20 = d3.scale.category20();
