@@ -16,3 +16,4 @@ views[0][1]  = {id: "ComputerResources",constantsPrefix: "dd",ref: "js/templates
 //views[1][1] = {id: "GlobalEventsViewer",constantsPrefix: "gev",ref: "js/templates/template_globalEventsViewer.ejs",title: "Global Events Viewer"}
 //views[2][0] = {id:"examples",constantsPrefix: "",ref: "js/templates/example.ejs",title: "Examples"}//prueba
 //prueba
+//prueba
