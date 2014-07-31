@@ -26,8 +26,37 @@ $(document).ready(function(){
 
 });
 
+function generateInteractiveViewsMenu(){
+    var list = $("#views-drop-down")
+//    var request = new EJS.newRequest();
+    var request = new XMLHttpRequest;
+    var linesPainted = 0;
+    $.each(views, function (pos, value){
+        if (linesPainted != 0){
+            $('<li class="divider"></li>').appendTo(list);
+        }
+        linesPainted = 0;
+        $.each(value,function(pos,value) {
+            var request = new XMLHttpRequest();
+            request.open('GET', value.ref, false);  // `false` makes the request synchronous
+            request.send(null)
+            if (request.status === 200) {
+                var li = $('<li/>')
+                $('<a/>',{
+                    ref: value.ref,
+                    href: "#",
+                    class: "contentLink",
+                    text: value.title
+                }).appendTo(li);
+                li.appendTo(list)
+                linesPainted++;
+            }
 
+        })
 
+    })
+}
+generateInteractiveViewsMenu();
 // Toggle buttons color too
 var toggleButtonsFunction = function(id,callback,event) {
     var div = $(document.getElementById(id));
@@ -41,11 +70,11 @@ var toggleButtonsFunction = function(id,callback,event) {
 
 
 /*Load at the start*/
-$("#section_dynamicDistribution").addClass("active");
-$("#section_dynamicDistribution").parents().addClass("active");
-$("#content").html(new EJS ({url: "js/templates/template_dynamicDistribution.ejs"}).render());
-
-//$("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
+//$("#section_dynamicDistribution").addClass("active");
+//$("#section_dynamicDistribution").parents().addClass("active");
+//$("#content").html(new EJS ({url: "js/templates/template_dynamicDistribution.ejs"}).render());
+//
+$("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
 
 
 
