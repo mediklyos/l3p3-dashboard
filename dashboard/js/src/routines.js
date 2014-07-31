@@ -57,6 +57,7 @@ function generateInteractiveViewsMenu(){
     })
 }
 generateInteractiveViewsMenu();
+
 // Toggle buttons color too
 var toggleButtonsFunction = function(id,callback,event) {
     var div = $(document.getElementById(id));
