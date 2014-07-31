@@ -247,7 +247,7 @@ function getData(sourceFileResources, sourceFileEvents) {
             });
 
 //Range selection
-
+ 
             $("#rangeSlider").slider({
                   range: true,
                   min: 0,
