@@ -159,7 +159,7 @@ function generateLinealChart (name,type,color,parent, start,end,categoryValue,ca
         if ((categoryName !== undefined) && (d[categoryName] != categoryValue)) {
             return 0;
         }
-            return 1;
+        return 1;
     }
     var newGroup = dimension.dimension.group().reduceSum(reduceSumFunction);
     var difference = parseFloat(end) - parseFloat(start)
@@ -496,10 +496,10 @@ function setPopulationFilterBar(keys){
     var body = panel.find(".panel-body")
     continuousRepresentationType = DYNAMIC_DISTRIBUTION_CONTINUOUS_DISTRIBUTION;
     var selectRepresentationTypeButton = jQuery('<button/>',{
-            id : BUTTON_POPULATION_CONT_REPRESENTATION_TYPE,
-            text: "Prov/Acc",
-            class: 'btn btn-default active'
-        }).appendTo(body)
+        id : BUTTON_POPULATION_CONT_REPRESENTATION_TYPE,
+        text: "Prov/Acc",
+        class: 'btn btn-default active'
+    }).appendTo(body)
     selectRepresentationTypeButton.click(setContinuousType)
     selectRepresentationTypeButton.appendTo(body);
     return panel;
@@ -661,7 +661,7 @@ function setSecondary(attribute){
             ).appendTo(body);
             jQuery('<button/>',{
                 id : BUTTON_SECONDARY_ID_FILTER_ALL_PREFIX+attribute,
-                onclick:"clickOnSecondaryAllNone(\""+attribute+"\")",
+                onclick:clickOnSecondaryAllNone.name+"(\""+attribute+"\")",
                 text: "All/None",
                 type: 'button',
                 class: 'btn btn-default active'
@@ -716,10 +716,10 @@ function clickOnSliderSecondary(attribute,start,end){
 }
 
 
-function clickOnSecondaryFilter (attribute) {
+function clickOnSecondaryFilter (attribute,target) {
     // Extraer el id porque no puedo pasarlo directamente, el id esta tres niveles de etiquetas encima
 
-    var idClicked = event.target.id.replace(BUTTON_SECONDARY_ID_PREFIX_FILTER,"").replace(new RegExp("-"+attribute + '$'),"")
+    var idClicked = target.id.replace(BUTTON_SECONDARY_ID_PREFIX_FILTER,"").replace(new RegExp("-"+attribute + '$'),"")
     if(secondaryFilters[idClicked].keys[attribute]){
         delete secondaryFilters[idClicked].keys[attribute];
     } else {
@@ -734,8 +734,8 @@ function clickOnSecondaryFilter (attribute) {
 function createPanelButtons(title, id, parentId , keys, buttonsClass,buttons_id_prefix,callback,buttonAttr){
 //    removeResizingWatcher(parentId);
     var panel = jQuery('<div/>',{
-           class : "panel panel-default",
-           id : id
+            class : "panel panel-default",
+            id : id
         }
     ).appendTo("#"+parentId);
     var panelHeader = jQuery('<div/>', {
@@ -760,9 +760,11 @@ function createPanelButtons(title, id, parentId , keys, buttonsClass,buttons_id_
         buttonAttr['class'] = 'btn btn-default '+buttonsClass;
         buttonAttr['id'] = buttons_id_prefix + this;
         buttonAttr['text'] = text;
-        buttonAttr['onclick'] = callback.name+'("' + this + '")';
+        buttonAttr['onclick'] = callback.name+'("' + this + '",this)';
 
         var button = jQuery('<button/>',buttonAttr ).appendTo(panelButtons);
+//        $(button).addEventListener('click',callback.bind(window,this))
+
         var actualPos = button.offset()
         if (pos.left > actualPos.left){
             button.detach();
@@ -887,7 +889,7 @@ function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_p
     }).appendTo(panelBody);
     var sliderWidth = panel.offsetWidth /2;
     slider.css('width',sliderWidth)
-        panelBody.append('<div style="width:'+(length*7)+'px" id="'+buttons_id_prefix+'right">'+stringRightValue+'</div>')
+    panelBody.append('<div style="width:'+(length*7)+'px" id="'+buttons_id_prefix+'right">'+stringRightValue+'</div>')
     resizingWatcher(panel,function(oldSize,event){
         if (oldSize.width != event.target.offsetWidth){
             var children = this.children();
@@ -898,7 +900,7 @@ function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_p
                 }
             })
 //            $(event.target.parentNode).find(".panelBody")
-            var newSliderWidth = this.width() - width -parseInt($(slider).css('margin-left'))-parseInt($(slider).css('margin-right'));
+            var newSliderWidth = (this.width() - width -parseInt($(slider).css('margin-left'))-parseInt($(slider).css('margin-right'))) * .95;
             slider.css('width',newSliderWidth)
         }
 
