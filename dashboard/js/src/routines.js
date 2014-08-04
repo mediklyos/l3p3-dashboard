@@ -50,6 +50,8 @@ function generateInteractiveViewsMenu(){
                 }).appendTo(li);
                 li.appendTo(list)
                 linesPainted++;
+            } else {
+                console.log("Ignore the GET exception...")
             }
 
         })
