@@ -46,7 +46,12 @@
  *
  * Latest version: https://github.com/joewalnes/reconnecting-websocket/
  * - Joe Walnes
+ *
+ * NOTE: some modifications have been made in comparison with the code in the link above.
  */
+
+var ws;
+
 function ReconnectingWebSocket(url, protocols) {
     protocols = protocols || [];
 
@@ -56,15 +61,10 @@ function ReconnectingWebSocket(url, protocols) {
     this.timeoutInterval = 2000;
 
     var self = this;
-    var ws;
+
     var forcedClose = false;
     var timedOut = false;
 
-
-
-
-//    var loc = location.host
-//    url = "ws://"+location.host+":3389"
     this.url = url;
     this.protocols = protocols;
     this.readyState = WebSocket.CONNECTING;
@@ -175,6 +175,7 @@ function ReconnectingWebSocket(url, protocols) {
             ws.close();
         }
     };
+
 }
 
 /**
@@ -182,3 +183,13 @@ function ReconnectingWebSocket(url, protocols) {
  */
 ReconnectingWebSocket.debugAll = false;
 
+/**
+ * This function has been added and does not belong to the original reconnecting-websocket code.
+ * It is used in two cases:
+ *   #1 when the client sends to the server the source to be shown in a ColorMap
+ *   #2 when the client sends a new timeout value to the server so that it handles the CompResources graphs speed
+ * @param resource (the server handles the content of the message (a number means timeout and a string means a source name)
+ */
+var sendToServer = function(resource){
+    ws.send(resource);
+}

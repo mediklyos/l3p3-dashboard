@@ -1,39 +1,15 @@
+/**
+ * This code is based on https://github.com/joewalnes/web-vmstats
+ * It has been modified to show values from a .csv file instead of computer system stats.
+ * Creates graphs on the go depending on the .csv file
+ */
 var allTimeSeries = {};
 var allValueLabels = {};
-var descriptions = {
-    'Processes': {
-        'r': 'Number of processes waiting for run time',
-        'b': 'Number of processes in uninterruptible sleep'
-    },
-    'Memory': {
-        'swpd': 'Amount of virtual memory used',
-        'free': 'Amount of idle memory',
-        'buff': 'Amount of memory used as buffers',
-        'cache': 'Amount of memory used as cache'
-    },
-    'Swap': {
-        'si': 'Amount of memory swapped in from disk',
-        'so': 'Amount of memory swapped to disk'
-    },
-    'IO': {
-        'bi': 'Blocks received from a block device (blocks/s)',
-        'bo': 'Blocks sent to a block device (blocks/s)'
-    },
-    'System': {
-        'in': 'Number of interrupts per second, including the clock',
-        'cs': 'Number of context switches per second'
-    },
-    'CPU': {
-        'us': 'Time spent running non-kernel code (user time, including nice time)',
-        'sy': 'Time spent running kernel code (system time)',
-        'id': 'Time spent idle',
-        'wa': 'Time spent waiting for IO'
-    }
-}
+var descriptions = {};
 
 function streamStats() {
+    var ws = new ReconnectingWebSocket('ws://' + location.hostname + ':8080');
 
-    var ws = new ReconnectingWebSocket('ws://' + location.host + ':3389/');
     var lineCount;
     var colHeadings;
 
@@ -53,33 +29,53 @@ function streamStats() {
 
             case 1: // column headings
                 colHeadings = e.data.trim().split(/ +/);
+                var last_count=0;
+                var last_node = colHeadings[colHeadings.length-1].toString().replace(/[^\d]/g, '');//takes last char to get the number of nodes
+                //counts variables in each node to be represented
+                for(var num_node=1;num_node<=last_node;num_node++){
+                    var variable_count=0;
+                    for(var i=0;i<colHeadings.length;i++){
+                       if(colHeadings[i].replace(/[^\d]/g, '')==num_node){
+                           variable_count++;
+                       }
+                    }
+                    var nomb_node="Node "+num_node;
+                    descriptions[nomb_node] = {};
+                    //save the variables inside each node
+                    for(var j=0;j<variable_count;j++) {
+                        var column=last_count+j;
+                        descriptions[nomb_node][colHeadings[column]]=colHeadings[column];
+                    }
+                    last_count+=variable_count; //counts the number of items saved
+                }
+                initCharts();
                 break;
 
-            default: // subsequent lines
+            default: // subsequent lines: get number values
                 var colValues = e.data.trim().split(/ +/);
                 var stats = {};
                 for (var i = 0; i < colHeadings.length; i++) {
-                    stats[colHeadings[i]] = parseInt(colValues[i]);
+                    if(!(isNaN(colValues[i]))){//ignore NaN lines
+                    stats[colHeadings[i]] = parseInt(colValues[i]);}
                 }
                 receiveStats(stats);
         }
     };
 }
-var count = 0;
+
 function initCharts() {
     Object.each(descriptions, function(sectionName, values) {
-        //var section = $('#writeHere').clone().removeClass('template').appendTo('#charts');
+
         var section = $('.chart.template').clone().removeClass('template').appendTo('#charts');
 
         section.find('.title').text(sectionName);
-        timeRefresh = 1000 *-count++;
+
         var smoothie = new SmoothieChart({
             grid: {
                 sharpLines: true,
                 verticalSections: 5,
                 strokeStyle: 'rgba(119,119,119,0.45)',
-                fillStyle:'rgba(0, 255, 0, 0)',
-                millisPerLine: (1000 * (count++)),
+                millisPerLine: 1000
             },
             minValue: 0,
             labels: {
@@ -104,6 +100,8 @@ function initCharts() {
             var statLine = section.find('.stat.template').clone().removeClass('template').appendTo(section.find('.stats'));
             statLine.attr('title', valueDescription).css('color', color);
             statLine.find('.stat-name').text(name);
+            statLine.find('.stat-name').attr('id',name);
+            statLine.find('.stat-button').attr('onclick','sendToServer(document.getElementById("'+name+'").innerHTML)');//add ColorMap request button
             allValueLabels[name] = statLine.find('.stat-value');
         });
     });
@@ -114,12 +112,11 @@ function receiveStats(stats) {
         var timeSeries = allTimeSeries[name];
         if (timeSeries) {
             timeSeries.append(Date.now(), value);
-            allValueLabels[name].text(value);
+            allValueLabels[name].text(value + '%');
         }
     });
 }
 
 $(function() {
-    initCharts();
     streamStats();
 });
