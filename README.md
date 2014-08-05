@@ -112,9 +112,15 @@ density function from a set of points.
 
 This chapter summarize the libraries and technologies used in the views to represent the data
  
-| Library | views | Description | Good Points | Bad points |
-|---------|-------|-------------|-------------|------------|
-| [d3.js](https://github.com/mbostock/d3) | Dynamic Distribution Charts, Single Node viewer and Global Events viewer | | | |
+### [d3.js](https://github.com/mbostock/d3)
+
+* Description: It is a JavaScript library for manipulating documents based on data.
+
+* Views: Dynamic Distribution Charts, Single Node viewer, Global Events viewer and Online Data Viewer 
+
+* Good points:
+
+* Bad points:
 
 ## Acknowledgment
 	
