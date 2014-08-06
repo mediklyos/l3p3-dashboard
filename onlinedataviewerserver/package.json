@@ -1,0 +1,39 @@
+{
+  "name": "OnlineDataViewerServer",
+  "version": "0.0.1",
+  "description": "Data server for Online data viewer",
+  "main": "client.js",
+  "start" :  "server.js", 
+  "authors": [
+    {
+      "name": "Federico Fernandez",
+      "url": "https://github.com/FedericoFdez"
+    },
+    {
+      "name": "Jorge Ramirez",
+      "url": "https://github.com/jramirezc93"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Francisco Huertas",
+      "url": "https://github.com/fhuertas"
+    }
+  ],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/jeremyosborne/packagejsonexample/blob/master/LICENSE.txt"
+    }
+  ],
+  "dependencies": {
+    "filesystem": "^1.0.1",
+    "ws": "^0.4.31"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/centeropenmiddleware/l3p3-dashboard"
+  },
+  "engine": "node 0.10.30",
+  "license": "APACHE2"
+}
