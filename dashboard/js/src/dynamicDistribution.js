@@ -932,6 +932,27 @@ function upload(){
 
 function postLoad() {
 // Drag and drop code
+    loadDataSetFromUrl("data/titanic.csv",{
+        PassengerId: CSVContainerForDistributions.TYPE_ID,
+        Survived: CSVContainerForDistributions.TYPE_DISCRETE,
+        Pclass: CSVContainerForDistributions.TYPE_DISCRETE,
+        Name: CSVContainerForDistributions.TYPE_ID,
+        Sex: CSVContainerForDistributions.TYPE_DISCRETE,
+        Age: CSVContainerForDistributions.TYPE_CONTINUOUS,
+        SibSp: CSVContainerForDistributions.TYPE_DISCRETE,
+        Parch: CSVContainerForDistributions.TYPE_DISCRETE,
+        Ticket: CSVContainerForDistributions.TYPE_ID,
+        Fare: CSVContainerForDistributions.TYPE_CONTINUOUS,
+        Cabin: CSVContainerForDistributions.TYPE_DISCRETE,
+        Embarked: CSVContainerForDistributions.TYPE_DISCRETE
+    })
+//loadDataSetFromUrl("data/events.csv",{
+//    date: CSVContainerForDistributions.TYPE_DATE,
+//    node: CSVContainerForDistributions.TYPE_DISCRETE,
+//    type: CSVContainerForDistributions.TYPE_DISCRETE,
+//    variable: CSVContainerForDistributions.TYPE_DISCRETE,
+//    value: CSVContainerForDistributions.TYPE_CONTINUOUS
+//})
     $('#'+UPLOAD_FORM).fileupload({
         // This element will accept file drag/drop uploading
         dropZone: $('#dd-dropArea'),
@@ -986,29 +1007,37 @@ function processNewFile(file) {
     reader.readAsText(file);
 }
 
-
+var global;
 function loadDataSetFromUrl(url,columns ){
-    $.get(url,{},function (data) {
+    var resquest = $.get(url, {}, function (data) {
+        global = data;
+//        console.log("hola")
         filesInMemory[url] = new Object;
         filesInMemory[url].data = d3.csv.parse(data);
-        if (filesInMemory[url].data.length > 0){
+        if (filesInMemory[url].data.length > 0) {
             var keys = new Array
-            for (var key in filesInMemory[url].data[0]){
+            for (var key in filesInMemory[url].data[0]) {
                 keys.push(key);
             }
         }
-        if (columns !== undefined){
-            filesInMemory[url].colsTypes = columns;
-        } else {
-            filesInMemory[url].colsTypes = {
-                date: CSVContainerForDistributions.TYPE_DATE,
-                node: CSVContainerForDistributions.TYPE_DISCRETE,
-                type: CSVContainerForDistributions.TYPE_DISCRETE,
-                variable: CSVContainerForDistributions.TYPE_DISCRETE,
-                value: CSVContainerForDistributions.TYPE_CONTINUOUS
-            }
-        }
+        filesInMemory[url].colsTypes = columns;
+
+        var fileName = url;
+        jQuery('<div/>', {
+            class: "btn-group " + DYNAMIC_DISTRIBUTION_DATABASE_ENTRY
+        }).append(jQuery('<a/>', {
+            class: "btn btn-default " + BUTTON_TYPE_DATA_SELECT,
+            onclick: 'setData("' + fileName + '")',
+            id: BUTTON_ID_DATA_PREFIX + fileName,
+            text: fileName
+        })).append(jQuery('<a/>', {
+            class: "btn btn-default " + BUTTON_TYPE_DATA_TRASH,
+            onclick: 'deleteData(\''+fileName+'\')'
+        }).append('<span class="glyphicon glyphicon-trash"></span>'))
+            .appendTo("#" + DYNAMIC_DISTRIBUTION_DATABASE_LIST)
+
     })
+//    request.
 }
 
 function pupUpCols(cols) {

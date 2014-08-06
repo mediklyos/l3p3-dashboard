@@ -93,34 +93,6 @@ $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render(
 
  */
 
-
-
-
-
-
-loadDataSetFromUrl("data/titanic.csv",{
-    PassengerId: CSVContainerForDistributions.TYPE_ID,
-    Survived: CSVContainerForDistributions.TYPE_DISCRETE,
-    Pclass: CSVContainerForDistributions.TYPE_DISCRETE,
-    Name: CSVContainerForDistributions.TYPE_ID,
-    Sex: CSVContainerForDistributions.TYPE_DISCRETE,
-    Age: CSVContainerForDistributions.TYPE_CONTINUOUS,
-    SibSp: CSVContainerForDistributions.TYPE_DISCRETE,
-    Parch: CSVContainerForDistributions.TYPE_DISCRETE,
-    Ticket: CSVContainerForDistributions.TYPE_ID,
-    Fare: CSVContainerForDistributions.TYPE_CONTINUOUS,
-    Cabin: CSVContainerForDistributions.TYPE_DISCRETE,
-    Embarked: CSVContainerForDistributions.TYPE_DISCRETE
-})
-loadDataSetFromUrl("data/events.csv",{
-    date: CSVContainerForDistributions.TYPE_DATE,
-    node: CSVContainerForDistributions.TYPE_DISCRETE,
-    type: CSVContainerForDistributions.TYPE_DISCRETE,
-    variable: CSVContainerForDistributions.TYPE_DISCRETE,
-    value: CSVContainerForDistributions.TYPE_CONTINUOUS
-})
-
-
 clearPanel();
 
 function runDynamicDistribution(file){
@@ -140,7 +112,6 @@ function createPupUp(id,title, body,footer){
         '<h4 class="modal-title">'+title+'</h4>' +
         '</div>' +
         '<div class="modal-body">' +
-//        '<p>'+body+'</p>' +
         '</div>' +
         '<div class="modal-footer">' +
         footer +
