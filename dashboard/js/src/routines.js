@@ -44,6 +44,7 @@ function generateInteractiveViewsMenu(){
                 var li = $('<li/>')
                 $('<a/>',{
                     ref: value.ref,
+                    id: value.id,
                     href: "#",
                     class: "contentLink",
                     text: value.title
@@ -73,11 +74,14 @@ var toggleButtonsFunction = function(id,callback,event) {
 
 
 /*Load at the start*/
+//$("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
 //$("#section_dynamicDistribution").addClass("active");
 //$("#section_dynamicDistribution").parents().addClass("active");
 //$("#content").html(new EJS ({url: "js/templates/template_dynamicDistribution.ejs"}).render());
 //
-$("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
+$("#"+views[0][1].id).addClass("active");
+$("#"+views[0][1].id).parents().addClass("active");
+$("#content").html(new EJS ({url: views[0][1].ref}).render());
 
 
 
@@ -103,25 +107,3 @@ function runDynamicDistribution(file){
 }
 
 
-function createPupUp(id,title, body,footer){
-    var panel = $('<div class="modal fade">' +
-        '<div class="modal-dialog">' +
-        '<div class="modal-content">' +
-        '<div class="modal-header">' +
-        '<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>' +
-        '<h4 class="modal-title">'+title+'</h4>' +
-        '</div>' +
-        '<div class="modal-body">' +
-        '</div>' +
-        '<div class="modal-footer">' +
-        footer +
-        '</div>' +
-        '</div><!-- /.modal-content -->' +
-        '</div><!-- /.modal-dialog -->' +
-        '</div><!-- /.modal -->')
-
-    panel.find(".modal-body").append(body)
-    panel.attr('id',id);
-
-    return panel[0];
-}

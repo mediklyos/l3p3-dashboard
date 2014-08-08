@@ -26,7 +26,7 @@ views[1] = []
 views[2] = []
 
 views[0][0] = {id: "DynamicDistributions",constantsPrefix: "dd",ref: "js/templates/template_dynamicDistribution.ejs",title : "Distribution charts"}
-views[0][1] = {id: "ComputerResources",constantsPrefix: "CR",ref: "js/templates/template_comp_resources.ejs",title : "Online Data Viewer"}
+views[0][1] = {id: "ComputerResources",constantsPrefix: "odv",ref: "js/templates/template_comp_resources.ejs",title : "Online Data Viewer"}
 views[0][2] = {id: "ColorMapViewer",constantsPrefix: "CMV",ref: "js/templates/template_color_map.ejs",title : "Color map"}
 //--------------------------------------------------------------------//
 views[1][0] = {id: "SingleNodeViewer",constantsPrefix: "snv",ref: "js/templates/template_singleNodeViewer.ejs",title : "Single Node Viewer"}

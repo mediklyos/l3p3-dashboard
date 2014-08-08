@@ -1,17 +1,19 @@
 <div>
     <!-- Everything must be inside a div so that the ejs works -->
-    <head>
-        <meta charset="utf-8">
-        <title>Computer Resources</title>
-        <script src="js/src/stats.js"></script>
-    </head>
-
-    <header>
-        <h1> Computer Resources</h1>
-    </header>
+    <div class="row" id="odv-tool-bar">
+        <div class="col-lg-4">
+            <h1 class="page-header">Computer Resources</h1>
+        </div>
+        <div class="col-lg-4">
+            url selector / orígenes con un volver a selecionar
+        </div>
+        <div class="col-lg-4">
+            Zoom / Pausa / Velocidad
+        </div>
+    </div>
 
     <main id="charts">
-        <!-- Structure needed by stats.js to make the graphs -->
+        <!-- Structure needed by onlineResourceViewer.js to make the graphs -->
         <section class="chart template">
             <h2 class="title"></h2>
             <canvas width="600" height="80"></canvas>
@@ -27,4 +29,9 @@
             <input class="bar" type="range" id="rangeinput" value="50" from="0" to="100" step="10" onchange="sendToServer(value);"/>
         </div>
     </main>
+    <script>
+        $(function(){
+            onlineResourceView_postLoad();
+        })
+    </script>
 </div>
