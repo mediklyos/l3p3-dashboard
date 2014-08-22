@@ -7,15 +7,67 @@
 var LINE_HEADERS = 0
 var LINE_NORMAL = 1
 
-var PRE = views[0][1].constantsPrefix;
+var MAX_COLS = 2;
+var TOTAL_COL_WIDTH = 12;
 
-var TOOL_BAR_ID = PRE+"-tool-bar";
+var PRE = views[0][1].constantsPrefix; // odv
+
+var ORV_TOOL_BAR_ID = PRE+"-tool-bar";
+var ORV_INPUT_URL = PRE+"-input-url"
+var ORV_COLUMNS_CLICKS = PRE + "-columns-clicks"
+var ODV_CHARTS = PRE + "-charts"
+var ODV_VELOCITY_SLIDER_PANEL = PRE + "-velocity-slider-panel"
 var allTimeSeries = {};
 var allValueLabels = {};
 var descriptions = {};
 
-function onlineResourceView_postLoad() {
-    var ws = new ReconnectingWebSocket('ws://' + location.hostname + ':8080');
+var wss = [];
+var charts = [];
+
+function onlineResourceView_postLoad_enter(event) {
+    if (event.keyCode == 13){
+        console.log("Changing the source");
+        onlineResourceView_postLoad_click();
+
+
+    }
+//    console.log("keyCode="+event.keyCode+", indentifier"+ event.keyIdentifier);
+}
+function onlineResourceView_postLoad_click(){
+    onlineResourceView_postLoad($("#odv-input-url").val());
+}
+
+function columnsClick(){
+    $("#"+ORV_COLUMNS_CLICKS).find('.btn').removeClass('btn-primary').addClass('btn-default');
+    $(event.target).removeClass('btn-default').addClass('btn-primary');
+    MAX_COLS = $(event.target).find('input').val();
+    resizingCols();
+
+//    $("#"+ORV_COLUMNS_CLICKS).find('.active').removeClass('btn-default').addClass('btn-primary');
+}
+
+function clear () {
+
+    $.each(wss,function (key,value){
+        value.close();
+    })
+    $.each(charts,function (key,value){
+        value.stop();
+    })
+    wss = [];
+    charts = [];
+    $('#'+ODV_CHARTS).empty();
+
+}
+function onlineResourceView_postLoad(url) {
+    if (url === undefined || url == ""){
+        return;
+    }
+    clear();
+
+    var ws = new ReconnectingWebSocket('ws://' + url);
+
+    wss.push(ws);
     allTimeSeries = {};
     allValueLabels = {};
     descriptions = {}
@@ -58,43 +110,26 @@ function onlineResourceView_postLoad() {
             }
             receiveStats(stats);
         }
-//        switch (lineCount++) {
-//
-//            case 0: // ignore first line
-//                break;
-//
-//            case 1: // column headings
-//                colHeadings = e.data.trim().split(/ +/);
-//                var last_count=0;
-//                var last_node = colHeadings[colHeadings.length-1].toString().replace(/[^\d]/g, '');//takes last char to get the number of nodes
-//               for (var i = 0; i < colHeadings.length;i++){
-//                   var col = extractNames(colHeadings[i]);
-//                   if (descriptions[col.nodeName] === undefined){
-//                       descriptions[col.nodeName] = {};
-//                   }
-//                   descriptions[col.nodeName][col.colName] = col.colName;
-//               }
-//                initCharts();
-//                break;
-//
-//            default: // subsequent lines: get number values
-//                var colValues = e.data.trim().split(/ +/);
-//                var stats = {};
-//                for (var i = 0; i < colHeadings.length; i++) {
-//                    if(!(isNaN(colValues[i]))){//ignore NaN lines
-//                    stats[colHeadings[i]] = parseInt(colValues[i]);}
-//                }
-//                receiveStats(stats);
-//        }
     };
+}
+
+function resizingCols(){
+    var colNum =Math.floor(TOTAL_COL_WIDTH / MAX_COLS);
+    $('#'+ODV_CHARTS).find('.chart').removeClassPrefix('col-').addClass('col-lg-'+colNum);
+    // De esta forma se ejecuta al cargar ejecutar todas las cosas, se hace asi porque antes no se
+    // sabe cuanto vale el ancho
+    $(function () {
+        $('#'+ODV_CHARTS).find('canvas').attr('width', $('#'+ODV_CHARTS).find('canvas').width());
+    })
+
 }
 
 function initCharts() {
     Object.each(descriptions, function(sectionName, values) {
 
-        var section = $('.chart.template').clone().removeClass('template').appendTo('#charts');
-
+        var section = $('.chart.template').clone().removeClass('template').addClass('chart').appendTo('#'+ODV_CHARTS);
         section.find('.title').text(sectionName);
+
 
         var smoothie = new SmoothieChart({
             grid: {
@@ -108,6 +143,7 @@ function initCharts() {
                 disabled: true
             }
         });
+        charts.push(smoothie)
         smoothie.streamTo(section.find('canvas').get(0), 1000);
 
         var colors = chroma.brewer['Pastel2'];
@@ -133,15 +169,19 @@ function initCharts() {
             allValueLabels[sectionName][name] = statLine.find('.stat-value');
         });
     });
+    resizingCols();
 }
 
 function receiveStats(stats) {
     Object.each(stats, function(name, value) {
         var col = extractNames(name);
-        var timeSeries = allTimeSeries[col.nodeName][col.colName];
-        if (timeSeries) {
-            timeSeries.append(Date.now(), value);
-            allValueLabels[col.nodeName][col.colName].text(value + '%');
+        // Se pueden recibir basuras, si se recibe basura se debe ignorar, cuando se recibe basura allTimeSeries no existe para ese valor
+        if (allTimeSeries[col.nodeName] !== undefined ){
+            var timeSeries = allTimeSeries[col.nodeName][col.colName];
+            if (timeSeries) {
+                timeSeries.append(Date.now(), value);
+                allValueLabels[col.nodeName][col.colName].text(value + '%');
+            }
         }
     });
 }

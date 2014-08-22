@@ -50,9 +50,10 @@
  * NOTE: some modifications have been made in comparison with the code in the link above.
  */
 
-var ws;
+//var ws;
 
 function ReconnectingWebSocket(url, protocols) {
+//    this.ws;
     protocols = protocols || [];
 
     // These can be altered by calling code.
@@ -86,7 +87,7 @@ function ReconnectingWebSocket(url, protocols) {
     };
 
     function connect(reconnectAttempt) {
-        ws = new WebSocket(url, protocols);
+        var ws = new WebSocket(url, protocols);
         
         self.onconnecting();
         if (self.debug || ReconnectingWebSocket.debugAll) {
@@ -145,24 +146,27 @@ function ReconnectingWebSocket(url, protocols) {
             }
             self.onerror(event);
         };
+        return ws;
     }
-    connect(url);
+    this.ws = connect(url);
+
 
     this.send = function(data) {
-        if (ws) {
+        if (this.ws) {
             if (self.debug || ReconnectingWebSocket.debugAll) {
                 console.debug('ReconnectingWebSocket', 'send', url, data);
             }
-            return ws.send(data);
+            return this.ws.send(data);
         } else {
             throw 'INVALID_STATE_ERR : Pausing to reconnect websocket';
         }
     };
 
     this.close = function() {
-        if (ws) {
+        if (this.ws) {
             forcedClose = true;
-            ws.close();
+            this.ws.close();
+            console.debug('Connection closed');
         }
     };
 
@@ -171,8 +175,8 @@ function ReconnectingWebSocket(url, protocols) {
      * For example, if the app suspects bad data / missed heart beats, it can try to refresh.
      */
     this.refresh = function() {
-        if (ws) {
-            ws.close();
+        if (this.ws) {
+            this.ws.close();
         }
     };
 
@@ -191,5 +195,6 @@ ReconnectingWebSocket.debugAll = false;
  * @param resource (the server handles the content of the message (a number means timeout and a string means a source name)
  */
 var sendToServer = function(resource){
-    ws.send(resource);
+    // eliminado hasta que se solucione el tema de los ws
+    //ws.send(resource);
 }

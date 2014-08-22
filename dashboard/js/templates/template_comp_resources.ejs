@@ -4,19 +4,52 @@
         <div class="col-lg-4">
             <h1 class="page-header">Computer Resources</h1>
         </div>
-        <div class="col-lg-4">
-            url selector / orígenes con un volver a selecionar
-        </div>
-        <div class="col-lg-4">
-            Zoom / Pausa / Velocidad
-        </div>
-    </div>
+        <div class="col-lg-8">
 
-    <main id="charts">
-        <!-- Structure needed by onlineResourceViewer.js to make the graphs -->
-        <section class="chart template">
+            <div class="form-inline" role="form">
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="input-group-addon">ws://</div>
+                        <input id="odv-input-url" type="text" class="form-control my-form" placeholder="url" onkeydown="onlineResourceView_postLoad_enter(event)">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="btn-group btn-toggle" data-toggle="buttons" id="odv-columns-clicks" onclick="columnsClick()">
+                        <label class="btn btn-default">
+                            <input name="PassengerId" value="1" type="radio">1</label>
+                        <label class="btn btn-primary active">
+                            <input name="PassengerId" value="2" type="radio">2</label>
+                        <label class="btn btn-default">
+                            <input name="PassengerId" value="3" type="radio">3</label>
+                        <label class="btn btn-default">
+                            <input name="PassengerId" value="4" type="radio">4</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-default" id="dd-upload-button" onclick="onlineResourceView_postLoad_click()">Load</button>
+                </div>
+                <div class="form-group">
+                    <div id="odv-velocity-slider-panel" class="div-border">
+                        Velocity
+                        <!--<input class="bar" type="range" id="rangeinput" value="50" from="0" to="100" step="10" onchange="sendToServer(value);"/>-->
+                    </div>
+                </div>
+            </div>
+
+
+
+        </div>
+        <!--<div class="col-lg-4">-->
+            Zoom / Pausa / Velocidad
+        <!--</div>-->
+    </div>
+    <div class="row">
+        <div class="col-lg-10" id="odv-charts">
+
+        </div>
+        <div class="chart template">
             <h2 class="title"></h2>
-            <canvas width="600" height="80"></canvas>
+            <canvas height="80"  class="odv-canvas"></canvas>
             <ul class="stats">
                 <li class="stat template">
                     <span class="stat-name"></span>
@@ -24,14 +57,30 @@
                     <input type="button" class="stat-button" value="Color Map" style="width: 75px; height: 25px;"/>
                 </li>
             </ul>
-        </section>
-        <div id="slider">
-            <input class="bar" type="range" id="rangeinput" value="50" from="0" to="100" step="10" onchange="sendToServer(value);"/>
         </div>
+        <div class="col-lg-2">Events</div>
+    </div>
+    <main id="_charts">
+
     </main>
     <script>
         $(function(){
-            onlineResourceView_postLoad();
+            var slider = jQuery('<div/>').slider({
+                range: true,
+                min: 0,
+                max: 100,
+                values: [0,100],
+                step: 10,
+
+//                slide: function (decimals,event,ui) {
+//                    $("#"+buttons_id_prefix+"left").text(ui.values[0].toFixed(decimals))
+//                    $("#"+buttons_id_prefix+"right").text(ui.values[1].toFixed(decimals))
+//                }.bind(undefined,decimals),
+                stop : function (event, ui){
+//                    callback(ui.values[0],ui.values[1])
+                }
+            }).appendTo("#"+ODV_VELOCITY_SLIDER_PANEL);
+//            onlineResourceView_postLoad(location.hostname + ':8080');
         })
     </script>
 </div>
