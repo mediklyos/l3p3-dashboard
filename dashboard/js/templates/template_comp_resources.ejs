@@ -14,6 +14,9 @@
                     </div>
                 </div>
                 <div class="form-group">
+                    <button class="btn btn-default" id="odv-upload-button" onclick="onlineResourceView_postLoad_click()">Load</button>
+                </div>
+                <div class="form-group">
                     <div class="btn-group btn-toggle" data-toggle="buttons" id="odv-columns-clicks" onclick="columnsClick()">
                         <label class="btn btn-default">
                             <input name="PassengerId" value="1" type="radio">1</label>
@@ -26,13 +29,18 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <button class="btn btn-default" id="dd-upload-button" onclick="onlineResourceView_postLoad_click()">Load</button>
+                    <div id="odv-velocity-slider-panel" class="div-border center-content-panel">
+                    </div>
                 </div>
                 <div class="form-group">
-                    <div id="odv-velocity-slider-panel" class="div-border">
-                        Velocity
-                        <!--<input class="bar" type="range" id="rangeinput" value="50" from="0" to="100" step="10" onchange="sendToServer(value);"/>-->
+                    <div id="odv-threshold-slider-panel" class="div-border center-content-panel">
                     </div>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-default" id="odv-increment-charts-height" onclick="incrementChartsHeight()">+Height</button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-default" id="odv-decrement-charts-height" onclick="decrementChartsHeight()">-Height</button>
                 </div>
             </div>
 
@@ -47,16 +55,25 @@
         <div class="col-lg-10" id="odv-charts">
 
         </div>
-        <div class="chart template">
+        <div class="odv-chart template">
             <h2 class="title"></h2>
             <canvas height="80"  class="odv-canvas"></canvas>
-            <ul class="stats">
-                <li class="stat template">
-                    <span class="stat-name"></span>
-                    <span class="stat-value"></span>
-                    <input type="button" class="stat-button" value="Color Map" style="width: 75px; height: 25px;"/>
-                </li>
-            </ul>
+            <div class="controls">
+                <div class="div-border center-content-panel odv-chart-slider">
+                </div>
+                <div class="center-content-panel">
+                    <button type="button" data-toggle="button" class="btn btn-default odv-dynamic-height" onclick="setDynamicHeight(event)">Dynamic height</button>
+                </div>
+                <div class="div-border center-content-panel">
+                    <ul class="stats">
+                        <li class="stat template">
+                            <span class="stat-name"></span>
+                            <span class="stat-value"></span>
+                            <!--<input type="button" class="stat-button" value="Color Map" style="width: 75px; height: 25px;"/>-->
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
         <div class="col-lg-2">Events</div>
     </div>
@@ -65,22 +82,38 @@
     </main>
     <script>
         $(function(){
+            $("#"+ODV_VELOCITY_SLIDER_PANEL).append('<div class="text" style="padding-right: 15px" >Refresh Time</div>')
             var slider = jQuery('<div/>').slider({
-                range: true,
-                min: 0,
+                range: 'min',
+                min: 10,
                 max: 100,
-                values: [0,100],
-                step: 10,
-
-//                slide: function (decimals,event,ui) {
-//                    $("#"+buttons_id_prefix+"left").text(ui.values[0].toFixed(decimals))
-//                    $("#"+buttons_id_prefix+"right").text(ui.values[1].toFixed(decimals))
-//                }.bind(undefined,decimals),
+                value: 50,
+                step: 1,
                 stop : function (event, ui){
-//                    callback(ui.values[0],ui.values[1])
+                    changeRefreshTime(ui.value);
                 }
             }).appendTo("#"+ODV_VELOCITY_SLIDER_PANEL);
-//            onlineResourceView_postLoad(location.hostname + ':8080');
+            $("#"+ODV_VELOCITY_SLIDER_PANEL).height($("#odv-upload-button").outerHeight())
+            slider.width(100);
+
+            $("#"+ODV_THRESHOLD_SLIDER_PANEL).append('<div style="padding-right: 15px" >Threshold: <span id='+ODV_SPAN_THRESHOLD_VALUE+'>100%</span></div>')
+            setThreshold(100);
+            var slider2 = jQuery('<div/>').slider({
+                range: 'min',
+                min: 0,
+                max: 100,
+                value: 100,
+                step: 1,
+                slide: function (event,ui){
+                    $('#'+ODV_SPAN_THRESHOLD_VALUE).text(ui.value+"%")
+                },
+                stop : function (event, ui){
+                    setThreshold(ui.value);
+                }
+            }).appendTo("#"+ODV_THRESHOLD_SLIDER_PANEL);
+            $("#"+ODV_THRESHOLD_SLIDER_PANEL).height($("#odv-upload-button").outerHeight())
+            slider2.width(100);
+//            $("#"+ODV_THRESHOLD_SLIDER_PANEL).append('<div style="padding-right: 15px" >Threshold</div>')
         })
     </script>
 </div>
