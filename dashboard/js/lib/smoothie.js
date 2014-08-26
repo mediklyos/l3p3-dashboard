@@ -364,6 +364,7 @@
    * Starts the animation of this chart.
    */
   SmoothieChart.prototype.start = function() {
+      this.end = false;
     if (this.frame) {
       // We're already running, so just return
       return;
@@ -372,13 +373,20 @@
     // Renders a frame, and queues the next frame for later rendering
     var animate = function() {
       this.frame = SmoothieChart.AnimateCompatibility.requestAnimationFrame(function() {
-        this.render();
+        var rendered = this.render();
         animate();
+        if (rendered && this.end){
+          this.stop();
+        }
       }.bind(this));
     }.bind(this);
 
     animate();
   };
+//  this.end = false;
+  SmoothieChart.prototype.stopAtLastStep = function (){
+      this.end = true;
+  }
 
   /**
    * Stops the animation of this chart.
@@ -451,7 +459,7 @@
       var maxIdleMillis = Math.min(1000/6, this.options.millisPerPixel);
 
       if (nowMillis - this.lastRenderTimeMillis < maxIdleMillis) {
-        return;
+        return false;
       }
     }
     this.lastRenderTimeMillis = nowMillis;
@@ -658,6 +666,7 @@
     }
 
     context.restore(); // See .save() above.
+    return true;
   };
 
   // Sample timestamp formatting function

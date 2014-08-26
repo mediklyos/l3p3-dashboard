@@ -29,10 +29,27 @@ var ODV_THRESHOLD_SLIDER_PANEL = PRE + "-threshold-slider-panel";
 var ODV_SPAN_THRESHOLD_VALUE = PRE + "-threshold-value";
 
 var ODV_HEIGHT_STEP = 20;
+var ODV_FONT_STEP = 0;
 var allTimeSeries = {};
 var allValueLabels = {};
 var descriptions = {};
 
+var debug = true;
+
+$(function (){
+    if (debug){
+        $("#"+ORV_COLUMNS_CLICKS).find('.btn').removeClass('btn-primary').addClass('btn-default');
+        MAX_COLS = 4;
+        resizingCols();
+        document.getElementsByClassName('odv-canvas')[0].setAttribute('height',600)
+//        ($('.'+ODV_CHART).find('canvas'))[0].setAttribute('height',600);
+//        function
+//        $(function(){
+//
+//        })
+        onlineResourceView_postLoad("localhost:8080")
+    }
+})
 
 
 var smoothie_default_values = {
@@ -47,7 +64,7 @@ var smoothie_default_values = {
     },
 //    minValue: 0,
     labels: {
-        disabled: false,
+//        disabled: false,
         fillStyle:'rgba(255,0,0,1)'
     }
 };
@@ -76,6 +93,8 @@ function columnsClick(){
 
 //    $("#"+ORV_COLUMNS_CLICKS).find('.active').removeClass('btn-default').addClass('btn-primary');
 }
+
+
 
 function clear () {
 
@@ -228,6 +247,9 @@ function initCharts(min, max) {
 
 function receiveStats(stats) {
     Object.each(stats, function(name, value) {
+        if (paused) {
+            return;
+        }
         var col = extractNames(name);
         // Se pueden recibir basuras, si se recibe basura se debe ignorar, cuando se recibe basura allTimeSeries no existe para ese valor
         if (allTimeSeries[col.nodeName] !== undefined ){
@@ -296,11 +318,23 @@ function changeRefreshTime(newValue) {
 function incrementChartsHeight(){
     var newValue = parseInt($('.'+ODV_CHART).find('canvas').attr('height'))+ODV_HEIGHT_STEP;
     $('.'+ODV_CHART).find('canvas').attr('height',newValue);
+    $.each(charts,function (key, value){
+        value.options.labels.fontSize = value.options.labels.fontSize + ODV_FONT_STEP;
+    })
 }
 function decrementChartsHeight(){
     var newValue = parseInt($('.'+ODV_CHART).find('canvas').attr('height'))-ODV_HEIGHT_STEP;
     if (newValue > 0)
         $('.odv-chart').find('canvas').attr('height',newValue);
+
+    $.each(charts, function (key, value) {
+        newValue =  value.options.labels.fontSize - ODV_FONT_STEP
+        // Para guardar la relaccion de steps
+        if (newValue > 2) {
+        value.options.labels.fontSize = newValue
+        }
+    })
+
 }
 
 function setDynamicHeight(event){
@@ -337,7 +371,7 @@ function setThreshold(value) {
 }
 var cloned = {}
 
-function saveAllTimeSeries () {
+function save () {
     console.log();
     cloned = {}
     $.each (allTimeSeries, function (key1,level1){
@@ -352,19 +386,57 @@ function saveAllTimeSeries () {
     })
     console.log();
 }
+function myRestore(){
+    restore(cloned)
+}
 
-function restoreAllTimeSeries () {
-    console.log();
-    $.each (cloned, function (key1,level1){
+// Para restaurar hay que poner vaciar el buffer y poner los valores, como pinta el tiempo actual es necesario, al hacer
+// el append, incrementar el tiempo en la diferencia entre el tiempo anterior  el actual
+function restore(data) {
+    $.each (data, function (key1,level1){
 //        cloned[key1] = {}
         $.each (level1, function (key2,level2) {
 //            allTimeSeries[key1][key2].data = cloned[key1][key2].data;
-//            allTimeSeries[key1][key2].data = []
-            for (var i = 0; i <level2.data.length;i++){
-                if (allTimeSeries[key1][key2].data[i] !== undefined)
-                    allTimeSeries[key1][key2].data[i][1] = level2.data[i][1];
+            var oldData = allTimeSeries[key1][key2].data;
+            var currentTime = Date.now();
+            var firstTime = level2.data[level2.data.length-1][0];
+            var increment = currentTime - firstTime;
+            allTimeSeries[key1][key2].data = []
+            for (var i = 0; i < level2.data.length ;i++){
+                allTimeSeries[key1][key2].append(level2.data[i][0]+increment,level2.data[i][1]);
             }
         })
     })
     console.log();
+}
+
+function restorePause() {
+    paused = true;
+    // Restaurar datos
+    myRestore()
+    // repintar
+
+    for (var i = 0; i < charts.length;i++){
+        $(function() {
+            charts[i].stopAtLastStep();
+        })
+    }
+    // Pausar cuando acabe de repintar
+//    $(function(){
+//        myPause()
+//    })
+}
+var paused = false;
+function myResume () {
+    $.each(charts,function (key, value){
+        value.start();
+    })
+    paused = false;
+}
+function myPause() {
+    paused = true;
+    $.each(charts,function (key, value){
+
+        value.stop();
+    })
 }
