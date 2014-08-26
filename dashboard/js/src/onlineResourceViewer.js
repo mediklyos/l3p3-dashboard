@@ -335,3 +335,36 @@ function setDynamicHeight(event){
 function setThreshold(value) {
     ODV_THRESHOLD = value;
 }
+var cloned = {}
+
+function saveAllTimeSeries () {
+    console.log();
+    cloned = {}
+    $.each (allTimeSeries, function (key1,level1){
+        cloned[key1] = {}
+        $.each (level1, function (key2,level2) {
+            cloned[key1][key2] = {}
+            cloned[key1][key2].data = []
+            for (var i = 0; i < level2.data.length;i++){
+                cloned[key1][key2].data.push(level2.data[i].slice(0));
+            }
+        })
+    })
+    console.log();
+}
+
+function restoreAllTimeSeries () {
+    console.log();
+    $.each (cloned, function (key1,level1){
+//        cloned[key1] = {}
+        $.each (level1, function (key2,level2) {
+//            allTimeSeries[key1][key2].data = cloned[key1][key2].data;
+//            allTimeSeries[key1][key2].data = []
+            for (var i = 0; i <level2.data.length;i++){
+                if (allTimeSeries[key1][key2].data[i] !== undefined)
+                    allTimeSeries[key1][key2].data[i][1] = level2.data[i][1];
+            }
+        })
+    })
+    console.log();
+}

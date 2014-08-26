@@ -58,21 +58,24 @@
         <div class="odv-chart template">
             <h2 class="title"></h2>
             <canvas height="80"  class="odv-canvas"></canvas>
+            <div class="my-stats" style="margin-bottom: 2px;">
+            <div class="div-border center-content-panel">
+                <ul class="stats">
+                    <li class="stat template">
+                        <span class="stat-name"></span>
+                        <span class="stat-value"></span>
+                        <!--<input type="button" class="stat-button" value="Color Map" style="width: 75px; height: 25px;"/>-->
+                    </li>
+                </ul>
+            </div>
+            </div>
             <div class="controls">
                 <div class="div-border center-content-panel odv-chart-slider">
                 </div>
                 <div class="center-content-panel">
                     <button type="button" data-toggle="button" class="btn btn-default odv-dynamic-height" onclick="setDynamicHeight(event)">Dynamic height</button>
                 </div>
-                <div class="div-border center-content-panel">
-                    <ul class="stats">
-                        <li class="stat template">
-                            <span class="stat-name"></span>
-                            <span class="stat-value"></span>
-                            <!--<input type="button" class="stat-button" value="Color Map" style="width: 75px; height: 25px;"/>-->
-                        </li>
-                    </ul>
-                </div>
+
             </div>
         </div>
         <div class="col-lg-2">Events</div>
