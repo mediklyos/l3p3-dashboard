@@ -23,10 +23,17 @@ var ODV_VELOCITY_SLIDER_PANEL = PRE + "-velocity-slider-panel"
 var ODV_CHART_SLIDER = PRE + "-chart-slider";
 var ODV_CHART_SLIDER_LABEL = PRE + "-chart-slider-label"
 var ODV_DYNAMIC_HEIGHT = "-dynamic-height"
-
+var ODV_EVENTS_COL = PRE + "-events-col"
+var ODV_EVENTS_LIST = PRE + "-events-list"
 var ODV_THRESHOLD_SLIDER_PANEL = PRE + "-threshold-slider-panel";
-
 var ODV_SPAN_THRESHOLD_VALUE = PRE + "-threshold-value";
+var ODV_BUTTON_ENTRY = PRE +"-button-entry";
+var ODV_ENTRY_DESCRIPTION = PRE +"-entry-description";
+var ODV_ENTRY_DELETE = PRE +"-entry-delete";
+
+var ODV_PREFIX_CANVAS = PRE + "-canvas-"
+
+
 
 var ODV_HEIGHT_STEP = 20;
 var ODV_FONT_STEP = 0;
@@ -35,6 +42,10 @@ var allValueLabels = {};
 var descriptions = {};
 
 var debug = true;
+
+var wss = [];
+var charts = [];
+var entriesStored = []
 
 $(function (){
     if (debug){
@@ -69,8 +80,6 @@ var smoothie_default_values = {
     }
 };
 
-var wss = [];
-var charts = [];
 
 function onlineResourceView_postLoad_enter(event) {
     if (event.keyCode == 13){
@@ -96,16 +105,19 @@ function columnsClick(){
 
 
 
-function clear () {
-
-    $.each(wss,function (key,value){
-        value.close();
-    })
+function clear (full) {
+    if (full) {
+        $.each(wss, function (key, value) {
+            value.close();
+        })
+    }
     $.each(charts,function (key,value){
         value.stop();
     })
-    wss = [];
+    $("."+ODV_BUTTON_ENTRY).not(".template").remove()
+    wsss = [];
     charts = [];
+    entriesStored = []
     $('#'+ODV_CHARTS).empty();
 
 }
@@ -113,7 +125,7 @@ function onlineResourceView_postLoad(url) {
     if (url === undefined || url == ""){
         return;
     }
-    clear();
+    clear(true);
 
     var ws = new ReconnectingWebSocket('ws://' + url);
 
@@ -139,6 +151,8 @@ function onlineResourceView_postLoad(url) {
         if (currentLine == ""){
             nextLine = LINE_HEADERS;
         }else if (nextLine == LINE_HEADERS){
+            // No es necesario resetear las conexiones porque lo que ha pasado es que se han enviado nuevas columnas
+            clear (false);
             nextLine = LINE_NORMAL;
             colHeadings = e.data.trim().split(/ +/);
             var last_count=0;
@@ -189,6 +203,7 @@ function initCharts(min, max) {
         charts.push(smoothie)
         smoothie.streamTo(section.find('canvas').get(0), 1000);
         section.find('canvas')[0].smoothie = smoothie;
+        section.find('canvas')[0].id = sectionName;
 
         var sliderDiv = section.find('.'+ODV_CHART_SLIDER);
 
@@ -205,14 +220,15 @@ function initCharts(min, max) {
                 smoothie.options.millisPerPixel = max - ui.value+min;
             }
         }).appendTo(sliderDiv);
-
-        $(sliderDiv).height('32')
         slider.width(100);
 
         var colors = chroma.brewer['Pastel2'];
         var index = 0;
         allTimeSeries[sectionName] = {}
         allValueLabels[sectionName] = {}
+        var nStats = Object.keys(values).length;
+        var statWeigh = parseInt(90/nStats);
+        var statPadding = parseInt(statWeigh/3)*2;
         Object.each(values, function(name, valueDescription) {
             // lo hago asi para que el undefined sea reconocido como falso, reconociendo el maximo y el minimo
             if (!(valueDescription[0] >= smoothie.options.minValue )) {
@@ -238,6 +254,9 @@ function initCharts(min, max) {
             statLine.attr('title', name).css('color', color);
             statLine.find('.stat-name').text(name);
             statLine.find('.stat-name').attr('id',name);
+            statLine.css('width',statWeigh+"%")
+            section.find('.stats').css('padding-left',statPadding+"%")
+
 //            statLine.find('.stat-button').attr('onclick','sendToServer(document.getElementById("'+name+'").innerHTML)');//add ColorMap request button
             allValueLabels[sectionName][name] = statLine.find('.stat-value');
         });
@@ -247,14 +266,11 @@ function initCharts(min, max) {
 
 function receiveStats(stats) {
     Object.each(stats, function(name, value) {
-        if (paused) {
-            return;
-        }
         var col = extractNames(name);
         // Se pueden recibir basuras, si se recibe basura se debe ignorar, cuando se recibe basura allTimeSeries no existe para ese valor
         if (allTimeSeries[col.nodeName] !== undefined ){
             var timeSeries = allTimeSeries[col.nodeName][col.colName];
-            if (timeSeries) {
+            if (timeSeries && !timeSeries.smoothie.isStoped) {
                 timeSeries.append(Date.now(), value);
                 allValueLabels[col.nodeName][col.colName].empty();
                 var intValue = parseInt(value);
@@ -338,23 +354,9 @@ function decrementChartsHeight(){
 }
 
 function setDynamicHeight(event){
-    console.log(event);
-    var currentTarget = event.target;
-    var chartNode = undefined
-    while (chartNode === undefined && currentTarget !== undefined && currentTarget != null){
-        if ($(currentTarget).hasClass(ODV_CHART)){
-            chartNode = currentTarget;
-        } else {
-            currentTarget = currentTarget.parentNode;
-        }
-    }
-    if (chartNode === undefined) {
-        return;
-    }
 
-    var smoothie = chartNode.smoothie;
-    var canvas = $(chartNode).find('canvas');
-    var smoothie = canvas[0].smoothie;
+    var canvas = findCanvas(event.target);
+    var smoothie = canvas.smoothie;
     if ($(event.target).hasClass('active')){
         smoothie.options.minValue = smoothie.options.minStored;
         smoothie.options.maxValue = smoothie.options.maxStored;
@@ -365,78 +367,126 @@ function setDynamicHeight(event){
     // find the canvas
 }
 
+function findCanvas (node) {
+    var chartNode = undefined
+    while (chartNode === undefined && node !== undefined && node != null){
+        if ($(node).hasClass(ODV_CHART)){
+            chartNode = node;
+        } else {
+            node = node.parentNode;
+        }
+    }
+    if (chartNode === undefined) {
+        return undefined;
+    }
+
+    var canvas = $(chartNode).find('canvas');
+    return canvas[0];
+}
 
 function setThreshold(value) {
     ODV_THRESHOLD = value;
 }
-var cloned = {}
 
-function save () {
-    console.log();
-    cloned = {}
-    $.each (allTimeSeries, function (key1,level1){
-        cloned[key1] = {}
-        $.each (level1, function (key2,level2) {
-            cloned[key1][key2] = {}
-            cloned[key1][key2].data = []
-            for (var i = 0; i < level2.data.length;i++){
-                cloned[key1][key2].data.push(level2.data[i].slice(0));
-            }
-        })
-    })
-    console.log();
+function save(event){
+
+    var saveEntry = {};
+    saveEntry.date = new Date();
+    saveEntry.canvas = findCanvas(event.target);
+    // id and smoothie is inside canvas
+    saveEntry.data = saveEntry.canvas.smoothie.exportTimeSeriesData();
+    entriesStored.push(saveEntry);
+    var buttons = $('.'+ODV_BUTTON_ENTRY+'.template').clone().removeClass('template').addClass(ODV_PREFIX_CANVAS+saveEntry.canvas.id).appendTo('#'+ODV_EVENTS_LIST);
+    buttons.find("."+ODV_ENTRY_DESCRIPTION).text(saveEntry.date.toLocaleString()+": " + saveEntry.canvas.id)
+//    (saveEntry.date.toLocaleString()+": " + saveEntry.canvas.id);
+    buttons.find("."+ODV_ENTRY_DESCRIPTION)[0].onclick = function (event) {
+        $("." + ODV_PREFIX_CANVAS+this.canvas.id+" ."+ODV_ENTRY_DESCRIPTION).removeClass("active btn-primary")
+        console.log("restaurando")
+        this.canvas.smoothie.start();
+        this.canvas.smoothie.restoreTimeSeriesData(this.data);
+        this.canvas.smoothie.stopAtLastStep();
+        $(event.target).addClass("active btn-primary")
+
+    }.bind(saveEntry)
+    buttons.find("."+ODV_ENTRY_DELETE)[0].onclick = function (event) {
+        $(event.target.parentNode).remove();
+    }
+
 }
-function myRestore(){
-    restore(cloned)
+
+function pause(event){
+    var canvas = findCanvas(event.target);
+    canvas.smoothie.stop();
 }
+
+function resume(event){
+    var canvas = findCanvas(event.target);
+    $("." + ODV_PREFIX_CANVAS+canvas.id+" ."+ODV_ENTRY_DESCRIPTION).removeClass("active btn-primary")
+
+        canvas.smoothie.start();
+}
+
+//var cloned = {}
+
+//function mySave () {
+//    console.log();
+//    cloned = {}
+//    $.each (allTimeSeries, function (key1,level1){
+//        cloned[key1] = {}
+//        $.each (level1, function (key2,level2) {
+//            cloned[key1][key2] = {}
+//            cloned[key1][key2].data = []
+//            for (var i = 0; i < level2.data.length;i++){
+//                cloned[key1][key2].data.push(level2.data[i].slice(0));
+//            }
+//        })
+//    })
+//    console.log();
+//}
+//function myRestore(){
+//    restore(cloned)
+//}
 
 // Para restaurar hay que poner vaciar el buffer y poner los valores, como pinta el tiempo actual es necesario, al hacer
 // el append, incrementar el tiempo en la diferencia entre el tiempo anterior  el actual
-function restore(data) {
-    $.each (data, function (key1,level1){
-//        cloned[key1] = {}
-        $.each (level1, function (key2,level2) {
-//            allTimeSeries[key1][key2].data = cloned[key1][key2].data;
-            var oldData = allTimeSeries[key1][key2].data;
-            var currentTime = Date.now();
-            var firstTime = level2.data[level2.data.length-1][0];
-            var increment = currentTime - firstTime;
-            allTimeSeries[key1][key2].data = []
-            for (var i = 0; i < level2.data.length ;i++){
-                allTimeSeries[key1][key2].append(level2.data[i][0]+increment,level2.data[i][1]);
-            }
-        })
-    })
-    console.log();
-}
-
-function restorePause() {
-    paused = true;
-    // Restaurar datos
-    myRestore()
-    // repintar
-
-    for (var i = 0; i < charts.length;i++){
-        $(function() {
-            charts[i].stopAtLastStep();
-        })
-    }
-    // Pausar cuando acabe de repintar
-//    $(function(){
-//        myPause()
+//function restore(data) {
+//    $.each (data, function (key1,level1){
+//        $.each (level1, function (key2,level2) {
+//            var currentTime = Date.now();
+//            var firstTime = level2.data[level2.data.length-1][0];
+//            var increment = currentTime - firstTime;
+//            allTimeSeries[key1][key2].data = []
+//            for (var i = 0; i < level2.data.length ;i++){
+//                allTimeSeries[key1][key2].append(level2.data[i][0]+increment,level2.data[i][1]);
+//            }
+//        })
 //    })
-}
-var paused = false;
-function myResume () {
-    $.each(charts,function (key, value){
-        value.start();
-    })
-    paused = false;
-}
-function myPause() {
-    paused = true;
-    $.each(charts,function (key, value){
+//    console.log();
+//}
 
-        value.stop();
-    })
-}
+//function restorePause() {
+//    // Restaurar datos
+//    myRestore()
+//    // repintar
+//
+//    for (var i = 0; i < charts.length;i++){
+//        $(function() {
+//            charts[i].stopAtLastStep();
+//        })
+//    }
+//    // Pausar cuando acabe de repintar
+////    $(function(){
+////        myPause()
+////    })
+//}
+//function myResume () {
+//    $.each(charts,function (key, value){
+//        value.start();
+//    })
+//}
+//function myPause() {
+//    $.each(charts,function (key, value){
+//
+//        value.stop();
+//    })
+//}

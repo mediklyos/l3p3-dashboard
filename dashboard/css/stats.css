@@ -15,22 +15,29 @@ section {
 }
 .stats {
     margin: 0;
+    display: flex;
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 .stat {
-    list-style-type: none;
-    float: left;
-    margin: 0;
-    width: 130px;
+    /*list-style-type: none;*/
+    /*float: left;*/
+    /*margin: 0;*/
+    /*width: 130px;*/
     font-size: 12px;
 }
 .stat-name {
-    display: inline-block;
-    text-align: right;
-    width: 50px;
-    margin-right: 5px;
+    /*display: inline-block;*/
+    /*text-align: right;*/
+    /*width: 50px;*/
+    /*margin-right: 5px;*/
 }
 .stat-value {
     font-weight: bold;
+}
+
+.controls div {
+    margin-bottom: 2px;
 }
 
 /* The following code applies to the Computer Resources slider */
@@ -80,4 +87,32 @@ input[type="range"]:hover ~ #rangevalue,input[type="range"]:active ~ #rangevalue
     filter: alpha(opacity=100);
     opacity: 1;
     top: -75px;
+}
+
+
+#odv-events-col {
+    border-left: 1px solid #ccc;
+    /*height: 100%;*/
+}
+
+#odv-events-col #odv-events-list {
+    overflow-y:auto;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+
+.odv-button-entry a.odv-entry-description{
+    width: calc(100% - 40px);
+}
+.odv-button-entry a.odv-entry-delete{
+    width: 39px;
+    height: 34px;
+}
+
+
+.odv-button-entry {
+    width: 100%;
+    margin: 0px;
 }

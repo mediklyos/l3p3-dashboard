@@ -42,21 +42,18 @@
                 <div class="form-group">
                     <button class="btn btn-default" id="odv-decrement-charts-height" onclick="decrementChartsHeight()">-Height</button>
                 </div>
-                <div class="form-group">
-                    <button class="btn btn-default" onclick="save()">save</button>
-                    <button class="btn btn-default" onclick="myPause()">pause</button>
-                    <button class="btn btn-default" onclick="myResume()">resume</button>
-                    <button class="btn btn-default" onclick="restorePause()">restorePause</button>
-                    <button class="btn btn-default" onclick="myRestore()">restore</button>
-                </div>
+                <!--<div class="form-group">-->
+                    <!--<button class="btn btn-default" onclick="save()">save</button>-->
+                    <!--<button class="btn btn-default" onclick="myPause()">pause</button>-->
+                    <!--<button class="btn btn-default" onclick="myResume()">resume</button>-->
+                    <!--<button class="btn btn-default" onclick="restorePause()">restorePause</button>-->
+                    <!--<button class="btn btn-default" onclick="myRestore()">restore</button>-->
+                <!--</div>-->
             </div>
 
 
 
         </div>
-        <!--<div class="col-lg-4">-->
-            Zoom / Pausa / Velocidad
-        <!--</div>-->
     </div>
     <div class="row">
         <div class="col-lg-10" id="odv-charts">
@@ -66,14 +63,14 @@
             <h2 class="title"></h2>
             <canvas height="80"  class="odv-canvas"></canvas>
             <div class="my-stats" style="margin-bottom: 2px;">
-            <div class="div-border center-content-panel">
-                <ul class="stats">
-                    <li class="stat template">
+            <div class="div-border">
+                <div class="stats">
+                    <div class="stat template">
                         <span class="stat-name"></span>
                         <span class="stat-value"></span>
                         <!--<input type="button" class="stat-button" value="Color Map" style="width: 75px; height: 25px;"/>-->
-                    </li>
-                </ul>
+                    </div>
+                </div>
             </div>
             </div>
             <div class="controls">
@@ -82,14 +79,28 @@
                 <div class="center-content-panel">
                     <button type="button" data-toggle="button" class="btn btn-default odv-dynamic-height" onclick="setDynamicHeight(event)">Dynamic height</button>
                 </div>
+                <div class="center-content-panel">
+                    <button type="button" class="btn btn-default" onclick="save(event)">Save</button>
+                </div>
+                <div class="center-content-panel">
+                    <button type="button" class="btn btn-default" onclick="pause(event)">Pause</button>
+                </div>
+                <div class="center-content-panel">
+                    <button type="button" class="btn btn-default" onclick="resume(event)">Resume</button>
+                </div>
 
             </div>
         </div>
-        <div class="col-lg-2">Events</div>
+        <div class="col-lg-2" id="odv-events-col">
+            <h2>Events</h2>
+            <div class="col-lg-2" id="odv-events-list">
+                <div class="btn-group odv-button-entry template" >
+                    <a class="btn btn-default odv-entry-description"  id="dd-button-data-data/titanic.csv">a</a>
+                    <a class="btn btn-default odv-entry-delete"><span class="glyphicon glyphicon-trash"></span></a>
+                </div>
+            </div>
+        </div>
     </div>
-    <main id="_charts">
-
-    </main>
     <script>
         $(function(){
             $("#"+ODV_VELOCITY_SLIDER_PANEL).append('<div class="text" style="padding-right: 15px" >Refresh Time</div>')
@@ -103,7 +114,6 @@
                     changeRefreshTime(ui.value);
                 }
             }).appendTo("#"+ODV_VELOCITY_SLIDER_PANEL);
-            $("#"+ODV_VELOCITY_SLIDER_PANEL).height($("#odv-upload-button").outerHeight())
             slider.width(100);
 
             $("#"+ODV_THRESHOLD_SLIDER_PANEL).append('<div style="padding-right: 15px" >Threshold: <span id='+ODV_SPAN_THRESHOLD_VALUE+'>100%</span></div>')
@@ -121,9 +131,11 @@
                     setThreshold(ui.value);
                 }
             }).appendTo("#"+ODV_THRESHOLD_SLIDER_PANEL);
-            $("#"+ODV_THRESHOLD_SLIDER_PANEL).height($("#odv-upload-button").outerHeight())
             slider2.width(100);
-//            $("#"+ODV_THRESHOLD_SLIDER_PANEL).append('<div style="padding-right: 15px" >Threshold</div>')
+            // Altura dinamica
+            $("#"+ODV_EVENTS_COL).css('height','calc(100vh - '+(parseInt($("#"+ODV_EVENTS_COL).offset().top) + 20)+'px)');
+            $("#"+ODV_EVENTS_LIST).css('max-height','calc(100vh - '+(parseInt($("#"+ODV_EVENTS_LIST).offset().top) + 20)+'px)');
+//            $("#"+ODV_EVENTS_LIST).css('height','223px');
         })
     </script>
 </div>

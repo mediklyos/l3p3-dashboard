@@ -364,7 +364,8 @@
    * Starts the animation of this chart.
    */
   SmoothieChart.prototype.start = function() {
-      this.end = false;
+    this.isStoped = false;
+    this.end = false;
     if (this.frame) {
       // We're already running, so just return
       return;
@@ -393,6 +394,7 @@
    */
   SmoothieChart.prototype.stop = function() {
     if (this.frame) {
+      this.isStoped = true;
       SmoothieChart.AnimateCompatibility.cancelAnimationFrame(this.frame);
       delete this.frame;
     }
@@ -668,6 +670,32 @@
     context.restore(); // See .save() above.
     return true;
   };
+    /**
+     * Clone the all timeSeries
+     * @returns {Array}
+     */
+    SmoothieChart.prototype.exportTimeSeriesData = function (){
+        var newTimeSeries = []
+        $.each(this.seriesSet, function (key, timeSeries){
+            newTimeSeries[key] = {}
+            newTimeSeries[key].data = [];
+            $.each(timeSeries.timeSeries.data, function (key2,entry){
+                newTimeSeries[key].data.push(entry.slice(0));
+            })
+        });
+        return newTimeSeries;
+    };
+
+    SmoothieChart.prototype.restoreTimeSeriesData = function (timeSeries) {
+        $.each (timeSeries, function (key1,aTimeSeries) {
+            var increment = Date.now() - aTimeSeries.data[aTimeSeries.data.length-1][0];
+            this.seriesSet[key1].timeSeries.data = [];
+            for (var i = 0; i < aTimeSeries.data.length ;i++){
+                this.seriesSet[key1].timeSeries.append(aTimeSeries.data[i][0]+increment,aTimeSeries.data[i][1]);
+
+            }
+        }.bind(this))
+    };
 
   // Sample timestamp formatting function
   SmoothieChart.timeFormatter = function(date) {

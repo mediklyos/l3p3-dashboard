@@ -159,15 +159,21 @@ body {
 .div-border {
     border: 1px solid #ccc;
     border-radius: 4px;
+    padding: 6px 15px;
+    min-height: 32px;
 }
 
 /*Centering the content of slider in odv view*/
 
 .center-content-panel {
-    display: table-cell;
+    display: inline-block;
     vertical-align: middle;
     text-align: center;
-    padding: 0px 15px;
+}
+
+
+.panel-button {
+    min-height: 30px;
 }
 
 #odv-threshold-slider-panel div, #odv-velocity-slider-panel div, .odv-chart-slider .ui-slider{
