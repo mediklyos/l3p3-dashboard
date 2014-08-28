@@ -6,7 +6,7 @@ console.log("hola mundo")
 
 var fs = require('fs');
 var WebSocketServer = require('ws').Server
-    , wss = new WebSocketServer({port: 8080});
+    , wss = new WebSocketServer({port: (process.env.PORT || 8080)});
 
     var ip, resource;
     var websockets=[];
@@ -31,8 +31,8 @@ var WebSocketServer = require('ws').Server
 
     wss.on('connection', function (ws) {
         ws.isClose = false;
-        websockets.push(ws);
         ws.send('');
+        websockets.push(ws);
         var route = "nodes.csv"; //path to the .csv file to broadcast
         fs.readFile(route, 'utf8', function (err, data) {
             var data2 = data.split("\n");
@@ -66,5 +66,6 @@ var WebSocketServer = require('ws').Server
         });
         ws.on('close', function (message) {
             ws.isClose = true;
+			console.log("Closing");
         });
     });

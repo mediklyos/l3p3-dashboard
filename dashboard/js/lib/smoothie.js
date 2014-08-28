@@ -61,6 +61,8 @@
  *        Added 'borderVisible' chart option, by @drewnoakes
  *        Allow drawing series with fill but no stroke (line), by @drewnoakes
  * v1.19: Avoid unnecessary repaints, and fixed flicker in old browsers having multiple charts in document (#40), by @asbai
+ *
+ * v1.19@centeropenmiddleware-edition Add : stopAtLastUpdate, exportData and restoreData
  */
 
 ;(function(exports) {

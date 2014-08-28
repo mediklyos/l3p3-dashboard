@@ -1,9 +1,28 @@
 {
   "name": "OnlineDataViewerServer",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Data server for Online data viewer",
-  "main": "client.js",
-  "start" :  "server.js", 
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "~3.4.x",
+	"filesystem": "~1.0.1",
+    "ws": "~0.4.31"
+  },
+  "engines": {
+    "node": "0.10.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/centeropenmiddleware/l3p3-dashboard"
+  },
+  "keywords": [
+    "node",
+    "heroku",
+    "express"
+  ],
   "authors": [
     {
       "name": "Federico Fernandez",
@@ -12,28 +31,17 @@
     {
       "name": "Jorge Ramirez",
       "url": "https://github.com/jramirezc93"
-    }
-  ],
-  "contributors": [
-    {
+    },
+	{
       "name": "Francisco Huertas",
       "url": "https://github.com/fhuertas"
     }
   ],
-  "licenses": [
+   "licenses": [
     {
       "type": "MIT",
       "url": "http://github.com/jeremyosborne/packagejsonexample/blob/master/LICENSE.txt"
     }
   ],
-  "dependencies": {
-    "filesystem": "^1.0.1",
-    "ws": "^0.4.31"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/centeropenmiddleware/l3p3-dashboard"
-  },
-  "engine": "node 0.10.30",
   "license": "APACHE2"
 }

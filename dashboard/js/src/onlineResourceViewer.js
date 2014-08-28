@@ -33,6 +33,10 @@ var ODV_ENTRY_DELETE = PRE +"-entry-delete";
 
 var ODV_PREFIX_CANVAS = PRE + "-canvas-"
 
+var ODV_TIMEOUT = 1000;
+
+var ODV_THRESHOLD_TIME_BETWEEN_CAPTURES = 10000;
+
 
 
 var ODV_HEIGHT_STEP = 20;
@@ -40,6 +44,7 @@ var ODV_FONT_STEP = 0;
 var allTimeSeries = {};
 var allValueLabels = {};
 var descriptions = {};
+var lastEntries = {}
 
 var debug = true;
 
@@ -53,12 +58,9 @@ $(function (){
         MAX_COLS = 4;
         resizingCols();
         document.getElementsByClassName('odv-canvas')[0].setAttribute('height',600)
-//        ($('.'+ODV_CHART).find('canvas'))[0].setAttribute('height',600);
-//        function
-//        $(function(){
-//
-//        })
-        onlineResourceView_postLoad("localhost:8080")
+//        onlineResourceView_postLoad("localhost:8080")
+        onlineResourceView_postLoad("onlinedataviewerserver.herokuapp.com")
+
     }
 })
 
@@ -201,7 +203,7 @@ function initCharts(min, max) {
 
         var smoothie = new SmoothieChart(smoothie_default_values);
         charts.push(smoothie)
-        smoothie.streamTo(section.find('canvas').get(0), 1000);
+        smoothie.streamTo(section.find('canvas').get(0), ODV_TIMEOUT);
         section.find('canvas')[0].smoothie = smoothie;
         section.find('canvas')[0].id = sectionName;
 
@@ -271,15 +273,20 @@ function receiveStats(stats) {
         if (allTimeSeries[col.nodeName] !== undefined ){
             var timeSeries = allTimeSeries[col.nodeName][col.colName];
             if (timeSeries && !timeSeries.smoothie.isStoped) {
-                timeSeries.append(Date.now(), value);
-                allValueLabels[col.nodeName][col.colName].empty();
-                var intValue = parseInt(value);
                 var min = timeSeries.smoothie.options.minStored;
                 var max = timeSeries.smoothie.options.maxStored;
                 var normalizedValue = (value - min) / (max - min) * 100;
+                timeSeries.append(Date.now(), value);
+                allValueLabels[col.nodeName][col.colName].empty();
                 allValueLabels[col.nodeName][col.colName].text(value);
-                if (ODV_THRESHOLD < normalizedValue){
+                if (ODV_THRESHOLD < normalizedValue) {
                     allValueLabels[col.nodeName][col.colName].append('<img src="icons/alert.png" height="15">');
+                    if (lastEntries[col.nodeName] === undefined || ((lastEntries[col.nodeName] + ODV_THRESHOLD_TIME_BETWEEN_CAPTURES) < Date.now())) {
+                        lastEntries[col.nodeName] = Date.now();
+                        setTimeout(function () {
+                            save(allValueLabels[col.nodeName][col.colName][0]);
+                        }.bind(timeSeries.smoothie), ODV_TIMEOUT * 2);
+                    }
                 }
             }
         }
@@ -388,105 +395,62 @@ function setThreshold(value) {
     ODV_THRESHOLD = value;
 }
 
-function save(event){
+function save(target){
 
     var saveEntry = {};
     saveEntry.date = new Date();
-    saveEntry.canvas = findCanvas(event.target);
+    saveEntry.canvas = findCanvas(target);
     // id and smoothie is inside canvas
     saveEntry.data = saveEntry.canvas.smoothie.exportTimeSeriesData();
     entriesStored.push(saveEntry);
     var buttons = $('.'+ODV_BUTTON_ENTRY+'.template').clone().removeClass('template').addClass(ODV_PREFIX_CANVAS+saveEntry.canvas.id).appendTo('#'+ODV_EVENTS_LIST);
     buttons.find("."+ODV_ENTRY_DESCRIPTION).text(saveEntry.date.toLocaleString()+": " + saveEntry.canvas.id)
 //    (saveEntry.date.toLocaleString()+": " + saveEntry.canvas.id);
-    buttons.find("."+ODV_ENTRY_DESCRIPTION)[0].onclick = function (event) {
-        $("." + ODV_PREFIX_CANVAS+this.canvas.id+" ."+ODV_ENTRY_DESCRIPTION).removeClass("active btn-primary")
-        console.log("restaurando")
-        this.canvas.smoothie.start();
-        this.canvas.smoothie.restoreTimeSeriesData(this.data);
-        this.canvas.smoothie.stopAtLastStep();
-        $(event.target).addClass("active btn-primary")
-
-    }.bind(saveEntry)
+    buttons.find("."+ODV_ENTRY_DESCRIPTION)[0].onclick = restore.bind(saveEntry)
     buttons.find("."+ODV_ENTRY_DELETE)[0].onclick = function (event) {
         $(event.target.parentNode).remove();
     }
 
 }
 
-function pause(event){
-    var canvas = findCanvas(event.target);
+
+function restore (event) {
+    $("." + ODV_PREFIX_CANVAS+this.canvas.id+" ."+ODV_ENTRY_DESCRIPTION).removeClass("active btn-primary")
+    this.canvas.smoothie.start();
+    this.canvas.smoothie.restoreTimeSeriesData(this.data);
+    this.canvas.smoothie.stopAtLastStep();
+    $(event.target).addClass("active btn-primary")
+    var id = this.canvas.id;
+    $.each(allValueLabels[this.canvas.id], function (key,value){
+        value.empty();
+        value.text(allTimeSeries[id][key].data[allTimeSeries[id][key].data.length-1][1]);
+        var min = allTimeSeries[id][key].smoothie.options.minStored;
+        var max = allTimeSeries[id][key].smoothie.options.maxStored;
+        var normalizedValue = (allTimeSeries[id][key].data[allTimeSeries[id][key].data.length-1][1] - min) / (max - min) * 100;
+        if (ODV_THRESHOLD < normalizedValue) {
+            allValueLabels[id][key].append('<img src="icons/alert.png" height="15">');
+
+        }
+    })
+//    var lastPos = this.data.length -1;
+//    if (ODV_THRESHOLD < normalizedValue){
+//        allValueLabels[col.nodeName][col.colName].append('<img src="icons/alert.png" height="15">');
+//        setTimeout(function () {
+//            save(allValueLabels[col.nodeName][col.colName][0]);
+//        }.bind(timeSeries.smoothie),ODV_TIMEOUT*2);
+//    }
+//    timeSeries.append(Date.now(), value);
+//    allValueLabels[col.nodeName][col.colName].empty();
+//    allValueLabels[col.nodeName][col.colName].text(value);
+}
+function pause(target){
+    var canvas = findCanvas(target);
     canvas.smoothie.stop();
 }
 
-function resume(event){
-    var canvas = findCanvas(event.target);
+function resume(target){
+    var canvas = findCanvas(target);
     $("." + ODV_PREFIX_CANVAS+canvas.id+" ."+ODV_ENTRY_DESCRIPTION).removeClass("active btn-primary")
 
         canvas.smoothie.start();
 }
-
-//var cloned = {}
-
-//function mySave () {
-//    console.log();
-//    cloned = {}
-//    $.each (allTimeSeries, function (key1,level1){
-//        cloned[key1] = {}
-//        $.each (level1, function (key2,level2) {
-//            cloned[key1][key2] = {}
-//            cloned[key1][key2].data = []
-//            for (var i = 0; i < level2.data.length;i++){
-//                cloned[key1][key2].data.push(level2.data[i].slice(0));
-//            }
-//        })
-//    })
-//    console.log();
-//}
-//function myRestore(){
-//    restore(cloned)
-//}
-
-// Para restaurar hay que poner vaciar el buffer y poner los valores, como pinta el tiempo actual es necesario, al hacer
-// el append, incrementar el tiempo en la diferencia entre el tiempo anterior  el actual
-//function restore(data) {
-//    $.each (data, function (key1,level1){
-//        $.each (level1, function (key2,level2) {
-//            var currentTime = Date.now();
-//            var firstTime = level2.data[level2.data.length-1][0];
-//            var increment = currentTime - firstTime;
-//            allTimeSeries[key1][key2].data = []
-//            for (var i = 0; i < level2.data.length ;i++){
-//                allTimeSeries[key1][key2].append(level2.data[i][0]+increment,level2.data[i][1]);
-//            }
-//        })
-//    })
-//    console.log();
-//}
-
-//function restorePause() {
-//    // Restaurar datos
-//    myRestore()
-//    // repintar
-//
-//    for (var i = 0; i < charts.length;i++){
-//        $(function() {
-//            charts[i].stopAtLastStep();
-//        })
-//    }
-//    // Pausar cuando acabe de repintar
-////    $(function(){
-////        myPause()
-////    })
-//}
-//function myResume () {
-//    $.each(charts,function (key, value){
-//        value.start();
-//    })
-//}
-//function myPause() {
-//    $.each(charts,function (key, value){
-//
-//        value.stop();
-//    })
-//}
