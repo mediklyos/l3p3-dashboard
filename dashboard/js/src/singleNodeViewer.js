@@ -80,7 +80,7 @@ function getData(sourceFileResources, sourceFileEvents) {
                 selectorString=selectorString+"<option value=\""+nodeNames[i]+"\">"+nodeNames[i]+"</option>";}
             selectorString = selectorString+"</select>";
             $("#nodeSelectorTitle").append(selectorString);
-            $("#nodeSelector").select2();
+            $("#nodeSelector").select();
             nodeDimension.filter($("#nodeSelector").val());
 
 

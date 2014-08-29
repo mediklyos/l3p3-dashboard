@@ -74,14 +74,18 @@ var toggleButtonsFunction = function(id,callback,event) {
 
 
 /*Load at the start*/
-//$("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
-//$("#section_dynamicDistribution").addClass("active");
-//$("#section_dynamicDistribution").parents().addClass("active");
-//$("#content").html(new EJS ({url: "js/templates/template_dynamicDistribution.ejs"}).render());
+if (GLOBAL_DEBUG){
+    $("#"+views[0][1].id).addClass("active");
+    $("#"+views[0][1].id).parents().addClass("active");
+    $("#content").html(new EJS ({url: views[0][1].ref}).render());
+//    $("#section_dynamicDistribution").addClass("active");
+//    $("#section_dynamicDistribution").parents().addClass("active");
+//    $("#content").html(new EJS ({url: "js/templates/template_dynamicDistribution.ejs"}).render());
+
+} else {
+    $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
+}
 //
-$("#"+views[0][1].id).addClass("active");
-$("#"+views[0][1].id).parents().addClass("active");
-$("#content").html(new EJS ({url: views[0][1].ref}).render());
 
 
 

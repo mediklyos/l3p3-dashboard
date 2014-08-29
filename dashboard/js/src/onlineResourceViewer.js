@@ -46,7 +46,7 @@ var allValueLabels = {};
 var descriptions = {};
 var lastEntries = {}
 
-var debug = true;
+var debug = GLOBAL_DEBUG;
 
 var wss = [];
 var charts = [];

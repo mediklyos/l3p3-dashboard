@@ -61,7 +61,7 @@ var globalEvents = function(sourceFile){
             selectorString=selectorString+"<option value=\""+nodeNames[i]+"\">"+nodeNames[i]+"</option>";}
         selectorString = selectorString+"</select>";
         $("#nodeSelectorTitle").append(selectorString);
-        $("#nodeSelector").select2();
+        $("#nodeSelector").select();
 
 
         if(timeInspection){measureTime("Crossfilter");}
