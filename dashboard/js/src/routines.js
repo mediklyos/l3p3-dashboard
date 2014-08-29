@@ -32,7 +32,7 @@ function generateInteractiveViewsMenu(){
     var request = new XMLHttpRequest;
     var linesPainted = 0;
     $.each(views, function (pos, value){
-        if (linesPainted != 0){
+        if (linesPainted != 0 && value.length != 0){
             $('<li class="divider"></li>').appendTo(list);
         }
         linesPainted = 0;
