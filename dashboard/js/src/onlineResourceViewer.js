@@ -59,7 +59,7 @@ $(function (){
         resizingCols();
         document.getElementsByClassName('odv-canvas')[0].setAttribute('height',600)
 //        onlineResourceView_postLoad("localhost:8080")
-        onlineResourceView_postLoad("onlinedataviewerserver.herokuapp.com")
+        onlineResourceView_postLoad("odvs.herokuapp.com")
 
     }
 })
