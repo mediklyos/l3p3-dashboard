@@ -96,10 +96,14 @@ function onlineResourceView_postLoad_click(){
     onlineResourceView_postLoad($("#odv-input-url").val());
 }
 
-function columnsClick(){
-    $("#"+ORV_COLUMNS_CLICKS).find('.btn').removeClass('btn-primary').addClass('btn-default');
-    $(event.target).removeClass('btn-default').addClass('btn-primary');
-    MAX_COLS = $(event.target).find('input').val();
+function columnsClick(event){
+    $("#"+ORV_COLUMNS_CLICKS).find('.btn.btn-primary').removeClass('btn-primary').addClass('btn-default');
+    var button = event.target;
+    while (!$(button).hasClass('btn')){
+        button = button.parentNode;
+    }
+    $(button).removeClass('btn-default').addClass('btn-primary');
+    MAX_COLS = parseInt($(button).find('input').attr('value'));
     resizingCols();
 
 //    $("#"+ORV_COLUMNS_CLICKS).find('.active').removeClass('btn-default').addClass('btn-primary');
