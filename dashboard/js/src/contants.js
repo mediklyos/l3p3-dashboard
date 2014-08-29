@@ -25,7 +25,7 @@ views[0] = []
 views[1] = []
 views[2] = []
 
-var GLOBAL_DEBUG = true;
+var GLOBAL_DEBUG = false;
 var views = [];
 views[0] = []
 views[1] = []
