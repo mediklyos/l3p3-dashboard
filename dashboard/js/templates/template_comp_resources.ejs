@@ -9,7 +9,7 @@
             <div class="form-inline" role="form">
                 <div class="form-group">
                     <div class="input-group">
-                        <div class="input-group-addon">ws://</div>
+                        <div class="input-group-addon" id="odv-prefix-url" data-toggle="tooltip" data-original-title="You can try this server: odvs.herokuapp.com">ws://</div>
                         <input id="odv-input-url" type="text" class="form-control my-form" placeholder="url" onkeydown="onlineResourceView_postLoad_enter(event)">
                     </div>
                 </div>
@@ -137,5 +137,10 @@
             $("#"+ODV_EVENTS_LIST).css('max-height','calc(100vh - '+(parseInt($("#"+ODV_EVENTS_LIST).offset().top) + 20)+'px)');
 //            $("#"+ODV_EVENTS_LIST).css('height','223px');
         })
+        $(document).ready(function(){
+            $("#odv-prefix-url").tooltip({
+                placement : 'left'
+            });
+        });
     </script>
 </div>
