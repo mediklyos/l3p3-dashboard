@@ -75,12 +75,12 @@ var toggleButtonsFunction = function(id,callback,event) {
 
 /*Load at the start*/
 if (GLOBAL_DEBUG){
-    $("#"+views[0][1].id).addClass("active");
-    $("#"+views[0][1].id).parents().addClass("active");
-    $("#content").html(new EJS ({url: views[0][1].ref}).render());
-//    $("#section_dynamicDistribution").addClass("active");
-//    $("#section_dynamicDistribution").parents().addClass("active");
-//    $("#content").html(new EJS ({url: "js/templates/template_dynamicDistribution.ejs"}).render());
+//    $("#"+views[0][1].id).addClass("active");
+//    $("#"+views[0][1].id).parents().addClass("active");
+//    $("#content").html(new EJS ({url: views[0][1].ref}).render());
+    $("#"+views[0][2].id).addClass("active");
+    $("#"+views[0][2].id).parents().addClass("active");
+    $("#content").html(new EJS ({url: views[0][2].ref}).render());
 
 } else {
     $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());

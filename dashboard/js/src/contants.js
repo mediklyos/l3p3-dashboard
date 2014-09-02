@@ -25,14 +25,15 @@ views[0] = []
 views[1] = []
 views[2] = []
 
-var GLOBAL_DEBUG = false;
+var GLOBAL_DEBUG = true;
 var views = [];
 views[0] = []
 views[1] = []
 views[2] = []
 if (GLOBAL_DEBUG){
 
-    views[0][2] = {id: "ColorMapViewer",constantsPrefix: "CMV",ref: "js/templates/template_color_map.ejs",title : "Color map"}
+    views[0][2] = {id: "TemporalAssociationNetwork",constantsPrefix: "tan",ref: "js/templates/template_temporal_association_network.ejs",title : "Temporal Association Network"}
+    views[0][3] = {id: "ColorMapViewer",constantsPrefix: "CMV",ref: "js/templates/template_color_map.ejs",title : "Color map"}
     views[2][0] = {id:"examples",constantsPrefix: "",ref: "js/templates/example.ejs",title: "Examples"}
 
 }
