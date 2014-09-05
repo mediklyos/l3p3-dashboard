@@ -758,6 +758,8 @@ function upload(){
 }
 
 function postLoad() {
+    clearPanel();
+
 // Drag and drop code
     loadDataSetFromUrl("data/titanic.csv",{
         PassengerId: CSVContainerForDistributions.TYPE_ID,

@@ -10,7 +10,8 @@ var TAN_INPUT = PRE + "-input-url"
 
 
 
-function tcr_load(event){
+function tcr_load(url){
+    console.log(url)
     // Web service or web or REST GET operation
 
 }

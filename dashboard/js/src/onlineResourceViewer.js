@@ -52,17 +52,7 @@ var wss = [];
 var charts = [];
 var entriesStored = []
 
-$(function (){
-    if (debug){
-        $("#"+ORV_COLUMNS_CLICKS).find('.btn').removeClass('btn-primary').addClass('btn-default');
-        MAX_COLS = 4;
-        resizingCols();
-        document.getElementsByClassName('odv-canvas')[0].setAttribute('height',600)
-//        onlineResourceView_postLoad("localhost:8080")
-        onlineResourceView_postLoad("odvs.herokuapp.com")
 
-    }
-})
 
 
 var smoothie_default_values = {
@@ -111,7 +101,7 @@ function columnsClick(event){
 
 
 
-function clear (full) {
+function odv_clear (full) {
     if (full) {
         $.each(wss, function (key, value) {
             value.close();
@@ -131,7 +121,7 @@ function onlineResourceView_postLoad(url) {
     if (url === undefined || url == ""){
         return;
     }
-    clear(true);
+    odv_clear(true);
 
     var ws = new ReconnectingWebSocket('ws://' + url);
 
@@ -158,7 +148,7 @@ function onlineResourceView_postLoad(url) {
             nextLine = LINE_HEADERS;
         }else if (nextLine == LINE_HEADERS){
             // No es necesario resetear las conexiones porque lo que ha pasado es que se han enviado nuevas columnas
-            clear (false);
+            odv_clear (false);
             nextLine = LINE_NORMAL;
             colHeadings = e.data.trim().split(/ +/);
             var last_count=0;

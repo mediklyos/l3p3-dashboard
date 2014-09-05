@@ -11,20 +11,21 @@ var filesInMemory= new Object
 // Rutina del menu izquierdo que permite cambiar dinamicamente el contenido del centro al hacer link.
 // Los links que son de la clase CONTENT_LINK_CLASS_NAME se le activa y desactiva la clase active para
 $(document).ready(function(){
-    $("."+CONTENT_LINK_CLASS_NAME).click(function(){
-        var contentLinks = $(".contentLink");
-        // This is similar to for of all elements with contentLink
-        $("."+ACTIVE_CLASS).parents().removeClass("active");
-        $("."+CONTENT_LINK_CLASS_NAME).removeClass("active");
-        $(this).addClass("active");
-        $(this).parents().addClass("active");
-        var string_url = $(this).attr("ref");
-        var html = new EJS ({url: string_url}).render()
-        $("#content").html(html);
-//        $("#content").load("section_singleNodeViewer.html")
-    });
+//    $("."+CONTENT_LINK_CLASS_NAME).click(function(){
+//        var contentLinks = $(".contentLink");
+//        // This is similar to for of all elements with contentLink
+//        $("."+ACTIVE_CLASS).parents().removeClass("active");
+//        $("."+CONTENT_LINK_CLASS_NAME).removeClass("active");
+//        $(this).addClass("active");
+//        $(this).parents().addClass("active");
+//        var string_url = $(this).attr("ref");
+//        var html = new EJS ({url: string_url}).render()
+//        $("#content").html(html);
+////        $("#content").load("section_singleNodeViewer.html")
+//    });
 
 });
+var clear = function(){}
 
 function generateInteractiveViewsMenu(){
     var list = $("#views-drop-down")
@@ -51,6 +52,7 @@ function generateInteractiveViewsMenu(){
                 }).appendTo(li);
                 li.appendTo(list)
                 linesPainted++;
+                $("#"+value.id).click(changeView.bind(undefined,value))
             } else {
                 console.log("Ignore the GET exception...")
             }
@@ -78,9 +80,10 @@ if (GLOBAL_DEBUG){
 //    $("#"+views[0][1].id).addClass("active");
 //    $("#"+views[0][1].id).parents().addClass("active");
 //    $("#content").html(new EJS ({url: views[0][1].ref}).render());
-    $("#"+views[0][2].id).addClass("active");
-    $("#"+views[0][2].id).parents().addClass("active");
-    $("#content").html(new EJS ({url: views[0][2].ref}).render());
+//    $("#"+views[0][2].id).addClass("active");
+//    $("#"+views[0][2].id).parents().addClass("active");
+//    $("#content").html(new EJS ({url: views[0][2].ref}).render());
+    changeView(views[0][2]);
 
 } else {
     $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
@@ -101,7 +104,6 @@ if (GLOBAL_DEBUG){
 
  */
 
-clearPanel();
 
 function runDynamicDistribution(file){
     // hidden elements
@@ -110,4 +112,25 @@ function runDynamicDistribution(file){
     onLoadedCSV()
 }
 
+function changeView(view){
+    clear();
+    clear = function (){};
+    $("."+CONTENT_LINK_CLASS_NAME+"."+ACTIVE_CLASS).parents().removeClass("active");
 
+    var parent = $("#"+ID_DASHBOARD_ACTIVE_VIEW_SCRIPT)[0];
+    $("#"+ID_DASHBOARD_ACTIVE_VIEW_SCRIPT).remove();
+    var newScript = $("<script/>",{
+        id: ID_DASHBOARD_ACTIVE_VIEW_SCRIPT,
+        src: view.js
+    })
+    document.body.appendChild(newScript[0])
+//    newScript.appendTo(parent);
+
+//    $("#"+ID_DASHBOARD_ACTIVE_VIEW_SCRIPT).attr('src',view.js)
+    $("#"+view.id).addClass("active");
+    $("#"+view.id).parents().addClass("active");
+    $("#"+ID_DASHBOARD_ACTIVE_VIEW_SCRIPT)[0].onload = function() {
+//        alert("hola mundo");
+        $("#content").html(new EJS ({url: view.ref}).render());
+    }
+}

@@ -9,14 +9,14 @@
                 <input id="tcr-input-url" type="text" class="form-control my-form" placeholder="url" onkeydown="">
             </div>
             <div class="input-group">
-                <button class="btn btn-default" id="tcr-upload-button" onclick="tcr_load(event)">Load</button>
+                <button class="btn btn-default" id="tcr-upload-button" onclick="tcr_load($('#tcr-input-url').val())">Load</button>
             </div>
         </div>
     </div>
     <script>
         $(function(){
             if (GLOBAL_DEBUG) {
-
+                tcr_load("feo")
             }
         })
     </script>

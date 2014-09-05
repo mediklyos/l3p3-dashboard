@@ -103,6 +103,10 @@
     </div>
     <script>
         $(function(){
+            var ODV_CLEARED = false;
+            clear = function() {
+                odv_clear(true)
+            }
             $("#"+ODV_VELOCITY_SLIDER_PANEL).append('<div class="text" style="padding-right: 15px" >Refresh Time</div>')
             var slider = jQuery('<div/>').slider({
                 range: 'min',
@@ -142,5 +146,16 @@
                 placement : 'left'
             });
         });
+        $(function (){
+            if (debug){
+                $("#"+ORV_COLUMNS_CLICKS).find('.btn').removeClass('btn-primary').addClass('btn-default');
+                MAX_COLS = 4;
+                resizingCols();
+                document.getElementsByClassName('odv-canvas')[0].setAttribute('height',600)
+//        onlineResourceView_postLoad("localhost:8080")
+                onlineResourceView_postLoad("odvs.herokuapp.com")
+
+            }
+        })
     </script>
 </div>
