@@ -6,8 +6,7 @@ var fs = require ('fs')
 var options = {
     port: 1337,
     hostname: '127.0.0.1',
-    method: 'CONNECT'
-//    path: 'www.google.com:80'
+    method: 'CONNECTION'
 };
 
 var req = http.request(options);
