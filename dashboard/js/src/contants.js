@@ -17,8 +17,6 @@ var DATA_URL_EVENTS = DATA_URL + "events-allnodes15.csv"
 /*Global events*/
 var GLOBAL_EVENTS_SOURCE_FILE = DATA_URL + "events-allnodes.csv";
 
-/*Distribution*/
-var DISTRIBUTION_SOURCE_FILE = DATA_URL + "s-events/res.events-allnodesShort.csv"
 
 var ID_DASHBOARD_ACTIVE_VIEW_SCRIPT = "dashboard-active-view-script"
 
@@ -28,7 +26,7 @@ views[0] = []
 views[1] = []
 views[2] = []
 
-var GLOBAL_DEBUG = false;
+var GLOBAL_DEBUG = true;
 var views = [];
 views[0] = []
 views[1] = []
@@ -37,7 +35,7 @@ if (GLOBAL_DEBUG){
 
     views[0][2] = {id: "TemporalAssociationNetwork",constantsPrefix: "tan",ref: "js/templates/template_temporal_association_network.ejs",title : "Temporal Association Network", js: "js/src/temporalAssociationNetwork.js"}
     views[0][3] = {id: "ColorMapViewer",constantsPrefix: "CMV",ref: "js/templates/template_color_map.ejs",title : "Color map", js: "js/src/color_map.js"}
-    views[2][0] = {id:"examples",constantsPrefix: "",ref: "js/templates/example.ejs",title: "Examples", js: "js/src/example.js"}
+    views[2][0] = {id: "examples",constantsPrefix: "",ref: "js/templates/example.ejs",title: "Examples", js: "js/src/example.js"}
 
 }
 

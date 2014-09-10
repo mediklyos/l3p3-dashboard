@@ -4,7 +4,7 @@
 
 (function (){
 
-    var MAX_SEARCH_ELEMENTS = 1000;
+    var MAX_SEARCH_ELEMENTS = 5;
     function BigCsvProcess(timeColumn) {
         this.headers = undefined;
         this.lastPosition = 0;
@@ -29,7 +29,6 @@
             var char = prefix.charAt(i);
             radixNode = radixNode[prefix.charAt(i)];
             i++;
-
         }
         return radixNode
     }
@@ -38,46 +37,50 @@
 
     BigCsvProcess.prototype.list = function (prefix){
         var radixNode = this.search(prefix);
-        return this.auxList(prefix,radixNode,0)
+        var list = []
+        this._auxList(prefix,radixNode,0,list)
+        return list;
 
 
     }
 
-    BigCsvProcess.prototype.auxList = function (prefix, radixNode, elements){
-        var list = []
+    BigCsvProcess.prototype._auxList = function (prefix, radixNode, elements,list){
+        if (radixNode.hasElement){
+            list.push(radixNode);
+            elements++;
+            if (elements >= MAX_SEARCH_ELEMENTS){
+                return elements;
+            }
+        }
         var self = this;
         if (radixNode !== undefined) {
-            $.each(radixNode, function (key, value) {
+            for (var key in radixNode){
                 if (key.length == 1) {
-                    if (value.hasElement) {
-                        list.push(value);
-                        elements++;
-                        // HAY QUE HACERLO
-//                if (elements >= MAX_SEARCH_ELEMENTS){
-//                    return list;
-//                }
+                    var radixNodeChild = radixNode[key]
+                    elements = self._auxList(prefix,radixNodeChild,elements,list);
+                    if (elements >= MAX_SEARCH_ELEMENTS){
+                        return elements;
                     }
-                    list.concat(self.auxList(prefix,value,elements));
                 }
-
-            })
+            }
         }
-        return list;
+        return elements;
     }
-
+    BigCsvProcess.prototype.setStart = function (position) {
+        this.lastPosition = position;
+    }
     BigCsvProcess.prototype.process = function (string){
         if (string == ""){
             return this.lastPosition;
         }
-        if(this.lastPosition == 0){
-            var startHeaders = string.indexOf('\r\n\r\n',string.indexOf('\r\n\r\n')+1)+4;
-            var endHeaders = string.indexOf('\n',startHeaders);
+        if(this.headers === undefined){
+            var endHeaders = string.indexOf('\n',this.lastPosition);
             // No se han cargado todas las cabeceras, muy raro
             if (endHeaders == -1) {
                 return this.lastPosition;
             }
 
-            var sHeaders =  string.substring(startHeaders,endHeaders);
+            var sHeaders =  string.substring(this.lastPosition,endHeaders);
             this.headers = sHeaders.split(",");
             this.lastPosition = endHeaders + 1;
         }
@@ -99,6 +102,7 @@
                             radixNode[data[i].charAt(j)] = {}
                             radixNode[data[i].charAt(j)].self = data[i].charAt(j);
                             radixNode[data[i].charAt(j)].name = data[i].slice(0,j+1);
+                            radixNode[data[i].charAt(j)].column = this.headers[i]
                         }
                         radixNode = radixNode[data[i].charAt(j)];
                         j++;
