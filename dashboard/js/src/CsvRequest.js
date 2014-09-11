@@ -4,7 +4,7 @@
         this.url = url;
         this.timeColumn = timeColumn;
         this.request = _initRequest()
-        this.fullCsvProcessed = new BigCsvProcess(timeColumn)
+        this.fullCsvProcessed = undefined;
 
 //        this.request.onload = function (event){
 //            var target = (event.target)?event.target:event.srcElement;
@@ -17,6 +17,7 @@
         request.onload = function (event){
             var target = (event.target)?event.target:event.srcElement;
             this.stepStringProcess(target.responseText);
+            this.callback();
         }
 
         request.onloadstart = function (event){
@@ -45,10 +46,31 @@
         return request
     }
 
-    CsvRequest.prototype.fullProcess = function () {
+    CsvRequest.prototype.fullProcess = function (callback) {
+        if (this.fullCsvProcessed === undefined) {
+            delete this.fullCsvProcessed;
+            this.fullCsvProcessed = new BigCsvProcess(this.timeColumn)
+        }
+
         this.request.csv = this.fullCsvProcessed;
         this.request.open('GET',this.url,true)
         this.request.send(null);
+        this.request.callback = callback;
+    }
+
+    CsvRequest.prototype.getFullCsv = function (){
+        return this.request.csv;
+    }
+
+    var optionExample = {
+        node : "nodename", // Mandatory
+        column : "name", // optional, is more prioritary than nColumn
+        nColumn : 0 , // Optional , the number of column
+        temporalSlot : 0 // Mandatory, temporal slot in miliseconds,
+
+    }
+    CsvRequest.prototype.newQuery =function (){
+
     }
 
     this.CsvRequest = CsvRequest;

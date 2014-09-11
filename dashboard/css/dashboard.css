@@ -104,6 +104,9 @@ body {
   border-radius: 50%;
 }
 
+#dd-main {
+    /*padding-top : 20px;*/
+}
 
 .dd-database-entry {
     padding:1px;
@@ -191,6 +194,10 @@ body {
     border-color: #ef2929;
 }
 
+#content {
+    padding: 0px;
+}
+
 .left-divider {
     border-right: 1px solid #ccc;
     padding: 0px 5px;
@@ -204,3 +211,9 @@ body {
 .btn.active:focus{
     outline: none;
 }
+
+/*temporal association network styles*/
+#tan-main {
+    position: fixed;
+}
+

@@ -3,14 +3,21 @@
  */
 
 (function (){
-
+    BigCsvProcess.prototype.ALPHABETICAL = "alphabetical"
     var MAX_SEARCH_ELEMENTS = 5;
-    function BigCsvProcess(timeColumn) {
+    function BigCsvProcess(timeColumn,sort) {
+        if (GLOBAL_DEBUG = true){
+            sort = this.ALPHABETICAL;
+        }
         this.headers = undefined;
         this.lastPosition = 0;
         this.totalLines = 0;
         this.radixTree = {}
+        this.minnorOcurrence = undefined
+        this.mayorOcurrence = undefined
+
         this.timeColumn = timeColumn;
+        this.sort = sort;
     }
 
     BigCsvProcess.prototype.setValueRule = function () {
@@ -33,7 +40,20 @@
         return radixNode
     }
 
+    BigCsvProcess.prototype.orderedList = function (){
+        var list = []
+        var element = this.mayorOcurrence;
+        for (var i = 0; i < MAX_SEARCH_ELEMENTS ; i++){
+            list.push(element)
+            if (element.prev != undefined){
+                element = element.prev;
+            } else {
+                return list;
+            }
 
+        }
+        return list;
+    }
 
     BigCsvProcess.prototype.list = function (prefix){
         var radixNode = this.search(prefix);
@@ -84,6 +104,16 @@
             this.headers = sHeaders.split(",");
             this.lastPosition = endHeaders + 1;
         }
+        if (this.sort == this.ALPHABETICAL){
+            return this.alphabeticalSort(string)
+        }
+    }
+    BigCsvProcess.prototype.occurrenceSort = function (string) {
+
+
+    }
+    BigCsvProcess.prototype.alphabeticalSort = function (string){
+
         var lines = 0;
         var pos = string.indexOf("\n",this.lastPosition);
 //        return;
@@ -112,9 +142,42 @@
                         radixNode.hasElement = true;
                         radixNode.name = data[i];
                         radixNode.count = 1;
+                        radixNode.next = this.minnorOcurrence;
+                        if (this.minnorOcurrence !== undefined){
+                            this.minnorOcurrence.prev = radixNode;
+                        } else {
+                            this.mayorOcurrence = radixNode;
+                        }
+                        this.minnorOcurrence = radixNode;
+
                     } else {
                         radixNode.count++;
+                        var nextRadixNode = radixNode.next;
+                        while (nextRadixNode !== undefined && radixNode.count > nextRadixNode.count){
+                            var newNext= nextRadixNode.next;
+                            nextRadixNode.next = radixNode;
+                            nextRadixNode.prev = radixNode.prev;
+                            radixNode.prev = nextRadixNode;
+                            radixNode.next = newNext;
+                            if (nextRadixNode.prev != undefined) {
+                                nextRadixNode.prev.next = nextRadixNode;
+                            } else {
+                                this.minnorOcurrence = nextRadixNode;
+                            }
+                            if (radixNode.next == undefined) {
+                                this.mayorOcurrence = radixNode;
+                            } else {
+                                radixNode.next.prev = radixNode;
+                            }
+                            nextRadixNode = radixNode.next;
+                        }
+                        if (nextRadixNode === undefined){
+
+                        }
                     }
+//                    Debug!
+//                    printOrder(this.minnorOcurrence)
+                    printOrderInvert(this.mayorOcurrence)
                 }
             }
             this.lastPosition = pos +1;
@@ -135,3 +198,21 @@
 
     this.BigCsvProcess = BigCsvProcess
 }())
+
+function printOrder(node){
+    var cad = "";
+    while (node !== undefined){
+        cad +=node.name+":"+node.count+"|";
+        node = node.next;
+    }
+    console.log(cad);
+}
+
+function printOrderInvert(node){
+    var cad = "";
+    while (node !== undefined){
+        cad +=node.name+":"+node.count+"|";
+        node = node.prev;
+    }
+    console.log(cad);
+}

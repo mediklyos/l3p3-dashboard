@@ -7,7 +7,7 @@ var socket;
 var proxy = http.createServer(function (req, res) {
     console.log("creating server function")
     res.writeHead(200, {'Content-Type': 'text/plain'});
-    res.end('okay');
+    res.end();
 });
 proxy.on('connect', function(req, cltSocket, head) {
     console.log("connect function")
