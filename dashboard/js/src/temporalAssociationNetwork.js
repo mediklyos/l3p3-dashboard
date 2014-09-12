@@ -13,8 +13,9 @@ var bigCSV;
 function tcr_load(url) {
     var csvRequest = new CsvRequest(url, 0);
     csvRequest.fullProcess(function () {
-        var list = csvRequest.getFullCsv().orderedList()
-        console.log(list)
+//        var list = csvRequest.getFullCsv().orderedList()
+//        console.log(list)
+        csvRequest.getFullCsv().printTimes()
     });
 
 }

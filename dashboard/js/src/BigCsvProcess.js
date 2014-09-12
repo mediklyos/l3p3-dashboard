@@ -15,9 +15,15 @@
         this.radixTree = {}
         this.minnorOcurrence = undefined
         this.mayorOcurrence = undefined
+        this.occurrenceLists = [];
 
         this.timeColumn = timeColumn;
         this.sort = sort;
+        this.time1 = 0;
+        this.time2 = 0;
+        this.time3 = 0;
+        this.time4 = 0;
+        this.time5 = 0;
     }
 
     BigCsvProcess.prototype.setValueRule = function () {
@@ -109,16 +115,47 @@
         }
     }
     BigCsvProcess.prototype.occurrenceSort = function (string) {
+        var tt3 = Date.now();
 
+        var list = []
+        list.push (this.radixTree);
+        while (!list.isEmpty()){
+            var radixNode = list.pop();
+            var self = this;
+            $.each(radixNode, function(key){
+                if (key.length == 1){
+                    list.push(this);
+                    if (this.hasElement) {
+                        if (self.occurrenceLists[this.count] === undefined){
+                            for (var i = self.occurrenceLists.length; i <= this.count;i++){
+
+                                self.occurrenceLists.push({list:[],occurrences: 0});
+
+                            }
+                        }
+                        self.occurrenceLists[this.count].list.push(this);
+                        self.occurrenceLists[this.count].occurrences++;
+                    }
+                }
+
+            })
+        }
+        this.time3 = Date.now() - tt3;
 
     }
+
+
+
     BigCsvProcess.prototype.alphabeticalSort = function (string){
 
+        var tt1, tt2, tt3, tt4, tt5 = 0;
         var lines = 0;
         var pos = string.indexOf("\n",this.lastPosition);
 //        return;
+        tt1 = Date.now();
         while (pos != -1){
             lines++;
+
             var data = string.substring(this.lastPosition,pos).split(",")
             var actualTime = undefined;
             if (this.timeColumn !== undefined) actualTime = data[this.timeColumn];
@@ -126,6 +163,8 @@
                 if (this.timeColumn != i) {
                     var j = 0;
                     var radixNode = this.radixTree
+                    tt2 = Date.now();
+                    /* Crea las ramas radix si no existen*/
                     while (data[i].charAt(j) != "") {
                         // if not defined
                         if (!(radixNode[data[i].charAt(j)])) {
@@ -137,54 +176,28 @@
                         radixNode = radixNode[data[i].charAt(j)];
                         j++;
                     }
+                    this.time2 += (tt2 = Date.now() - tt2);
+                    /*Introducen los valores en las ramas radix, si existen aumentan el contador*/
                     if (!radixNode.hasElement) {
-                        radixNode.self = data[i].charAt(j-1)
                         radixNode.hasElement = true;
-                        radixNode.name = data[i];
-                        radixNode.count = 1;
-                        radixNode.next = this.minnorOcurrence;
-                        if (this.minnorOcurrence !== undefined){
-                            this.minnorOcurrence.prev = radixNode;
-                        } else {
-                            this.mayorOcurrence = radixNode;
-                        }
-                        this.minnorOcurrence = radixNode;
+                        radixNode.count = 0;
 
                     } else {
                         radixNode.count++;
-                        var nextRadixNode = radixNode.next;
-                        while (nextRadixNode !== undefined && radixNode.count > nextRadixNode.count){
-                            var newNext= nextRadixNode.next;
-                            nextRadixNode.next = radixNode;
-                            nextRadixNode.prev = radixNode.prev;
-                            radixNode.prev = nextRadixNode;
-                            radixNode.next = newNext;
-                            if (nextRadixNode.prev != undefined) {
-                                nextRadixNode.prev.next = nextRadixNode;
-                            } else {
-                                this.minnorOcurrence = nextRadixNode;
-                            }
-                            if (radixNode.next == undefined) {
-                                this.mayorOcurrence = radixNode;
-                            } else {
-                                radixNode.next.prev = radixNode;
-                            }
-                            nextRadixNode = radixNode.next;
-                        }
-                        if (nextRadixNode === undefined){
-
-                        }
                     }
 //                    Debug!
 //                    printOrder(this.minnorOcurrence)
-                    printOrderInvert(this.mayorOcurrence)
+//                    printOrderInvert(this.mayorOcurrence)
                 }
             }
             this.lastPosition = pos +1;
             pos = string.indexOf("\n",this.lastPosition);
         }
         this.totalLines  += lines;
-        console.debug("Lines in this step: "+lines+", accumulated lines: "+this.totalLines)
+        this.time1 += (tt1 = Date.now() -tt1);
+        console.debug("Lines in this step: "+lines+", accumulated lines: "+this.totalLines);//+", nodes processed="+(lines*4)+ ", Sort While steps="+tt5);
+        console.debug("Parcial: Time1="+tt1+" ,Time2="+tt2);//+" ,Time3="+tt3+" ,Time4="+tt4+" ,Time5="+0+" ,")
+
         return this.lastPosition;
     }
 
@@ -194,6 +207,11 @@
 
     var _applyFilters = function () {
 
+    }
+
+    BigCsvProcess.prototype.printTimes = function(){
+
+        console.log("Time1="+this.time1+" ,Time2="+this.time2+" ,Time3="+this.time3);//+" ,Time4="+this.time4+" ,Time5="+this.time5+" ,")
     }
 
     this.BigCsvProcess = BigCsvProcess

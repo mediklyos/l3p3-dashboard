@@ -17,6 +17,7 @@
         request.onload = function (event){
             var target = (event.target)?event.target:event.srcElement;
             this.stepStringProcess(target.responseText);
+            this.csv.occurrenceSort();
             this.callback();
         }
 
@@ -39,6 +40,7 @@
             if(!this.headersRead){
                 this.currentPosition = string.indexOf('\r\n\r\n',string.indexOf('\r\n\r\n')+1)+4;
                 this.csv.setStart(this.currentPosition)
+                this.headersRead = true;
             }
             this.csv.process(string)
             return this.csv;
