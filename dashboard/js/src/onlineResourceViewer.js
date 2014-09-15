@@ -37,7 +37,7 @@ var ODV_TIMEOUT = 1000;
 
 var ODV_THRESHOLD_TIME_BETWEEN_CAPTURES = 10000;
 
-
+var ODV_CHARTS = PRE + "-charts"
 
 var ODV_HEIGHT_STEP = 20;
 var ODV_FONT_STEP = 0;
@@ -447,4 +447,9 @@ function resume(target){
     $("." + ODV_PREFIX_CANVAS+canvas.id+" ."+ODV_ENTRY_DESCRIPTION).removeClass("active btn-primary")
 
         canvas.smoothie.start();
+}
+
+
+var odvResizeFunction  = function (){
+    $("#"+ODV_CHARTS).css('max-height','calc(100vh - '+($("#"+ODV_CHARTS).offset().top + BORDER_SIZE)+'px');
 }

@@ -104,8 +104,11 @@
     <script>
         $(function(){
             var ODV_CLEARED = false;
+            odvResizeFunction();
+            $(window).resize(odvResizeFunction)
             clear = function() {
                 odv_clear(true)
+                $(window).unbind('resize',odvResizeFunction)
             }
             $("#"+ODV_VELOCITY_SLIDER_PANEL).append('<div class="text" style="padding-right: 15px" >Refresh Time</div>')
             var slider = jQuery('<div/>').slider({

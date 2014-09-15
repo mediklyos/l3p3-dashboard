@@ -757,6 +757,15 @@ function upload(){
     $("#"+BUTTON_INPUT_FILE).click();
 }
 
+function preLoad(){
+    $(function (){
+        ddResizeFunction();
+        $(window).resize(ddResizeFunction)
+        clear = function (){
+            $(window).unbind("resize", ddResizeFunction)
+        }
+    })
+}
 function postLoad() {
     clearPanel();
 
@@ -986,7 +995,10 @@ function removeResizingWatcher(elementId){
     return;
 }
 
-
-window.onresize = function () {
+var ddResizeFunction  = function (){
     graphicPaint(dynamicDistributionObject)
+    $("#"+DYNAMIC_DISTRIBUTION_FILTERS_DIV).css('max-height','calc(100vh - '+($("#"+DYNAMIC_DISTRIBUTION_FILTERS_DIV).offset().top + BORDER_SIZE)+'px');
 }
+//window.onresize = function () {
+//
+//}

@@ -135,6 +135,30 @@
 <script src="js/lib/smoothie.js"></script>
 <script src="js/lib/chroma.min.js"></script>
 
+<script>
+    var dimContent = function (){
+        var topPosition = $("#upper-navbar").outerHeight()
+        $("#content").css('top',topPosition+"px");
+    }
+
+
+    $(function(){
+        dimContent();
+    })
+    $(window).resize(function (){
+        console.log("resizing function")
+        dimContent();
+    })
+    // unbind example
+//    var dos = function(){
+//        console.log("dos")
+//    }
+//    $(window).resize(dos)
+//    $(window).unbind('resize',dos)
+
+</script>
+
+
 
 </body>
 

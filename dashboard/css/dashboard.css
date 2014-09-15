@@ -194,8 +194,20 @@ body {
     border-color: #ef2929;
 }
 
+#dd-filters-row {
+    overflow-y: auto;
+}
+
+#odv-charts {
+    overflow-y: auto;
+}
+
 #content {
     padding: 0px;
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
 }
 
 .left-divider {
