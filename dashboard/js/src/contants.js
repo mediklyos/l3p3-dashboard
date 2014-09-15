@@ -3,7 +3,7 @@
  */
 
 
-var BORDER_SIZE = 10;
+var BORDER_SIZE = 20;
 var ACTIVE_CLASS = "active";
 
 var CONTENT_LINK_CLASS_NAME = "contentLink"
