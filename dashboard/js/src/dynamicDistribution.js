@@ -998,8 +998,12 @@ function removeResizingWatcher(elementId){
 var ddResizeFunction  = function (){
     graphicPaint(dynamicDistributionObject)
     var maxSize = ($("#"+DYNAMIC_DISTRIBUTION_FILTERS_DIV).offset().top + BORDER_SIZE)
-    if (maxSize > 100)
-        $("#"+DYNAMIC_DISTRIBUTION_FILTERS_DIV).css('max-height','calc(100vh - '+($("#"+DYNAMIC_DISTRIBUTION_FILTERS_DIV).offset().top + BORDER_SIZE)+'px');
+//    if (maxSize > 100)
+    $("#"+DYNAMIC_DISTRIBUTION_FILTERS_DIV).css('max-height','calc(100vh - '+maxSize+'px');
+    maxSize =$("#"+DYNAMIC_DISTRIBUTION_FILTERS_DIV).css('max-height');
+    if (maxSize < 100) {
+        $("#"+DYNAMIC_DISTRIBUTION_FILTERS_DIV).css('max-height','')
+    }
 }
 //window.onresize = function () {
 //

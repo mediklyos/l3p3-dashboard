@@ -27,7 +27,7 @@ $(document).ready(function(){
 });
 var clear = function(){}
 
-function generateInteractiveViewsMenu(){
+function generateInteractiveMenus(){
     var list = $("#views-drop-down")
 //    var request = new EJS.newRequest();
     var request = new XMLHttpRequest;
@@ -47,7 +47,7 @@ function generateInteractiveViewsMenu(){
                     ref: value.ref,
                     id: value.id,
                     href: "#",
-                    class: "contentLink",
+                    class: "contentLink subLink",
                     text: value.title
                 }).appendTo(li);
                 li.appendTo(list)
@@ -60,8 +60,22 @@ function generateInteractiveViewsMenu(){
         })
 
     })
+
+    var mainLinks = $(".staticLink");
+    $.each(mainLinks,function(){
+        var url = this.getAttribute("ref");
+        var request = new XMLHttpRequest();
+        request.open('GET', url, false);  // `false` makes the request synchronous
+        request.send(null)
+        if (!request.status === 200) {
+            url = "js/templates/template_blank.ejs"
+        }
+        $(this).click(changeView.bind(undefined,{ref:url, js:"",id:this.getAttribute('id')}))
+
+//        console.log(this.ref)
+    })
 }
-generateInteractiveViewsMenu();
+
 
 // Toggle buttons color too
 var toggleButtonsFunction = function(id,callback,event) {
@@ -76,19 +90,7 @@ var toggleButtonsFunction = function(id,callback,event) {
 
 
 /*Load at the start*/
-if (GLOBAL_DEBUG){
-//    $("#"+views[0][1].id).addClass("active");
-//    $("#"+views[0][1].id).parents().addClass("active");
-//    $("#content").html(new EJS ({url: views[0][1].ref}).render());
-//    $("#"+views[0][2].id).addClass("active");
-//    $("#"+views[0][2].id).parents().addClass("active");
-//    $("#content").html(new EJS ({url: views[0][2].ref}).render());
-    changeView(views[0][2]);
 
-} else {
-    $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
-}
-//
 
 
 
@@ -111,7 +113,20 @@ function runDynamicDistribution(file){
     dynamicDistributionObject = new CSVContainerForDistributions(file);
     onLoadedCSV()
 }
+function changeUrlString(url){
+    clear()
+    clear = function (){};
+    $("."+CONTENT_LINK_CLASS_NAME+"."+ACTIVE_CLASS).parents().removeClass("active");
+    var parent = $("#"+ID_DASHBOARD_ACTIVE_VIEW_SCRIPT)[0];
+    $("#"+ID_DASHBOARD_ACTIVE_VIEW_SCRIPT).remove();
+    $("#content").html(new EJS ({url: this}).render());
+//    var newScript = $("<script/>",{
+//        id: ID_DASHBOARD_ACTIVE_VIEW_SCRIPT,
+//        src: url.js
+//    })
+//    document.body.appendChild(newScript[0])
 
+}
 function changeView(view){
     clear();
     clear = function (){};
@@ -129,8 +144,91 @@ function changeView(view){
 //    $("#"+ID_DASHBOARD_ACTIVE_VIEW_SCRIPT).attr('src',view.js)
     $("#"+view.id).addClass("active");
     $("#"+view.id).parents().addClass("active");
-    $("#"+ID_DASHBOARD_ACTIVE_VIEW_SCRIPT)[0].onload = function() {
+    if (view.js == ""){
+        $("#content").html(new EJS({url: view.ref}).render());
+    } else {
+        $("#" + ID_DASHBOARD_ACTIVE_VIEW_SCRIPT)[0].onload = function () {
 //        alert("hola mundo");
-        $("#content").html(new EJS ({url: view.ref}).render());
+            $("#content").html(new EJS({url: view.ref}).render());
+        }
     }
 }
+
+var setCookie = function (cname, cvalue, exdays) {
+    var expires = "";
+    if (exdays !== undefined) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        expires = "expires=" + d.toUTCString();
+    }
+    document.cookie = cname + "=" + cvalue + "; " + expires;
+}
+
+var getCookie = function(cname) {
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i<ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1);
+        if (c.indexOf(name) != -1) return c.substring(name.length, c.length);
+    }
+    return undefined;
+}
+function deleteCookie( cname ) {
+//    document.cookie = cname + '=; expires=-1;';
+    document.cookie = cname + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+}
+
+function deleteAllCookies(){
+    var cookies = document.cookie.split(";")
+    $.each(cookies,function(){
+        deleteCookie(this.split("=")[0])
+    })
+}
+
+function resetConfigRoutine(){
+    deleteAllCookies();
+}
+
+/*Routine code*/
+if (RESET){
+    resetConfigRoutine();
+}
+
+var cookie_debug = getCookie(COOKIE_DEBUG);
+if (cookie_debug !== undefined){
+    GLOBAL_DEBUG = cookie_debug == "true";
+}
+var views = [];
+views[0] = []
+views[1] = []
+views[2] = []
+if (GLOBAL_DEBUG){
+
+    views[0][2] = {id: "TemporalAssociationNetwork",constantsPrefix: "tan",ref: "js/templates/template_temporal_association_network.ejs",title : "Temporal Association Network", js: "js/src/temporalAssociationNetwork.js"}
+    views[0][3] = {id: "ColorMapViewer",constantsPrefix: "CMV",ref: "js/templates/template_color_map.ejs",title : "Color map", js: "js/src/color_map.js"}
+    views[2][0] = {id: "examples",constantsPrefix: "",ref: "js/templates/example.ejs",title: "Examples", js: "js/src/example.js"}
+
+}
+
+
+views[0][0] = {id: "DynamicDistributions",constantsPrefix: "dd",ref: "js/templates/template_dynamicDistribution.ejs",title : "Distribution charts", js: "js/src/dynamicDistribution.js"}
+views[0][1] = {id: "ComputerResources",constantsPrefix: "odv",ref: "js/templates/template_comp_resources.ejs",title : "Online Data Viewer", js: "js/src/onlineResourceViewer.js"}
+//--------------------------------------------------------------------//
+views[1][0] = {id: "SingleNodeViewer",constantsPrefix: "snv",ref: "js/templates/template_singleNodeViewer.ejs",title : "Single Node Viewer", js: "js/src/singleNodeViewer.js"}
+views[1][1] = {id: "GlobalEventsViewer",constantsPrefix: "gev",ref: "js/templates/template_globalEventsViewer.ejs",title: "Global Events Viewer", js: "js/src/globalEventsViewer.js"}
+generateInteractiveMenus();
+
+if (GLOBAL_DEBUG){
+//    $("#"+views[0][1].id).addClass("active");
+//    $("#"+views[0][1].id).parents().addClass("active");
+//    $("#content").html(new EJS ({url: views[0][1].ref}).render());
+//    $("#"+views[0][2].id).addClass("active");
+//    $("#"+views[0][2].id).parents().addClass("active");
+//    $("#content").html(new EJS ({url: views[0][2].ref}).render());
+    changeView(views[0][2]);
+
+} else {
+    $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
+}
+//

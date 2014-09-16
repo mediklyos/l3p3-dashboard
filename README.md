@@ -104,9 +104,24 @@ density function from a set of points.
 
 #### Global Events Viewer
 
+#### Creating a new view
+
+The clear routines must be implemented in the clear function, this is deleted when the view is changed. The content div 
+is resizing when the window is resizing. The resizing routines of the view is delegated the template. 
+
+Each view has a entry in the views array. (routines.js-> views) Each entry is a object whose attributes are ref 
+(the reference to the template), id (id of the view), title (the title of the view), constantPrefix (the string prefix 
+used to identify the view constants) and js (the reference to the main javascript file).   
+ 
+
+The content view 
+
 
 <!--Type of view and its objectives, View, Implementation details and technologies used, Dataset format, principal Developers and contributions ventajas y desventajas de las librerías utilizadas)-->
 
+## known bugs
+
+Dynamic distribution not show the database loaded in firefox
  
 ## Technologies summary 
 

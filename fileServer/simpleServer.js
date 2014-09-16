@@ -33,12 +33,12 @@ proxy.on('connection', function(cltSocket) {
         'Access-Control-Allow-Origin: *\r\n' +
         '\r\n');
     socket = cltSocket;
-//    var rdStream= fs.createReadStream("../dashboard/data/random-data/100/csv0.csv");
+    var rdStream= fs.createReadStream("../dashboard/data/random-data/100/csv0.csv");
 //    var rdStream= fs.createReadStream("../dashboard/data/random-data/1K/csv0.csv");
 //    var rdStream= fs.createReadStream("../dashboard/data/random-data/10K/csv0.csv");
 //    var rdStream= fs.createReadStream("../dashboard/data/random-data/100K/csv0.csv");
 //    var rdStream= fs.createReadStream("../dashboard/data/random-data/1M/csv0.csv");
-    var rdStream= fs.createReadStream("../dashboard/data/random-data/10M/csv0.csv");
+//    var rdStream= fs.createReadStream("../dashboard/data/random-data/10M/csv0.csv");
     rdStream.pipe(cltSocket);
 });
 
