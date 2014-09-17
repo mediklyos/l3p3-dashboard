@@ -10,7 +10,7 @@
                     <!--<input id="tan-input-url" type="text" class="form-control my-form" placeholder="url" onkeydown="">-->
                 <!--</div>-->
                 <div class="input-group">
-                    5000 ms, <button class="btn btn-default" id="tan-upload-button" onclick="tcr_load($('#tcr-input-url').val())">Load</button>
+                    5000 ms, <button class="btn btn-default" id="tan-upload-button" onclick="setTimeout(tcr_load.bind($('#tcr-input-url').val()),100)">Load</button>
                 </div>
             </div>
         </div>

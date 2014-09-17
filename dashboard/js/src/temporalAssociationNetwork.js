@@ -26,20 +26,20 @@ var bigCSV;
 
 function tcr_load(url) {
     if (GLOBAL_DEBUG){
-        var files = 4;
-        var columns = 5;
+        var files = 5;
+        var columns = 4;
         var valueRanges = 10000;
-        var maxOccurrence = 60;
+        var maxOccurrence = 100;
         var id = 0;
-        var source = Math.floor((Math.random() * files) + 1)
-        var column = Math.floor((Math.random() * columns) + 1)
+        var source = Math.floor((Math.random() * files))
+        var column = Math.floor((Math.random() * columns))
         var name = (source) +
             "x"+ (column) +
             "V" + (Math.floor((Math.random() * valueRanges) + 1))
         var query = {
             time : 5000,
             levels : 2,
-            maxChildren : 5,
+            maxChildren : 3,
             root : {
                 id :id++,
                 name : name,
@@ -60,14 +60,20 @@ function tcr_load(url) {
                 nodeList = newNodeList;
             }
             for (var j = 0; j < nodeList.length ;j++){
-                var children = Math.floor((Math.random() * query.maxChildren) + 1);
+                var children = 3;//Math.floor((Math.random() * query.maxChildren) + 1);
                 for (var k = 0; k < children;k++){
-                    var source = Math.floor((Math.random() * files) + 1)
-                    var column = Math.floor((Math.random() * columns) + 1)
+                    var source = Math.floor((Math.random() * files))
+                    var column = Math.floor((Math.random() * columns))
                     var name = (source) +
                         "x"+ (column) +
                         "V" + (Math.floor((Math.random() * valueRanges) + 1))
-                    var occurrence = (Math.floor((Math.random() * maxOccurrence) + 2))
+                    var occurrence = 0;
+                    for (var h = query.levels; h > i;h--){
+                        occurrence += Math.floor((Math.random()*9)+1);
+                        occurrence *= 10;
+                    }
+                    occurrence = Math.floor(occurrence/10)
+//                    var occurrence = (Math.floor( ((Math.random() * maxOccurrence) + 1)/(i+1)) )
                     var newChild = {
                         id:(id++),
                         name: name,

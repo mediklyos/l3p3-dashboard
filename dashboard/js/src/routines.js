@@ -227,7 +227,7 @@ if (GLOBAL_DEBUG){
 //    $("#"+views[0][2].id).parents().addClass("active");
 //    $("#content").html(new EJS ({url: views[0][2].ref}).render());
     changeView(views[0][2]);
-
+//    $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
 } else {
     $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
 }
