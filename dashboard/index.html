@@ -40,13 +40,15 @@
 <div class="navbar navbar-inverse navbar-fixed-top" role="navigation" id="upper-navbar">
     <div class="container-fluid">
         <div class="navbar-header">
+            <!--Para cuando este en modo pequeño-->
             <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                 <span class="sr-only">Toggle navigation</span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="navbar-brand" href="https://sites.google.com/a/centeropenmiddleware.com/com-project-l3-p3/" >Dashboard - Center for Open Middleware L3P3</a>
+            <span class="navbar-brand" href="#" id="view-title"></span>
+            <a class="navbar-text navbar-link" href="https://sites.google.com/a/centeropenmiddleware.com/com-project-l3-p3/" >Dashboard - Center for Open Middleware L3P3</a>
         </div>
         <div class="navbar-collapse collapse">
             <ul class="nav navbar-nav navbar-right">
@@ -77,8 +79,22 @@
         </div>
     </div>
 </div>
-<div id="content" class="col-lg-12 main"></div>
+<div id="framework-main">
 
+    <div id="left-column">
+        <div id="left-column-div" class="hidden-left-column">
+        </div>
+        <div id="left-column-button" class="hidden-left-column" onclick="toggleLeftColumn()">
+        </div>
+    </div>
+    <div id="content-father">
+        <div id="content" ></div>
+        <div id="footer">
+            <div id="footer-content"></div>
+            <div id="footer-button" onclick="toggleFooter()"></div>
+        </div>
+    </div>
+</div>
 
 <!-- Bootstrap core JavaScript
 ================================================== -->

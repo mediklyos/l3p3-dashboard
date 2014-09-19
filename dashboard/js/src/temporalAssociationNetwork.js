@@ -11,6 +11,7 @@ var TAN_RIGHT = "RL";
 var TAN_FONT_BASE_SIZE = 30;
 var TAN_SEPARATION_BASE = 700;
 
+var TAN_TITLE = "Temporal Association Network"
 
 var PRE = views[0][2].constantsPrefix
 
@@ -133,7 +134,7 @@ var tanResizeFunction = function(){
     var headerHeight = $("#upper-navbar").outerHeight();
 //    $("#"+MAIN_DIV).css('height','calc(100vh - '+headerHeight+'px - 1px)')
 //    $("#"+MAIN_DIV).css('width','100vw');
-    $("#"+TAN_GRAPH_CONTAINER).css('height','calc(100vh - '+($("#"+TAN_GRAPH_CONTAINER).offset().top)+'px)');
+    $("#"+TAN_GRAPH_CONTAINER).css('height','calc('+$("#content").height()+'px - '+($("#"+TAN_GRAPH_CONTAINER).position().top)+'px)');
 }
 
 var generateNetwork = function (nodes,edges){

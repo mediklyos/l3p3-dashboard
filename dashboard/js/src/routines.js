@@ -129,7 +129,12 @@ function changeUrlString(url){
 }
 function changeView(view){
     clear();
+    $("#TITLE_VIEW_ID").empty()
     clear = function (){};
+    disableLeftColumn();
+    disableFooter();
+    toggleLeftColumn(false)
+    $("#"+LEFT_COLUMN_BUTTON_OPEN).addClass(CSS_CLASS_HIDDEN_LEFT_COLUMN)
     $("."+CONTENT_LINK_CLASS_NAME+"."+ACTIVE_CLASS).parents().removeClass("active");
 
     var parent = $("#"+ID_DASHBOARD_ACTIVE_VIEW_SCRIPT)[0];
@@ -218,17 +223,67 @@ views[0][1] = {id: "ComputerResources",constantsPrefix: "odv",ref: "js/templates
 views[1][0] = {id: "SingleNodeViewer",constantsPrefix: "snv",ref: "js/templates/template_singleNodeViewer.ejs",title : "Single Node Viewer", js: "js/src/singleNodeViewer.js"}
 views[1][1] = {id: "GlobalEventsViewer",constantsPrefix: "gev",ref: "js/templates/template_globalEventsViewer.ejs",title: "Global Events Viewer", js: "js/src/globalEventsViewer.js"}
 generateInteractiveMenus();
-
-if (GLOBAL_DEBUG){
+$(function(){
+    if (GLOBAL_DEBUG){
 //    $("#"+views[0][1].id).addClass("active");
 //    $("#"+views[0][1].id).parents().addClass("active");
 //    $("#content").html(new EJS ({url: views[0][1].ref}).render());
 //    $("#"+views[0][2].id).addClass("active");
 //    $("#"+views[0][2].id).parents().addClass("active");
 //    $("#content").html(new EJS ({url: views[0][2].ref}).render());
-    changeView(views[0][2]);
+        changeView(views[0][2]);
 //    $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
-} else {
-    $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
-}
+    } else {
+        $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
+    }
 //
+})
+
+var toggleLeftColumn = function (state) {
+//    $("#"+LEFT_COLUMN_BUTTON_OPEN).removeClass(CSS_CLASS_HIDDEN_LEFT_COLUMN)
+//    $("#"+LEFT_COLUMN).removeClass(CSS_CLASS_HIDDEN_LEFT_COLUMN)
+    if (state === undefined){
+        $("#"+LEFT_COLUMN).children().toggleClass(CSS_CLASS_HIDDEN_LEFT_COLUMN)
+    }
+    else {
+        $("#"+LEFT_COLUMN).children().toggleClass(CSS_CLASS_HIDDEN_LEFT_COLUMN,!state)
+    }
+    $(window).trigger('resize');
+}
+
+var enableLeftColumn = function (){
+    $("#"+LEFT_COLUMN).css('display','')
+    $(window).trigger('resize');
+}
+
+var disableLeftColumn = function (){
+    $("#"+LEFT_COLUMN).css('display','none')
+    $(window).trigger('resize');
+
+}
+
+$(function (){
+    disableLeftColumn();
+    disableFooter();
+    toggleLeftColumn(false)
+})
+var disableFooter = function () {
+    $("#"+FOOTER_ID).css('display','none')
+    $(window).trigger('resize');
+}
+
+var enableFooter = function () {
+    $("#"+FOOTER_ID).css('display','')
+    $(window).trigger('resize');
+}
+var toggleFooter = function (state){
+    if (state === undefined){
+        $("#"+CONTENT_FATHER).children().toggleClass(SHOW_FOOTER_CLASS)
+        $("#"+CONTENT_FATHER).children().children().toggleClass(SHOW_FOOTER_CLASS)
+    } else {
+        $("#"+CONTENT_FATHER).children().toggleClass(SHOW_FOOTER_CLASS,state)
+        $("#"+CONTENT_FATHER).children().children().toggleClass(SHOW_FOOTER_CLASS,state)
+
+    }
+    $(window).trigger('resize');
+}

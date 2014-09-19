@@ -45,8 +45,14 @@
     <script>
         /* CSS dynamic styles*/
         $(function (){
+            enableLeftColumn()
+            enableFooter();
+            $("#"+TITLE_VIEW_ID).text(TAN_TITLE)
+            toggleLeftColumn(false)
             tanResizeFunction();
-            $(window).resize(tanResizeFunction())
+            console.log("tan:resize")
+
+            $(window).resize(tanResizeFunction)
             clear = function (){
                 $(window).unbind('resize',tanResizeFunction())
             }

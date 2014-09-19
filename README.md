@@ -123,7 +123,7 @@ The content view
 
 Dynamic distribution not show the database loaded in firefox
  
-## Technologies summary 
+## Summary of technology 
 
 This chapter summarize the libraries and technologies used in the views to represent the data
  
