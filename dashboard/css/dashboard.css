@@ -203,7 +203,10 @@ body {
     height: 100%;
 }
 #content.footer-show {
-    height: calc(100% - 300px);
+    height: 400px;
+    height: calc(100vh - 350px); /* 300 footer + 50 header*/
+    /*height: -moz-calc(100% - 300px); *//* For firefox browser*/
+    height: -webkit-calc(100% - 300px); /* for webkit browsers*/
 }
 .placeholders {
   margin-bottom: 30px;
