@@ -849,7 +849,6 @@ var global;
 function loadDataSetFromUrl(url,columns ){
     var resquest = $.get(url, {}, function (data) {
         global = data;
-//        console.log("hola")
         filesInMemory[url] = new Object;
         filesInMemory[url].data = d3.csv.parse(data);
         if (filesInMemory[url].data.length > 0) {
@@ -875,7 +874,6 @@ function loadDataSetFromUrl(url,columns ){
             .appendTo("#" + DYNAMIC_DISTRIBUTION_DATABASE_LIST)
 
     })
-//    request.
 }
 
 function pupUpCols(cols) {

@@ -1,0 +1,52 @@
+<div id="ngcl-main">
+    <!--<div class="row main">-->
+        <!--<div class="col-lg-4">-->
+            <!--<h1 class="page-header">Temporal Association Network</h1>-->
+        <!--</div>-->
+        <!--<div class="form-inline" role="form">-->
+            <!--<div class="form-group">-->
+                <!--&lt;!&ndash;<div class="input-group">&ndash;&gt;-->
+                <!--&lt;!&ndash;<div class="input-group-addon" id="tcr-prefix-url">ws://</div>&ndash;&gt;-->
+                <!--&lt;!&ndash;<input id="tan-input-url" type="text" class="form-control my-form" placeholder="url" onkeydown="">&ndash;&gt;-->
+                <!--&lt;!&ndash;</div>&ndash;&gt;-->
+                <!--<div class="input-group">-->
+                    <!--5000 ms, <button class="btn btn-default" id="tan-upload-button" onclick="setTimeout(tcr_load.bind($('#tcr-input-url').val()),100)">Load</button>-->
+                <!--</div>-->
+            <!--</div>-->
+        <!--</div>-->
+
+    <!--</div>-->
+    <!--<div>-->
+
+    <div id="ngcl-temporal-bar" class="col-lg-12 center-content-panel">
+    </div>
+    <div id="ngcl-graph-panel" class="col-lg-12 ">
+        <div id="ngcl-graph">
+
+        </div>
+    </div>
+        <!--<div id="tan-graph-container">-->
+            <!--<div class="demo flowchart-demo" id="tan-graph-csv">-->
+            <!--</div>-->
+
+        <!--</div>-->
+    <!--</div>-->
+
+    <script>
+        /* CSS dynamic styles*/
+        $(function (){
+            disableFooter()
+            enableLeftColumn();
+            initLeftColumn();
+            nglcResizeFunction()
+//            $("#"+TITLE_VIEW_ID).text(TAN_TITLE)
+            toggleLeftColumn(false)
+
+            $(window).resize(nglcResizeFunction)
+            clear = nglcCleanFunction;
+            ngcl_startRoutine();
+        })
+
+
+    </script>
+</div>

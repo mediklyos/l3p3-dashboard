@@ -97,7 +97,7 @@ function createPanelButtons(title, id, parentId , keys, buttonsClass,buttons_id_
     return panel;
 }
 
-function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_prefix,callback){
+function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_prefix,callbac){
     var leftValue
     var rightValue
     var step = (keys[1] - keys[0]) / 100;
@@ -232,4 +232,25 @@ function createBlankPanel( id, parentId,title, body){
         }
 
     }
+}
+
+var createToolTip = function (jElement,text,position){
+//    jElement.attr('data-toggle','tooltip')
+//    jElement.attr('data-original-title',text)
+//    jElement.attr('title',text);
+//    jElement.tooltip();
+    var tooltip = jElement.tooltip({
+//        trigger: "manual",
+        placement : position,
+        title: text
+    })
+    return tooltip;
+}
+
+var destroyTooltip = function (jElement){
+    jElement.tooltip('destroy');
+}
+
+function reloadToolTip(jElement,text){
+    jElement.tooltip({title:text}).tooltip('close').tooltip('open');
 }

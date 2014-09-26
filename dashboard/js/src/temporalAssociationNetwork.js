@@ -13,7 +13,7 @@ var TAN_SEPARATION_BASE = 700;
 
 var TAN_TITLE = "Temporal Association Network"
 
-var PRE = views[0][2].constantsPrefix
+var PRE = views[0][4].constantsPrefix
 
 var MAIN_DIV = PRE + "-main"
 

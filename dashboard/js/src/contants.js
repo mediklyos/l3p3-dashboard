@@ -6,12 +6,15 @@ var COOKIE_DEBUG="debug";
 
 var CONTENT_FATHER = "content-father"
 
+var locale = "es-ES"
+
 var BORDER_SIZE = 20;
 var ACTIVE_CLASS = "active";
 
 var CONTENT_LINK_CLASS_NAME = "contentLink"
 var LEFT_COLUMN_BUTTON_OPEN = "left-column-button"
 var LEFT_COLUMN = "left-column"
+var LEFT_COLUMN_CONTENT = "left-column-div"
 var LEFT_COLUMN_ELEMENTS = "left-column-class"
 var TITLE_VIEW_ID = "view-title"
 var FOOTER_ID = "footer";

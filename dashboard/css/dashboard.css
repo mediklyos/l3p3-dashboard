@@ -103,6 +103,7 @@ body {
     width: 15px;
     height: 15px;
     background-image: url('../icons/leftArrow.png');
+    z-index: 10;
 }
 
 #left-column-button:hover {
@@ -173,6 +174,7 @@ body {
     width: 15px;
     height: 15px;
     top: -15px;
+    z-index: 10;
 
 }
 #footer-button:hover {
@@ -193,6 +195,10 @@ body {
     /*-moz-transition: height 2s; *//* Firefox 4 */
     /*-webkit-transition: width 2s; *//* Safari and Chrome */
     /*-o-transition: height 2s; *//* Opera */
+}
+
+.left-main {
+    padding: 5px;
 }
 /*
  * Placeholder dashboard ideas
@@ -321,8 +327,24 @@ body {
     overflow-y: auto;
 }
 
+/*Netwok life circle styles*/
+#ngcl-graph-panel{
+    border-top: solid 1px dimgrey;
+}
+
+#ngcl-temporal-bar {
+    padding: 5px;
+}
+#ngcl-slider-subpanel {
+    display: inline-flex;
+}
 
 
+#ngcl-internal-slider {
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: 4px;
+}
 .left-divider {
     border-right: 1px solid #ccc;
     padding: 0px 5px;
