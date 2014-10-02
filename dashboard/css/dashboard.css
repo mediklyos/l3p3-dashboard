@@ -328,19 +328,19 @@ body {
 }
 
 /*Netwok life circle styles*/
-#ngcl-graph-panel{
+#nglc-graph-panel{
     border-top: solid 1px dimgrey;
 }
 
-#ngcl-temporal-bar {
+#nglc-temporal-bar {
     padding: 5px;
 }
-#ngcl-slider-subpanel {
+#nglc-slider-subpanel {
     display: inline-flex;
 }
 
 
-#ngcl-internal-slider {
+#nglc-internal-slider {
     margin-left: 10px;
     margin-right: 10px;
     margin-top: 4px;

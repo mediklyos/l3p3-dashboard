@@ -1,4 +1,4 @@
-<div id="ngcl-main">
+<div id="nglc-main">
     <!--<div class="row main">-->
         <!--<div class="col-lg-4">-->
             <!--<h1 class="page-header">Temporal Association Network</h1>-->
@@ -18,10 +18,10 @@
     <!--</div>-->
     <!--<div>-->
 
-    <div id="ngcl-temporal-bar" class="col-lg-12 center-content-panel">
+    <div id="nglc-temporal-bar" class="col-lg-12 center-content-panel">
     </div>
-    <div id="ngcl-graph-panel" class="col-lg-12 ">
-        <div id="ngcl-graph">
+    <div id="nglc-graph-panel" class="col-lg-12 ">
+        <div id="nglc-graph">
 
         </div>
     </div>
@@ -35,7 +35,7 @@
     <script>
         /* CSS dynamic styles*/
         $(function (){
-            disableFooter()
+            enableFooter()
             enableLeftColumn();
             initLeftColumn();
             nglcResizeFunction()
@@ -44,7 +44,7 @@
 
             $(window).resize(nglcResizeFunction)
             clear = nglcCleanFunction;
-            ngcl_startRoutine();
+            nglc_startRoutine();
         })
 
 

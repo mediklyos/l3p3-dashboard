@@ -28,7 +28,7 @@ var dataPainted = undefined;
 var velocity;
 
 
-var ngcl_startRoutine = function (){
+var nglc_startRoutine = function (){
     nglc_reset();
     if (GLOBAL_DEBUG){
         lapseTime = 500
@@ -58,7 +58,7 @@ var nglcResizeFunction = function (){
 }
 
 var nglcCleanFunction  = function (){
-
+    $(window).unbind('resize',nglcResizeFunction)
 }
 
 var initLeftColumn = function () {

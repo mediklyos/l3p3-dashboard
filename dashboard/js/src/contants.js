@@ -35,10 +35,7 @@ var ID_DASHBOARD_ACTIVE_VIEW_SCRIPT = "dashboard-active-view-script"
 
 var SHOW_FOOTER_CLASS = "footer-show"
 
-var views = [];
-views[0] = []
-views[1] = []
-views[2] = []
+
 var RESET = false
 var GLOBAL_DEBUG = false;
 

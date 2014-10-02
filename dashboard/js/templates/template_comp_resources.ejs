@@ -42,13 +42,6 @@
                 <div class="form-group">
                     <button class="btn btn-default" id="odv-decrement-charts-height" onclick="decrementChartsHeight()">-Height</button>
                 </div>
-                <!--<div class="form-group">-->
-                    <!--<button class="btn btn-default" onclick="save()">save</button>-->
-                    <!--<button class="btn btn-default" onclick="myPause()">pause</button>-->
-                    <!--<button class="btn btn-default" onclick="myResume()">resume</button>-->
-                    <!--<button class="btn btn-default" onclick="restorePause()">restorePause</button>-->
-                    <!--<button class="btn btn-default" onclick="myRestore()">restore</button>-->
-                <!--</div>-->
             </div>
 
 
@@ -150,6 +143,8 @@
             });
         });
         $(function (){
+            enableFooter()
+
             if (debug){
                 $("#"+ORV_COLUMNS_CLICKS).find('.btn').removeClass('btn-primary').addClass('btn-default');
                 MAX_COLS = 4;
