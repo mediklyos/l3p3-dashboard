@@ -219,6 +219,9 @@ function initCharts(min, max) {
         slider.width(100);
 
         var colors = chroma.brewer['Pastel2'];
+        colors[0] = 'red'
+        colors[1] = 'blue'
+        colors[2] = 'green'
         var index = 0;
         allTimeSeries[sectionName] = {}
         allValueLabels[sectionName] = {}
@@ -234,6 +237,9 @@ function initCharts(min, max) {
             if (!(valueDescription[1] <= smoothie.options.maxValue)){
                 smoothie.options.maxValue = valueDescription[1];
                 smoothie.options.maxStored = valueDescription[1];
+            }
+            if (index >= colors.length){
+                index = 0;
             }
             var color = colors[index++];
 
