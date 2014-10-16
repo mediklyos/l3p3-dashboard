@@ -219,9 +219,9 @@ function initCharts(min, max) {
         slider.width(100);
 
         var colors = chroma.brewer['Pastel2'];
-        colors[0] = 'red'
-        colors[1] = 'blue'
-        colors[2] = 'green'
+        colors[0] = 'blue'
+        colors[1] = 'green'
+        colors[2] = 'red'
         var index = 0;
         allTimeSeries[sectionName] = {}
         allValueLabels[sectionName] = {}
@@ -280,7 +280,7 @@ function receiveStats(stats) {
                 allValueLabels[col.nodeName][col.colName].empty();
                 allValueLabels[col.nodeName][col.colName].text(value);
                 if (ODV_THRESHOLD < normalizedValue) {
-                    allValueLabels[col.nodeName][col.colName].append('<img src="icons/alert.png" height="15">');
+                    allValueLabels[col.nodeName][col.colName].append('<img src="icons/alert.png" height="20">');
                     if (lastEntries[col.nodeName] === undefined || ((lastEntries[col.nodeName] + ODV_THRESHOLD_TIME_BETWEEN_CAPTURES) < Date.now())) {
                         lastEntries[col.nodeName] = Date.now();
                         setTimeout(function () {
@@ -428,7 +428,7 @@ function restore (event) {
         var max = allTimeSeries[id][key].smoothie.options.maxStored;
         var normalizedValue = (allTimeSeries[id][key].data[allTimeSeries[id][key].data.length-1][1] - min) / (max - min) * 100;
         if (ODV_THRESHOLD < normalizedValue) {
-            allValueLabels[id][key].append('<img src="icons/alert.png" height="15">');
+            allValueLabels[id][key].append('<img src="icons/alert.png" height="20">');
 
         }
     })
