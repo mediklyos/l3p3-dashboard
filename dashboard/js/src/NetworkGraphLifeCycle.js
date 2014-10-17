@@ -7,6 +7,10 @@
 var PRE = views[0][2].constantsPrefix;
 
 /*HTML id constants*/
+
+var NGLC_TEXT_EXPORT_BUTTON = "Export nodes";
+var NGLC_TEXT_LOAD_NODES = "Load Nodes"
+var NGLC_TEXT_LOAD_TIMELINE = "Load Timeline"
 var NGLC_GRAPH_CONTAINER = PRE + "-graph"
 var NGLC_SLIDER_PANEL = PRE +"-temporal-bar"
 var NGLC_GRAPH_PANEL = PRE + "-graph-panel"
@@ -14,6 +18,9 @@ var NGLC_SLIDER_SUBPANEL = PRE + "-slider-subpanel"
 var NGLC_INTERNAL_SLIDER = PRE + "-internal-slider"
 var NGLC_DIV_START_DATE = PRE + "-start-date"
 var NGLC_DIV_END_DATE = PRE + "-end-date"
+var NGLC_ID_FILE_INPUT_NODES = PRE + "-input-nodes";
+var NGLC_ID_TIME_SLIDER = PRE + "-time-slider";
+
 var nodes;
 var edges;
 var elements;
@@ -40,7 +47,10 @@ var nglc_startRoutine = function (){
         loadFromUrl(networkUrl,timeLineUrl)
     }
 }
+var resetEdges = function () {
+    $("#"+NGLC_INTERNAL_SLIDER).slider("option","value",$("#"+NGLC_INTERNAL_SLIDER).slider("option","min"))
 
+}
 var dateFormats = [
     {id: "year", value: "numeric"},
     {id: "month", value: "numeric"},
@@ -71,12 +81,25 @@ var initLeftColumn = function () {
     leftDiv.append(main);
     var exportButton = $("<a/>", {
         class: "btn btn-default",
-        text: "Export nodes"
+        text: NGLC_TEXT_EXPORT_BUTTON
+    }).appendTo(main);
+    var loadNodes =$("<a/>", {
+        class: "btn btn-default",
+        text: NGLC_TEXT_LOAD_NODES
+    }).appendTo(main);
+    var loadNodesInput = $("<input/>", {
+        id: NGLC_ID_FILE_INPUT_NODES,
+        type: "file",
+        name: "nodeFile",
+        style: "display: none;"
+    }).appendTo(main);
+    var loadTimeLine= $("<a/>", {
+        class: "btn btn-default",
+        text: NGLC_TEXT_LOAD_TIMELINE
     }).appendTo(main);
     var nodes = {}
 //    exportButton[0].download = textContent
     exportButton.click(function (e) {
-        console.log(networkGraph);
         var nodes = {}
         $.each(networkGraph.nodes,function (key,value){
             nodes[key] = {};
@@ -90,10 +113,16 @@ var initLeftColumn = function () {
                 'href': string,
                 'target': '_blank'
             });
-//        var url  = URL.createObjectURL(blob);
-//        e.preventDefault();
-//        window.location.href = url;
-//        console.log(string);
+    })
+    loadNodes.click(function(){
+        $("#"+NGLC_ID_FILE_INPUT_NODES).click();
+        $("#"+NGLC_ID_FILE_INPUT_NODES).fileupload({
+            add: function (event,data){
+                var file = data.files[0];
+                loadNodesFromFile(file);
+
+            }
+        })
     })
 
 
@@ -106,6 +135,7 @@ var nglc_reset = function () {
     start = 0;
     end = 0;
     current = 0;
+    resetEdges();
 }
 
 
@@ -124,21 +154,24 @@ var loadFromUrl = function (networkUrl,timeLineUrl){
             edges = csv;
             nodes = json;
             current = edges[0].time;
-            $.each(nodes,function(key){
-                var node = {
-//            x: this.x,
-//            y: this.y,
-                    id: key,
-                    label: key
-                }
-                this.node = node;
-                this.elements = 0;
-            });
+
             paintGraphOnlyNodes(nodes)
             updateGraph(edges,current,lapseTime)
         })
 
     })
+}
+
+var loadNodesFromFile = function (file){
+    var reader = new FileReader();
+    reader.onload = function(event) {
+        var _nodes = $.parseJSON(event.target.result);
+        nodes = _nodes;
+        paintGraphOnlyNodes(nodes)
+
+    }
+    reader.readAsText(file);
+
 }
 
 var parseEdges = function(stringEdges){
@@ -207,14 +240,14 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
 
 }
 
-var myf = function (inc){
-    current = current + inc;
-    updateGraph(edges,current,lapseTime)
-}
-var myf2 = function (pos){
-    current = pos;
-    updateGraph(edges,current,lapseTime)
-}
+//var myf = function (inc){
+//    current = current + inc;
+//    updateGraph(edges,current,lapseTime)
+//}
+//var myf2 = function (pos){
+//    current = pos;
+//    updateGraph(edges,current,lapseTime)
+//}
 
 var refreshGraph = function (nodes,edges,time,lapseTime){
     var edgesToPaint = {}
@@ -392,6 +425,16 @@ var getStringDate = function (date,range){
 }
 
 var paintGraphOnlyNodes = function (nodes) {
+    $.each(nodes,function(key){
+        var node = {
+//            x: this.x,
+//            y: this.y,
+            id: key,
+            label: key
+        }
+        this.node = node;
+        this.elements = 0;
+    });
     var paintNodes = $.map(nodes,function (value,key){
         var node = {}
         node.id = key;
@@ -408,6 +451,7 @@ var paintGraphOnlyNodes = function (nodes) {
     }
     dataPainted = data;
     var container = document.getElementById(NGLC_GRAPH_CONTAINER);
+    resetEdges();
     networkGraph = new vis.Network(container,data,getOptions());
 }
 
