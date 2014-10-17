@@ -26,15 +26,17 @@ var current;
 var lapseTime;
 var dataPainted = undefined;
 var velocity;
-
+var displayTimePrecision = 4;
 
 var nglc_startRoutine = function (){
     nglc_reset();
     if (GLOBAL_DEBUG){
-        lapseTime = 500
-        velocity = 1;
-        setTimeLineFile("data/nglc-demo/timeLine.csv")
-        setNetworkFile("data/nglc-demo/nodes.json")
+        lapseTime = 10000000;
+        velocity = 10000000;
+//        setTimeLineFile("data/nglc-demo/timeLine.csv")
+        setTimeLineFile("data/nglc-demo/rfc-data.csv")
+//        setNetworkFile("data/nglc-demo/nodes.json")
+        setNetworkFile("data/nglc-demo/nodes2.json")
         loadFromUrl(networkUrl,timeLineUrl)
     }
 }
@@ -50,7 +52,7 @@ var dateFormats = [
 
 
 var nglcResizeFunction = function (){
-    $("#"+NGLC_GRAPH_CONTAINER).css('height',$(window).outerHeight() - $("#"+NGLC_GRAPH_CONTAINER).offset().top)
+    $("#"+NGLC_GRAPH_CONTAINER).css('height',$("#content").outerHeight() + $("#content").offset().top - $("#"+NGLC_GRAPH_CONTAINER).offset().top)
     resizingSlider();
     if (networkGraph !== undefined) {
         networkGraph.redraw();
@@ -121,8 +123,19 @@ var loadFromUrl = function (networkUrl,timeLineUrl){
         d3.csv(timeLineUrl,function(csv){
             edges = csv;
             nodes = json;
-            current = 1411468346896;
-            loadGraph(nodes,edges,current,lapseTime)
+            current = edges[0].time;
+            $.each(nodes,function(key){
+                var node = {
+//            x: this.x,
+//            y: this.y,
+                    id: key,
+                    label: key
+                }
+                this.node = node;
+                this.elements = 0;
+            });
+            paintGraphOnlyNodes(nodes)
+            updateGraph(edges,current,lapseTime)
         })
 
     })
@@ -143,21 +156,11 @@ var parseEdges = function(stringEdges){
  * @param lapseTime
  * @returns {number} La primera posición no cargada
  */
-var loadGraph = function (nodes,edges,time,lapseTime,repaint) {
+var updateGraph = function (edges,time,lapseTime,repaint) {
     if (repaint === undefined)
         repaint = true;
     var edgesToPaint = {}
-    /*network representation*/
-    $.each(nodes,function(key){
-        var node = {
-//            x: this.x,
-//            y: this.y,
-            id: key,
-            label: key
-        }
-        this.node = node;
-        this.elements = 0;
-    })
+    var nodes = networkGraph.nodes;
     var pos = 0;
 //    var edgeSplit = edgesSplit[pos++].split(",");
     start = edges[pos].time;
@@ -194,7 +197,7 @@ var loadGraph = function (nodes,edges,time,lapseTime,repaint) {
 
     }
     end= edges[edges.length-1].time;
-    paintGraph(nodes,edgesToPaint)
+    paintGraphUpdateEdges(nodes,edgesToPaint)
     if (repaint)
         paintSlideBar(start,time,end)
 
@@ -206,11 +209,11 @@ var loadGraph = function (nodes,edges,time,lapseTime,repaint) {
 
 var myf = function (inc){
     current = current + inc;
-    loadGraph(nodes,edges,current,lapseTime)
+    updateGraph(edges,current,lapseTime)
 }
 var myf2 = function (pos){
     current = pos;
-    loadGraph(nodes,edges,current,lapseTime)
+    updateGraph(edges,current,lapseTime)
 }
 
 var refreshGraph = function (nodes,edges,time,lapseTime){
@@ -262,7 +265,7 @@ var refreshGraph = function (nodes,edges,time,lapseTime){
 
     }
     end= edges[edges.length-1].time;
-    paintGraph(nodes,edgesToPaint)
+    paintGraphUpdateEdges(nodes,edgesToPaint)
 }
 
 var paintSlideBar = function (start,current,end){
@@ -279,7 +282,7 @@ var paintSlideBar = function (start,current,end){
 //
 //    }
     /*The format of the date*/
-    var formatOptions = getFormatOptions(startDate,endDate,3);
+    var formatOptions = getFormatOptions(startDate,endDate,displayTimePrecision);
     var myLocale = locale;
 
 
@@ -293,10 +296,11 @@ var paintSlideBar = function (start,current,end){
     var slider = jQuery('<div/>').slider({
         min: parseInt(start),
         max: parseInt(end),
+        step: velocity,
         value: parseInt(current),
         slide : function (event,ui){
             current =parseInt(ui.value)
-            loadGraph(nodes,edges,current ,lapseTime,false)
+            updateGraph(edges,current ,lapseTime,false)
 
             var div = $(ui.handle).parent().children(".tooltip")[0];
             if (div !== undefined) {
@@ -316,7 +320,7 @@ var paintSlideBar = function (start,current,end){
         stop : function (event,ui){
             var div = $(ui.handle).parent().children(".tooltip")[0];
             current =parseInt(ui.value)
-            loadGraph(nodes,edges,current ,lapseTime,false)
+            updateGraph(edges,current ,lapseTime,false)
 
             var currentDate = new Date(current );
             destroyTooltip(slider.find(".ui-slider-handle"));
@@ -387,7 +391,27 @@ var getStringDate = function (date,range){
 
 }
 
-var paintGraph = function (nodes,edges){
+var paintGraphOnlyNodes = function (nodes) {
+    var paintNodes = $.map(nodes,function (value,key){
+        var node = {}
+        node.id = key;
+        node.label = key+": " +value.elements;
+        node.x = value.x;
+        node.y = value.y;
+        node.allowedToMoveX = true
+        node.allowedToMoveY = true
+        return node;
+    })
+
+    var data = {
+        nodes: paintNodes
+    }
+    dataPainted = data;
+    var container = document.getElementById(NGLC_GRAPH_CONTAINER);
+    networkGraph = new vis.Network(container,data,getOptions());
+}
+
+var paintGraphUpdateEdges = function (nodes,edges){
 
 
     /* Set up the edges for vis library*/
@@ -401,6 +425,7 @@ var paintGraph = function (nodes,edges){
     })
 
     /* Set up the nodes for vis library*/
+    /*This code is not needed because this function only update the edges
     var paintNodes = $.map(nodes,function (value,key){
         var node = {}
         node.id = key;
@@ -412,13 +437,18 @@ var paintGraph = function (nodes,edges){
         return node;
     })
 
+
     var data = {
         nodes: paintNodes,
         edges: paintEdges
     }
-    dataPainted = data;
-    var container = document.getElementById(NGLC_GRAPH_CONTAINER);
+     var container = document.getElementById(NGLC_GRAPH_CONTAINER);
     networkGraph = new vis.Network(container,data,getOptions());
+    */
+//    dataPainted = data;
+    networkGraph.edgesData.clear();
+    networkGraph.edgesData.add(paintEdges);
+
 }
 
 var getOptions = function() {
