@@ -88,6 +88,36 @@ density function from a set of points.
 
 #### Online Data Viewer
 
+The objective of this view is show data served online.  
+
+The view connects to a server using web-socket technology. The controls permits set the web socket url, 
+the number of graphs per line, the data refresh time, the alarm threshold and the height of the graphs 
+ 
+![OnlineDataViewer](images/odv-1.png)
+
+Each graph show the timeline of each group of resources and its name with the current value. The controls attached to 
+the graphs can pause, resume and save the current state, allow you to dynamically represent the range of values 
+​​represented and set how many data is shown in the graph. 
+ 
+The alarm column shows the alerts produced by the system. A alarm is generated when a resource exceeds the threshold 
+set. The alarms can be shown in the graphs and they can be deleted from the list. 
+
+The communication between client and server is done using web-sockets, this technology allows to send messages from the 
+server to the client. The client start the communication to establish a connection, then the server send the messages. They 
+must be following these rules: 
+
+* The first message must be the description of the sources, the format is \[\<sourceName\>.\<sourceNodeName\>\[$\[\<minValue\>@]\<maxValue\>\] \]+. 
+E.g: for 4 nodes (node1, node2, node3 and node4) and tree sources per node (src1, src2 and scr3) the message sent must be 
+```node1.src1$0@100 node1.src2$0@100 node1.src3$0@100 node2.src1$0@100 node2.src1$100 node2.src3 node3.src1 node3.src3$0@100 node3.src2$0@100 node4.src1$0@100 node4.src3$0@100 node4.src2$0@100```
+
+* The following messages must be the values for each source. Must have values for all 
+sources and they must be separated by spaces. E.g: ```3 1 30 9 0 17 18 0 35 21 0 37``` 
+
+The communication technology used to communicate the client and server is web socket. This technology allows to send a 
+a line for time step. The format of the messages sent from server to client must be:
+ 
+The first message must be the description of the sources. the format of this line
+
 #### Single node Viewer
 
 #### Global Events Viewer

@@ -18,6 +18,7 @@ var LEFT_COLUMN_CONTENT = "left-column-div"
 var LEFT_COLUMN_ELEMENTS = "left-column-class"
 var TITLE_VIEW_ID = "view-title"
 var FOOTER_ID = "footer";
+var FOOTER_CONTENT_ID = "footer-content";
 
 var CSS_CLASS_HIDDEN_LEFT_COLUMN = "hidden-left-column"
 

@@ -33,6 +33,15 @@ body {
 .sidebar {
   display: none;
 }
+
+.hr {
+    width: 100%;
+    height: 0px;
+    border-top: solid;
+    border-top-width: 1px;
+    border-color: #000000;
+}
+
 @media (min-width: 768px) {
   .sidebar {
     position: fixed;
@@ -121,7 +130,7 @@ body {
 
 #left-column-div {
     /*position: fixed;*/
-    background-color: lightgray;
+    background-color: #f0f0f0;
     border-right: 1px solid dimgrey;
     width: 300px;
     height: 100%;
@@ -150,7 +159,7 @@ body {
 
 #footer {
     bottom: 0px;
-    background-color: lightgray;
+    background-color: #f0f0f0;
     border-top: 0px;
     position: relative;
 }
@@ -162,6 +171,8 @@ body {
 }
 #footer-content {
     display: none;
+    overflow-y: auto;
+    height: 100%;
 }
 
 #footer-content.footer-show {
@@ -345,6 +356,16 @@ body {
     margin-right: 10px;
     margin-top: 4px;
 }
+
+.nglc-box-margins-horizontal, .nglc-box-margins{
+    margin-left :5px;
+    margin-right :5px;
+}
+
+.nglc-box-margins-vertical, .nglc-box-margins {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
 .left-divider {
     border-right: 1px solid #ccc;
     padding: 0px 5px;
@@ -363,4 +384,6 @@ body {
 #tan-main {
 
 }
+
+
 

@@ -982,12 +982,6 @@ function calculateDimensions(){
 }
 
 
-// resizing routines
-//
-function resizingWatcher(jqElement,resizingRoutine){
-    jqElement.resize(resizingRoutine)
-}
-
 function removeResizingWatcher(elementId){
     $("#dd-select-population").children("div.resize-triggers").remove()
     return;

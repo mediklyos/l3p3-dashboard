@@ -20,8 +20,18 @@ var NGLC_DIV_START_DATE = PRE + "-start-date"
 var NGLC_DIV_END_DATE = PRE + "-end-date"
 var NGLC_ID_FILE_INPUT_NODES = PRE + "-input-nodes";
 var NGLC_ID_TIME_SLIDER = PRE + "-time-slider";
+var NGLC_FILTER_PANEL = PRE + "-filter-panel";
+var NGLC_FILTER_COLUMNS_BUTTONS_PREFIX_ID = PRE + "-buttons-columns-filter-"
+var NGLC_FILTER_COLUMNS_BUTTONS_CLASS = PRE + "-buttons-columns-class"
+var NGLC_FOOTER_ID = PRE + "-footer-id"
+
+/*Textos localizacion*/
+var NGLC_FILTERS_COLS_INFO= "Columns ";
+
 
 var nodes;
+// TODO delete
+var nodesExtraInfo;
 var edges;
 var elements;
 var networkGraph = undefined;
@@ -34,21 +44,39 @@ var lapseTime;
 var dataPainted = undefined;
 var velocity;
 var displayTimePrecision = 4;
+var lastLoaded = 0;
+var lastTime = 0;
+var extraColumnsShown = ["id"];
+var extraColumnsActive = {};
+var extraColumnsNodeActive = "Waiting Accept"
 
 var nglc_startRoutine = function (){
     nglc_reset();
-    if (GLOBAL_DEBUG){
-        lapseTime = 10000000;
-        velocity = 10000000;
-//        setTimeLineFile("data/nglc-demo/timeLine.csv")
-        setTimeLineFile("data/nglc-demo/rfc-data.csv")
+    setTimeLineFile("data/nglc-demo/rfc-data_2.csv")
 //        setNetworkFile("data/nglc-demo/nodes.json")
-        setNetworkFile("data/nglc-demo/nodes2.json")
+    setNetworkFile("data/nglc-demo/nodes2.json")
+    if (GLOBAL_DEBUG){
+        lapseTime = 4000000;
+        velocity = 4000000;
+//        setTimeLineFile("data/nglc-demo/timeLine.csv")
         loadFromUrl(networkUrl,timeLineUrl)
     }
 }
 var resetEdges = function () {
     $("#"+NGLC_INTERNAL_SLIDER).slider("option","value",$("#"+NGLC_INTERNAL_SLIDER).slider("option","min"))
+
+}
+
+var resetShowedElements = function () {
+    $.map(networkGraph.nodes,function (value,key){
+        value.elements = 0;
+        value.extraCols = {}
+//        nodesExtraInfo[key].elements = 0;
+        $.each(extraColumnsShown,function (key2,value2){
+            value.extraCols[value2] = {};
+        })
+
+    })
 
 }
 var dateFormats = [
@@ -73,32 +101,36 @@ var nglcCleanFunction  = function (){
     $(window).unbind('resize',nglcResizeFunction)
 }
 
-var initLeftColumn = function () {
+var initLeftColumnAndFooter = function () {
     var leftDiv = $("#"+LEFT_COLUMN_CONTENT);
     var main = $('<div/>',{
         class: "left-main"
     })
+    var buttonsBox = $('<div/>',{class: "nglc-box-margins"}).appendTo(main)
     leftDiv.append(main);
     var exportButton = $("<a/>", {
         class: "btn btn-default",
         text: NGLC_TEXT_EXPORT_BUTTON
-    }).appendTo(main);
+    }).appendTo(buttonsBox);
     var loadNodes =$("<a/>", {
         class: "btn btn-default",
         text: NGLC_TEXT_LOAD_NODES
-    }).appendTo(main);
+    }).appendTo(buttonsBox);
     var loadNodesInput = $("<input/>", {
         id: NGLC_ID_FILE_INPUT_NODES,
         type: "file",
         name: "nodeFile",
         style: "display: none;"
-    }).appendTo(main);
+    }).appendTo(buttonsBox);
     var loadTimeLine= $("<a/>", {
         class: "btn btn-default",
         text: NGLC_TEXT_LOAD_TIMELINE
-    }).appendTo(main);
+    }).appendTo(buttonsBox);
     var nodes = {}
-//    exportButton[0].download = textContent
+
+//    createPanelButtons("Columns",NGLC_FILTER_PANEL,main,extraColumnsShown,"",PRE,function(){})
+    // IN a new div because I want to be in a new line
+
     exportButton.click(function (e) {
         var nodes = {}
         $.each(networkGraph.nodes,function (key,value){
@@ -126,6 +158,35 @@ var initLeftColumn = function () {
     })
 
 
+    /*Filter panel*/
+    var filterPanel = jQuery('<div />',{class:'nglc-box-margins'}).appendTo(main);
+    filterPanel.append($('<div/>',{
+        class: "hr"
+    }))//.css("border-top-width","3px"))
+    filterPanel.append($('<div/>', {
+        class: 'nglc-box-margins-vertical',
+        text: NGLC_FILTERS_COLS_INFO
+    }))
+//    filterPanel.append($('<div/>',{
+//        class: "hr"
+//    }))
+    var panel = createSetButtons(NGLC_FILTER_PANEL, filterPanel,extraColumnsShown,NGLC_FILTER_COLUMNS_BUTTONS_PREFIX_ID,NGLC_FILTER_COLUMNS_BUTTONS_CLASS,function(result){
+        if (result.active){
+            extraColumnsActive[result.key] = true;
+        } else {
+            delete extraColumnsActive[result.key]
+        }
+        updateGraph(edges,current,lapseTime,false);
+    })
+    panel.addClass("nglc-box-margins-vertical");
+
+
+    /*Footer Init*/
+
+    $("#"+FOOTER_CONTENT_ID).append($('<div/>',{
+        id: NGLC_FOOTER_ID
+    }))
+
 }
 
 var nglc_reset = function () {
@@ -136,6 +197,9 @@ var nglc_reset = function () {
     end = 0;
     current = 0;
     resetEdges();
+    lastLoaded = 0;
+    lastTime = 0;
+    $("#"+NGLC_FOOTER_ID).empty();
 }
 
 
@@ -153,10 +217,10 @@ var loadFromUrl = function (networkUrl,timeLineUrl){
         d3.csv(timeLineUrl,function(csv){
             edges = csv;
             nodes = json;
-            current = edges[0].time;
+            current = + edges[0].time - (lapseTime / 2);
 
             paintGraphOnlyNodes(nodes)
-            updateGraph(edges,current,lapseTime)
+            updateGraph(edges,current,lapseTime,true)
         })
 
     })
@@ -179,14 +243,16 @@ var parseEdges = function(stringEdges){
 }
 
 /* Devuelve la primera posicion de edge no cargada*/
+
+
 /**
  * Carga los nodos y las aristas desde el principio. Devuelve el primero que no se pinta por si se quiere recalcular
  * el grafo desde ese punto sin tener que calcular todos los puntos de nuevo
  *
- * @param nodes
  * @param edges
  * @param time
  * @param lapseTime
+ * @param repaint
  * @returns {number} La primera posición no cargada
  */
 var updateGraph = function (edges,time,lapseTime,repaint) {
@@ -194,114 +260,112 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
         repaint = true;
     var edgesToPaint = {}
     var nodes = networkGraph.nodes;
-    var pos = 0;
+
+//    var otherLastLoaded =lastLoaded;
+    var pos = lastLoaded || 0;
+
 //    var edgeSplit = edgesSplit[pos++].split(",");
-    start = edges[pos].time;
-    var lastLoaded = undefined;
+    start = +edges[0].time - (lapseTime/2);
     // Estas aristas no son necesarias pero el track para el número de elementos si
-    while (pos < edges.length && (time + lapseTime >= edges[pos].time)) {
-        var edge = edges[pos];
-        if (time >= edge.time) {
+
+    /* Si es hacia atras se recalcula */
+    if (lastTime > time){
+        pos = 0;
+        lastLoaded = 0;
+        resetShowedElements();
+        $.map(nodes,function (value){
+            value.elements = 0;
+        })
+    }
+    if (edges[pos].time <= time) {
+        while (pos < edges.length && (edges[pos].time <= time )) {
+            var edge = edges[pos];
+            /*Nodes update*/
             if (nodes[edge.origin].elements) {
                 nodes[edge.origin].elements--;
             }
             nodes[edge.destination].elements++;
-            // If 0 is false
 
-            elements[edge.id] = {};
-            elements[edge.id].position = edge.destination;
-        } else if (lastLoaded === undefined){
-            lastLoaded = pos+1;
+            /*Columns updating*/
+
+            $.each(extraColumnsShown,function(){
+                if (nodes[edge.destination].extraCols[this][edge[this]] === undefined){
+                    nodes[edge.destination].extraCols[this][edge[this]] = 1;
+                } else {
+                    nodes[edge.destination].extraCols[this][edge[this]]++;
+                }
+                if (nodes[edge.origin].extraCols[this][edge[this]] !== undefined){
+                    if (nodes[edge.origin].extraCols[this][edge[this]] == 1){
+                        delete nodes[edge.origin].extraCols[this][edge[this]];
+                    } else {
+                        nodes[edge.origin].extraCols[this][edge[this]]--;
+                    }
+                }
+            })
+            pos++;
+            /*El delta negativo se tiene que calcular dentro de este while*/
         }
-//        pos++;
-//    }
-//    while (pos < edges.length && Math.abs(time - edges[pos].time) < lapseTime) {
-//        var edge = edges[pos];
-        var thisLapse = Math.abs(time - edge.time)
-        if (thisLapse < lapseTime){//{ && thisLapse >= 0) {
-            if (edgesToPaint[edge.origin + "-" + edge.destination] === undefined) {
-                edgesToPaint[edge.origin + "-" + edge.destination] = {edge: edge, count: 1};
-            } else {
-                edgesToPaint[edge.origin + "-" + edge.destination].count++;
-
-            }
+        lastLoaded = pos;
+        lastTime = time;
+    }
+    /*Edges de delta positivo se calcula aqui*/
+    while (pos < edges.length && (edges[pos].time <= time + lapseTime)){
+        var edge = edges[pos];
+        if (edgesToPaint[edge.origin + "-" + edge.destination] === undefined) {
+            edgesToPaint[edge.origin + "-" + edge.destination] = {edge: edge, count: 1};
+        } else {
+            edgesToPaint[edge.origin + "-" + edge.destination].count++;
         }
         pos++;
-
     }
-    end= edges[edges.length-1].time;
+    paintFooter(nodes);
     paintGraphUpdateEdges(nodes,edgesToPaint)
-    if (repaint)
-        paintSlideBar(start,time,end)
-
+    if (repaint) {
+        end = +edges[edges.length - 1].time + (lapseTime / 2);
+        paintSlideBar(start, time, end)
+    }
     return pos;
-
-
-
 }
 
-//var myf = function (inc){
-//    current = current + inc;
-//    updateGraph(edges,current,lapseTime)
-//}
-//var myf2 = function (pos){
-//    current = pos;
-//    updateGraph(edges,current,lapseTime)
-//}
 
-var refreshGraph = function (nodes,edges,time,lapseTime){
-    var edgesToPaint = {}
-    /*network representation*/
-    $.each(nodes,function(key){
-        var node = {
-//            x: this.x,
-//            y: this.y,
-            id: key,
-            label: key
-        }
-        this.node = node;
-        this.elements = 0;
-    })
-    var pos = 0;
-//    var edgeSplit = edgesSplit[pos++].split(",");
-    start = edges[pos].time;
-    var lastLoaded = undefined;
-    // Estas aristas no son necesarias pero el track para el número de elementos si
-    while (pos < edges.length && (time + lapseTime >= edges[pos].time)) {
-        var edge = edges[pos];
-        if (time >= edge.time) {
-            if (nodes[edge.origin].elements) {
-                nodes[edge.origin].elements--;
-            }
-            nodes[edge.destination].elements++;
-            // If 0 is false
+var paintFooter = function (nodes){
+    var columnsToShow = Object.getOwnPropertyNames(extraColumnsActive);
+    var divFooter = $("#"+NGLC_FOOTER_ID);
+    divFooter.empty();
+    // TODO Alert this to the user
+    if (columnsToShow.length > 4) {
+        return;
+    }else {
+        var columnClass = "col-lg-"+(parseInt(12 / columnsToShow.length))
+        $.each(extraColumnsActive,function(key,value){
+            var colDiv = $('<div/>',{
+                class: columnClass
+            })
+            // Poner titulo
+            colDiv.append(bootstapTableFooter(extraColumnsShown[key],nodes[extraColumnsNodeActive]));
+            divFooter.append(colDiv);
 
-            elements[edge.id] = {};
-            elements[edge.id].position = edge.destination;
-        } else if (lastLoaded === undefined){
-            lastLoaded = pos+1;
-        }
-//        pos++;
-//    }
-//    while (pos < edges.length && Math.abs(time - edges[pos].time) < lapseTime) {
-//        var edge = edges[pos];
-        var thisLapse = Math.abs(time - edge.time)
-        if (thisLapse < lapseTime){//{ && thisLapse >= 0) {
-            if (edgesToPaint[edge.origin + "-" + edge.destination] === undefined) {
-                edgesToPaint[edge.origin + "-" + edge.destination] = {edge: edge, count: 1};
-            } else {
-                edgesToPaint[edge.origin + "-" + edge.destination].count++;
-
-            }
-        }
-        pos++;
-
+        })
+//        divFooter.text(columnsToShow.length)
     }
-    end= edges[edges.length-1].time;
-    paintGraphUpdateEdges(nodes,edgesToPaint)
 }
 
-var paintSlideBar = function (start,current,end){
+var bootstapTableFooter = function (columnName, node){
+    var table = $('<table/>',{
+        class: "table table-condensed"
+
+    })
+    // header
+    table.append('<thead><tr><td>'+columnName+'</td><td>#</td></tr></thead>')
+    table.append('<tbody></tbody>');
+    $.each(node.extraCols[columnName],function (key,value){
+        table.append('<tr><td>'+key+'</td><td>'+value+'</td></tr>')
+
+    })
+    return table;
+
+}
+var paintSlideBar = function (start,currentTime,end){
     var sliderPanel = $("#"+NGLC_SLIDER_PANEL);
     sliderPanel.empty();
     var internalDiv = $('<div/>',{
@@ -309,12 +373,9 @@ var paintSlideBar = function (start,current,end){
         id: NGLC_SLIDER_SUBPANEL
     }).appendTo(sliderPanel)
     var startDate = new Date(parseInt(start));
-    var currentDate = new Date(parseInt(current))
+    var currentDate = new Date(parseInt(currentTime))
     var endDate = new Date(parseInt(end));
-//    if (startDate == endDate){
-//
-//    }
-    /*The format of the date*/
+
     var formatOptions = getFormatOptions(startDate,endDate,displayTimePrecision);
     var myLocale = locale;
 
@@ -330,7 +391,7 @@ var paintSlideBar = function (start,current,end){
         min: parseInt(start),
         max: parseInt(end),
         step: velocity,
-        value: parseInt(current),
+        value: parseInt(currentTime),
         slide : function (event,ui){
             current =parseInt(ui.value)
             updateGraph(edges,current ,lapseTime,false)
@@ -420,11 +481,8 @@ var getFormatOptions = function (start,end,precision){
     }
     return formatOptions;
 }
-var getStringDate = function (date,range){
-
-}
-
 var paintGraphOnlyNodes = function (nodes) {
+    lastLoaded = 0;
     $.each(nodes,function(key){
         var node = {
 //            x: this.x,
@@ -443,6 +501,7 @@ var paintGraphOnlyNodes = function (nodes) {
         node.y = value.y;
         node.allowedToMoveX = true
         node.allowedToMoveY = true
+        node.elements = value.elements;
         return node;
     })
 
@@ -453,6 +512,18 @@ var paintGraphOnlyNodes = function (nodes) {
     var container = document.getElementById(NGLC_GRAPH_CONTAINER);
     resetEdges();
     networkGraph = new vis.Network(container,data,getOptions());
+//    nodesExtraInfo = {}
+    $.each(networkGraph.nodes,function (key,value){
+        var node = {}
+        node.node = value;
+        node.elements = 0;
+        node.id = key;
+//        nodesExtraInfo[key].node = node;
+        value.elements = 0;
+    })
+    resetShowedElements();
+    return;
+
 }
 
 var paintGraphUpdateEdges = function (nodes,edges){
@@ -468,6 +539,10 @@ var paintGraphUpdateEdges = function (nodes,edges){
         return [edge]
     })
 
+    $.map(nodes,function (value,key){
+        value.label = key+": " +value.elements;
+        return value;
+    })
     /* Set up the nodes for vis library*/
     /*This code is not needed because this function only update the edges
     var paintNodes = $.map(nodes,function (value,key){
@@ -478,18 +553,10 @@ var paintGraphUpdateEdges = function (nodes,edges){
         node.y = value.y;
         node.allowedToMoveX = true
         node.allowedToMoveY = true
-        return node;
+        return node;map
     })
 
-
-    var data = {
-        nodes: paintNodes,
-        edges: paintEdges
-    }
-     var container = document.getElementById(NGLC_GRAPH_CONTAINER);
-    networkGraph = new vis.Network(container,data,getOptions());
-    */
-//    dataPainted = data;
+*/
     networkGraph.edgesData.clear();
     networkGraph.edgesData.add(paintEdges);
 
@@ -521,3 +588,19 @@ var getOptions = function() {
     return options
 }
 
+/*DEBUG*/
+
+var up = function (){
+    current = +(current) + lapseTime;
+    updateGraph(edges,current,lapseTime,false)
+}
+var bot = function () {
+    current = +(current) - lapseTime;
+    updateGraph(edges,current,lapseTime,false)
+
+}
+
+var re = function () {
+    current = +1388655879000-lapseTime/2;
+    updateGraph(edges,current,lapseTime,false)
+}

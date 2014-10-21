@@ -3,6 +3,44 @@
  */
 
 
+function createSetButtons(id,parent,buttonsList,buttons_id_prefix,buttons_class,callback){
+    var parentPanel;
+    if (parent instanceof String){
+        parentPanel = $("#"+parent);
+    } else {
+        parentPanel = parent;
+    }
+    var buttonsPanel = $('<div/>', {
+        class:"btn-group",
+        "data-toggle" :"buttons",
+//        text: "hola",
+        id: id
+    }).appendTo(parentPanel)
+
+//    var buttonsSet = $('<div class="btn-group btn-toggle" data-toggle="buttons"/>').appendTo(buttonsPanel);
+//    buttonsSet.attr('id',DYNAMIC_DISTRIBUTION_BUTTONS_ATTR_TYPE_PREFIX+cols[key]);
+//    buttonsSet.click(toggleButtonsFunction.bind(undefined,DYNAMIC_DISTRIBUTION_BUTTONS_ATTR_TYPE_PREFIX+cols[key],function(attribute,value){
+//        colTypes[attribute] = value;
+//    }));
+//    buttonsList = ["uno","dos","tres","cuatro","cinco","seis"]
+    $.each(buttonsList, function (key,value){
+        var button = $('<button/>',{
+            class: "btn btn-default",
+            text: value,
+            value: value,
+            id: buttons_id_prefix + key
+        })
+        button.click(function(){
+            var active = !$(this).hasClass('active');
+            $(this).toggleClass('btn-primary',active)
+            $(this).toggleClass('btn-default',!active)
+            callback({key: key, value: value,active: active})
+
+        })
+        button.appendTo(buttonsPanel);
+    })
+    return buttonsPanel;
+}
 
 
 function createPanelButtons(title, id, parentId , keys, buttonsClass,buttons_id_prefix,callback,buttonAttr){
@@ -253,4 +291,11 @@ var destroyTooltip = function (jElement){
 
 function reloadToolTip(jElement,text){
     jElement.tooltip({title:text}).tooltip('close').tooltip('open');
+}
+
+
+// resizing routines
+//
+function resizingWatcher(jqElement,resizingRoutine){
+    jqElement.resize(resizingRoutine)
 }
