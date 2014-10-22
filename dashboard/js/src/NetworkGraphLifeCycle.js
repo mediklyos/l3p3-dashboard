@@ -30,8 +30,6 @@ var NGLC_FILTERS_COLS_INFO= "Columns ";
 
 
 var nodes;
-// TODO delete
-var nodesExtraInfo;
 var edges;
 var elements;
 var networkGraph = undefined;
@@ -48,7 +46,7 @@ var lastLoaded = 0;
 var lastTime = 0;
 var extraColumnsShown = ["id"];
 var extraColumnsActive = {};
-var extraColumnsNodeActive = "Waiting Accept"
+var selectedNodes = {};
 
 var nglc_startRoutine = function (){
     nglc_reset();
@@ -75,7 +73,6 @@ var resetShowedElements = function () {
         $.each(extraColumnsShown,function (key2,value2){
             value.extraCols[value2] = {};
         })
-
     })
 
 }
@@ -176,7 +173,8 @@ var initLeftColumnAndFooter = function () {
         } else {
             delete extraColumnsActive[result.key]
         }
-        updateGraph(edges,current,lapseTime,false);
+        paintFooter(selectedNodes, extraColumnsActive);
+
     })
     panel.addClass("nglc-box-margins-vertical");
 
@@ -200,6 +198,7 @@ var nglc_reset = function () {
     lastLoaded = 0;
     lastTime = 0;
     $("#"+NGLC_FOOTER_ID).empty();
+    selectedNodes = {};
 }
 
 
@@ -318,8 +317,8 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
         }
         pos++;
     }
-    paintFooter(nodes);
     paintGraphUpdateEdges(nodes,edgesToPaint)
+    paintFooter(selectedNodes, extraColumnsActive);
     if (repaint) {
         end = +edges[edges.length - 1].time + (lapseTime / 2);
         paintSlideBar(start, time, end)
@@ -328,8 +327,8 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
 }
 
 
-var paintFooter = function (nodes){
-    var columnsToShow = Object.getOwnPropertyNames(extraColumnsActive);
+var paintFooter = function (nodes,activeColumns){
+    var columnsToShow = Object.getOwnPropertyNames(activeColumns);
     var divFooter = $("#"+NGLC_FOOTER_ID);
     divFooter.empty();
     // TODO Alert this to the user
@@ -337,14 +336,17 @@ var paintFooter = function (nodes){
         return;
     }else {
         var columnClass = "col-lg-"+(parseInt(12 / columnsToShow.length))
-        $.each(extraColumnsActive,function(key,value){
-            var colDiv = $('<div/>',{
-                class: columnClass
-            })
-            // Poner titulo
-            colDiv.append(bootstapTableFooter(extraColumnsShown[key],nodes[extraColumnsNodeActive]));
-            divFooter.append(colDiv);
+        $.each(nodes,function(){
+            var node = this;
+            $.each(activeColumns,function(key2){
+                var colDiv = $('<div/>',{
+                    class: columnClass
+                })
+                // Poner titulo
+                colDiv.append(bootstapTableFooter(extraColumnsShown[key2],node));
+                divFooter.append(colDiv);
 
+            })
         })
 //        divFooter.text(columnsToShow.length)
     }
@@ -377,7 +379,7 @@ var paintSlideBar = function (start,currentTime,end){
     var endDate = new Date(parseInt(end));
 
     var formatOptions = getFormatOptions(startDate,endDate,displayTimePrecision);
-    var myLocale = locale;
+    var myLocale = dashboard_locale;
 
 
 
@@ -522,6 +524,14 @@ var paintGraphOnlyNodes = function (nodes) {
         value.elements = 0;
     })
     resetShowedElements();
+    networkGraph.on('select',function (properties){
+        selectedNodes = {};
+        $.each (properties.nodes, function (){
+            selectedNodes[this] = networkGraph.nodes[this];
+        })
+        paintFooter(selectedNodes, extraColumnsActive);
+        console.debug(properties.nodes)
+    })
     return;
 
 }

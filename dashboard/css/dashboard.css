@@ -386,4 +386,6 @@ body {
 }
 
 
-
+thead {
+    font-weight: bold;
+}

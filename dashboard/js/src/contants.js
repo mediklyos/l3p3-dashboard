@@ -6,7 +6,7 @@ var COOKIE_DEBUG="debug";
 
 var CONTENT_FATHER = "content-father"
 
-var locale = "es-ES"
+var dashboard_locale = "es-ES"
 
 var BORDER_SIZE = 20;
 var ACTIVE_CLASS = "active";
