@@ -24,6 +24,9 @@ var NGLC_FILTER_PANEL = PRE + "-filter-panel";
 var NGLC_FILTER_COLUMNS_BUTTONS_PREFIX_ID = PRE + "-buttons-columns-filter-"
 var NGLC_FILTER_COLUMNS_BUTTONS_CLASS = PRE + "-buttons-columns-class"
 var NGLC_FOOTER_ID = PRE + "-footer-id"
+var NGLC_FOOTER_NODE_TABLE = PRE + "-footer-node-table"
+var NGLC_LEFT_MAIN= PRE + "-left-main"
+var NGLC_FILTER_BOX= PRE + "-filter-box"
 
 /*Textos localizacion*/
 var NGLC_FILTERS_COLS_INFO= "Columns ";
@@ -45,7 +48,8 @@ var velocity;
 var displayTimePrecision = 4;
 var lastLoaded = 0;
 var lastTime = 0;
-var extraColumnsShown = ["id"];
+var extraColumnsShown = ["id", "Priority"];
+var columnsIgnored = {time:true,origin:true,destination:true}
 var extraColumnsActive = {};
 var selectedNodes = {};
 
@@ -55,11 +59,11 @@ var nglc_startRoutine = function (){
     velocity = 4000000;
     if (GLOBAL_DEBUG){
 //        setTimeLineFile("data/nglc-demo/rfc-data_2.csv")
-        setTimeLineFile("data/nglc-demo/rfc-data.csv")
+//        setTimeLineFile("data/nglc-demo/rfc-data.csv")
 //        setNetworkFile("data/nglc-demo/nodes.json")
-        setNetworkFile("data/nglc-demo/nodes2.json")
+//        setNetworkFile("data/nglc-demo/nodes2.json")
 //        setTimeLineFile("data/nglc-demo/timeLine.csv")
-        loadFromUrl(networkUrl,timeLineUrl)
+//        loadFromUrl(networkUrl,timeLineUrl)
     }
 }
 var resetEdges = function () {
@@ -99,69 +103,119 @@ var nglcResizeFunction = function (){
 var nglcCleanFunction  = function (){
     $(window).unbind('resize',nglcResizeFunction)
 }
+var loadNodesClick = function() {
+    $("#"+NGLC_ID_FILE_INPUT_NODES).click();
+    $("#"+NGLC_ID_FILE_INPUT_NODES).fileupload({
+        add: function (event,data){
+            var file = data.files[0];
+            loadNodesFromFile(file);
+
+        }
+    })
+}
+
+var exportButtonClick  = function () {
+    var nodes = {}
+    $.each(networkGraph.nodes,function (key,value){
+        nodes[key] = {};
+        nodes[key].x = value.x
+        nodes[key].y = value.y
+    })
+    var string = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(nodes));
+    $(this)
+        .attr({
+            'download': "nodes.json",
+            'href': string,
+            'target': '_blank'
+        });
+}
+
+var loadTimeLineClick = function () {
+    $("#"+NGLC_ID_FILE_INPUT_NODES).click();
+    $("#"+NGLC_ID_FILE_INPUT_NODES).fileupload({
+        add: function (event,data){
+            var file = data.files[0];
+            loadTimeLineFromFile(file);
+
+        }
+    })
+
+}
 
 var initLeftColumnAndFooter = function () {
     var leftDiv = $("#"+LEFT_COLUMN_CONTENT);
     var main = $('<div/>',{
-        class: "left-main"
+        class: "left-main",
+        id : NGLC_LEFT_MAIN
     })
     var buttonsBox = $('<div/>',{class: "nglc-box-margins"}).appendTo(main)
     leftDiv.append(main);
-    var exportButton = $("<a/>", {
-        class: "btn btn-default",
-        text: NGLC_TEXT_EXPORT_BUTTON
-    }).appendTo(buttonsBox);
-    var loadNodes =$("<a/>", {
-        class: "btn btn-default",
-        text: NGLC_TEXT_LOAD_NODES
-    }).appendTo(buttonsBox);
+
     var loadNodesInput = $("<input/>", {
         id: NGLC_ID_FILE_INPUT_NODES,
         type: "file",
         name: "nodeFile",
         style: "display: none;"
     }).appendTo(buttonsBox);
-    var loadTimeLine= $("<a/>", {
-        class: "btn btn-default",
+    /*var loadNodes =*/
+    $("<a/>", {
+        class: "btn btn-default nglc-box-margins",
+        text: NGLC_TEXT_LOAD_NODES
+    }).appendTo(buttonsBox).click(loadNodesClick);
+    /*var loadTimeLine= */
+    $("<a/>", {
+        class: "btn btn-default nglc-box-margins",
         text: NGLC_TEXT_LOAD_TIMELINE
-    }).appendTo(buttonsBox);
+    }).appendTo(buttonsBox).click(loadTimeLineClick);
+    /*var exportButton = */
+    $("<a/>", {
+        class: "btn btn-default nglc-box-margins",
+        text: NGLC_TEXT_EXPORT_BUTTON
+    }).appendTo(buttonsBox).click(exportButtonClick)
+    ;
     var nodes = {}
 
 //    createPanelButtons("Columns",NGLC_FILTER_PANEL,main,extraColumnsShown,"",PRE,function(){})
     // IN a new div because I want to be in a new line
 
-    exportButton.click(function (e) {
-        var nodes = {}
-        $.each(networkGraph.nodes,function (key,value){
-            nodes[key] = {};
-            nodes[key].x = value.x
-            nodes[key].y = value.y
-        })
-        var string = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(nodes));
-//        window.open('data:application/json;charset=utf-8,'+ encodeURIComponent(string))
-
-
-        $(this)
-            .attr({
-                'download': "nodes.json",
-                'href': string,
-                'target': '_blank'
-            });
-    })
-    loadNodes.click(function(){
-        $("#"+NGLC_ID_FILE_INPUT_NODES).click();
-        $("#"+NGLC_ID_FILE_INPUT_NODES).fileupload({
-            add: function (event,data){
-                var file = data.files[0];
-                loadNodesFromFile(file);
-
-            }
-        })
-    })
 
 
     /*Filter panel*/
-    var filterPanel = jQuery('<div />',{class:'nglc-box-margins'}).appendTo(main);
+    resetFilterPanel()
+//    var filterPanel = jQuery('<div />',{class:'nglc-box-margins'}).appendTo(main);
+//    filterPanel.append($('<div/>',{
+//        class: "hr"
+//    }))//.css("border-top-width","3px"))
+//    filterPanel.append($('<div/>', {
+//        class: 'nglc-box-margins-vertical',
+//        text: NGLC_FILTERS_COLS_INFO
+//    }))
+////    filterPanel.append($('<div/>',{
+////        class: "hr"
+////    }))
+//    var panel = createSetButtons(NGLC_FILTER_PANEL, filterPanel,extraColumnsShown,NGLC_FILTER_COLUMNS_BUTTONS_PREFIX_ID,NGLC_FILTER_COLUMNS_BUTTONS_CLASS,function(result){
+//        if (result.active){
+//            extraColumnsActive[result.key] = true;
+//        } else {
+//            delete extraColumnsActive[result.key]
+//        }
+//        paintFooter(selectedNodes, extraColumnsActive);
+//
+//    })
+//    panel.addClass("nglc-box-margins-vertical");
+
+
+    /*Footer Init*/
+
+    $("#"+FOOTER_CONTENT_ID).append($('<div/>',{
+        id: NGLC_FOOTER_ID
+    }))
+
+}
+var resetFilterPanel = function (){
+    var main = $("#"+NGLC_LEFT_MAIN);
+    $("#"+NGLC_FILTER_BOX).remove();
+    var filterPanel = jQuery('<div />',{class:'nglc-box-margins',id: NGLC_FILTER_BOX}).appendTo(main);
     filterPanel.append($('<div/>',{
         class: "hr"
     }))//.css("border-top-width","3px"))
@@ -182,14 +236,6 @@ var initLeftColumnAndFooter = function () {
 
     })
     panel.addClass("nglc-box-margins-vertical");
-
-
-    /*Footer Init*/
-
-    $("#"+FOOTER_CONTENT_ID).append($('<div/>',{
-        id: NGLC_FOOTER_ID
-    }))
-
 }
 
 var nglc_reset = function () {
@@ -203,6 +249,8 @@ var nglc_reset = function () {
     lastLoaded = 0;
     lastTime = 0;
     $("#"+NGLC_FOOTER_ID).empty();
+    $("#"+NGLC_GRAPH_CONTAINER).empty();
+    $("#"+NGLC_SLIDER_PANEL).empty();
     selectedNodes = {};
 }
 
@@ -219,12 +267,12 @@ var setTimeLineFile = function (url) {
 var loadFromUrl = function (networkUrl,timeLineUrl){
     $.getJSON(networkUrl  , function (json) {
         d3.csv(timeLineUrl,function(csv){
-            edges = csv;
+//            edges = csv;
             nodes = json;
-            current = + edges[0].time - (lapseTime / 2);
+//            current = + edges[0].time - (lapseTime / 2);
 
-            paintGraphOnlyNodes(nodes)
-            updateGraph(edges,current,lapseTime,true)
+//            paintGraphOnlyNodes(nodes)
+//            updateGraph(edges,current,lapseTime,true)
         })
 
     })
@@ -233,13 +281,37 @@ var loadFromUrl = function (networkUrl,timeLineUrl){
 var loadNodesFromFile = function (file){
     var reader = new FileReader();
     reader.onload = function(event) {
-        var _nodes = $.parseJSON(event.target.result);
-        nodes = _nodes;
-        paintGraphOnlyNodes(nodes)
+        nglc_reset();
+
+        nodes = $.parseJSON(event.target.result);
+        extraColumnsShown = [];
+
+//        paintGraphOnlyNodes(nodes)
 
     }
     reader.readAsText(file);
 
+}
+
+var loadTimeLineFromFile = function (file) {
+    var reader = new FileReader();
+    reader.onload = function(event) {
+        var parsed = d3.csv.parse(event.target.result)
+        edges = parsed;
+        current = + edges[0].time - (lapseTime / 2);
+        if (nodes !== undefined) {
+            extraColumnsShown = [];
+            $.each (edges[0], function (key){
+                if (!columnsIgnored[key])
+                    extraColumnsShown.add(key);
+            })
+            resetFilterPanel();
+
+            paintGraphOnlyNodes(nodes)
+            updateGraph(edges, current, lapseTime, true)
+        }
+    }
+    reader.readAsText(file);
 }
 
 var parseEdges = function(stringEdges){
@@ -336,19 +408,31 @@ var paintFooter = function (nodes,activeColumns){
     var columnsToShow = Object.getOwnPropertyNames(activeColumns);
     var divFooter = $("#"+NGLC_FOOTER_ID);
     divFooter.empty();
+
     // TODO Alert this to the user
     if (columnsToShow.length > 4) {
         return;
     }else {
         var columnClass = "col-lg-"+(parseInt(12 / columnsToShow.length))
+        var first = true;
         $.each(nodes,function(){
             var node = this;
+            if (first) {
+                first = false;
+            } else {
+                divFooter.append('<div class="hr"/>')
+            }
+            divFooter.append('<h5>Node: '+node.id+'</h5>')
             $.each(activeColumns,function(key2){
+
                 var colDiv = $('<div/>',{
                     class: columnClass
                 })
+                var innerColDiv = $('<div/>',{
+                    class: NGLC_FOOTER_NODE_TABLE
+                }).appendTo(colDiv);
                 // Poner titulo
-                colDiv.append(bootstapTableFooter(extraColumnsShown[key2],node));
+                innerColDiv.append(bootstapTableFooter(extraColumnsShown[key2],node));
                 divFooter.append(colDiv);
 
             })

@@ -358,14 +358,23 @@ body {
 }
 
 .nglc-box-margins-horizontal, .nglc-box-margins{
-    margin-left :5px;
-    margin-right :5px;
+    margin-left :2px;
+    margin-right :2px;
 }
 
 .nglc-box-margins-vertical, .nglc-box-margins {
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
+.nglc-footer-node-table {
+    border: 1px solid;
+    border-radius: 5px;
+}
+
+#nglc-footer-id h5 {
+    text-align: center;
+}
+
 .left-divider {
     border-right: 1px solid #ccc;
     padding: 0px 5px;
