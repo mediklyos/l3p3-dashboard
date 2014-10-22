@@ -29,6 +29,7 @@ var NGLC_FOOTER_ID = PRE + "-footer-id"
 var NGLC_FILTERS_COLS_INFO= "Columns ";
 
 
+/*View attributes*/
 var nodes;
 var edges;
 var elements;
@@ -50,12 +51,13 @@ var selectedNodes = {};
 
 var nglc_startRoutine = function (){
     nglc_reset();
-    setTimeLineFile("data/nglc-demo/rfc-data_2.csv")
-//        setNetworkFile("data/nglc-demo/nodes.json")
-    setNetworkFile("data/nglc-demo/nodes2.json")
+    lapseTime = 4000000;
+    velocity = 4000000;
     if (GLOBAL_DEBUG){
-        lapseTime = 4000000;
-        velocity = 4000000;
+//        setTimeLineFile("data/nglc-demo/rfc-data_2.csv")
+        setTimeLineFile("data/nglc-demo/rfc-data.csv")
+//        setNetworkFile("data/nglc-demo/nodes.json")
+        setNetworkFile("data/nglc-demo/nodes2.json")
 //        setTimeLineFile("data/nglc-demo/timeLine.csv")
         loadFromUrl(networkUrl,timeLineUrl)
     }
@@ -135,7 +137,10 @@ var initLeftColumnAndFooter = function () {
             nodes[key].x = value.x
             nodes[key].y = value.y
         })
-        var string = csvData = 'data:application/json;charset=utf-8,' + JSON.stringify(nodes);
+        var string = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(nodes));
+//        window.open('data:application/json;charset=utf-8,'+ encodeURIComponent(string))
+
+
         $(this)
             .attr({
                 'download': "nodes.json",
