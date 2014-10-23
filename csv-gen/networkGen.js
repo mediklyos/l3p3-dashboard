@@ -9,7 +9,7 @@ var fs = require('fs');
 /* Configuration vars*/
 var networkFileName = "timeLine.csv"
 var nodesFileName = "nodes.json"
-var timeRange = 100; /* in milliseconds*/
+var timeRange = 4000000; /* in milliseconds*/
 var nodes = [
     "nodeA",
     "nodeB",
@@ -52,7 +52,7 @@ var elements = [
     { id:"e21", position : "nodeA"},
     { id:"e22", position : "nodeA"}
 ]
-var rows = 1000;
+var rows = 250000;
 var date = new Date();
 var longTime = date.getTime();
 
@@ -76,8 +76,8 @@ for (var i = 0; i < elements.length; i++){
 
 }
 for (var i = 0; i < rows; i++){
-    //longTime = longTime + Math.floor(Math.random()*timeRange);
-    longTime++;
+    longTime = longTime + Math.floor(Math.random()*timeRange);
+//    longTime++;
     var elementAffected = Math.floor(Math.random()*elements.length);
     var origin = elements[elementAffected].position;
     var destiny = "";

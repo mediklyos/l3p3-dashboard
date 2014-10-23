@@ -49,7 +49,7 @@ var current;
 var lapseTime;
 var dataPainted = undefined;
 var velocity;
-var displayTimePrecision = 4;
+var displayTimePrecision = 5;
 var lastLoaded = 0;
 var lastTime = 0;
 var extraColumnsShown = ["id", "Priority"];
@@ -62,12 +62,13 @@ var nglc_startRoutine = function (){
     lapseTime = 4000000;
     velocity = 4000000;
     if (GLOBAL_DEBUG){
-        setTimeLineFile("data/nglc-demo/rfc-data_2.csv")
+//        setTimeLineFile("data/nglc-demo/rfc-data_2.csv")
 //        setTimeLineFile("data/nglc-demo/rfc-data.csv")
 //        setNetworkFile("data/nglc-demo/nodes.json")
-        setNetworkFile("data/nglc-demo/nodes2.json")
+//        setNetworkFile("data/nglc-demo/nodes2.json")
 //        setNetworkFile("data/nglc-demo/nodes4.json")
-//        setTimeLineFile("data/nglc-demo/timeLine.csv")
+        setNetworkFile("data/nglc-demo/nodes.json")
+        setTimeLineFile("data/nglc-demo/timeLine.csv")
         loadFromUrl(networkUrl,timeLineUrl)
     }
 }
