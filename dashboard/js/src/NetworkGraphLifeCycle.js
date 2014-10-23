@@ -31,6 +31,10 @@ var NGLC_FILTER_BOX= PRE + "-filter-box"
 /*Textos localizacion*/
 var NGLC_FILTERS_COLS_INFO= "Columns ";
 
+/*Configurable constants*/
+var NGLC_ORIGIN_COLUMN_NAME = "origin";
+var NGLC_DESTINATION_COLUMN_NAME = "destination";
+var NGLC_TIME_COLUMN_NAME = "time"
 
 /*View attributes*/
 var nodes;
@@ -267,12 +271,11 @@ var setTimeLineFile = function (url) {
 var loadFromUrl = function (networkUrl,timeLineUrl){
     $.getJSON(networkUrl  , function (json) {
         d3.csv(timeLineUrl,function(csv){
-//            edges = csv;
+            edges = csv;
             nodes = json;
-//            current = + edges[0].time - (lapseTime / 2);
-
-//            paintGraphOnlyNodes(nodes)
-//            updateGraph(edges,current,lapseTime,true)
+            current = + edges[0][NGLC_TIME_COLUMN_NAME] - (lapseTime / 2);
+            paintGraphOnlyNodes(nodes)
+            updateGraph(edges,current,lapseTime,true)
         })
 
     })
@@ -286,7 +289,7 @@ var loadNodesFromFile = function (file){
         nodes = $.parseJSON(event.target.result);
         extraColumnsShown = [];
 
-//        paintGraphOnlyNodes(nodes)
+        paintGraphOnlyNodes(nodes)
 
     }
     reader.readAsText(file);
@@ -298,7 +301,7 @@ var loadTimeLineFromFile = function (file) {
     reader.onload = function(event) {
         var parsed = d3.csv.parse(event.target.result)
         edges = parsed;
-        current = + edges[0].time - (lapseTime / 2);
+        current = + edges[0][NGLC_TIME_COLUMN_NAME] - (lapseTime / 2);
         if (nodes !== undefined) {
             extraColumnsShown = [];
             $.each (edges[0], function (key){
@@ -341,7 +344,7 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
     var pos = lastLoaded || 0;
 
 //    var edgeSplit = edgesSplit[pos++].split(",");
-    start = +edges[0].time - (lapseTime/2);
+    start = +edges[0][NGLC_TIME_COLUMN_NAME] - (lapseTime/2);
     // Estas aristas no son necesarias pero el track para el número de elementos si
 
     /* Si es hacia atras se recalcula */
@@ -353,28 +356,28 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
             value.elements = 0;
         })
     }
-    if (edges[pos].time <= time) {
-        while (pos < edges.length && (edges[pos].time <= time )) {
+    if (edges[pos][NGLC_TIME_COLUMN_NAME] <= time) {
+        while (pos < edges.length && (edges[pos][NGLC_TIME_COLUMN_NAME] <= time )) {
             var edge = edges[pos];
             /*Nodes update*/
-            if (nodes[edge.origin].elements) {
-                nodes[edge.origin].elements--;
+            if (nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements) {
+                nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements--;
             }
-            nodes[edge.destination].elements++;
+            nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].elements++;
 
             /*Columns updating*/
 
             $.each(extraColumnsShown,function(){
-                if (nodes[edge.destination].extraCols[this][edge[this]] === undefined){
-                    nodes[edge.destination].extraCols[this][edge[this]] = 1;
+                if (nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]] === undefined){
+                    nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]] = 1;
                 } else {
-                    nodes[edge.destination].extraCols[this][edge[this]]++;
+                    nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]]++;
                 }
-                if (nodes[edge.origin].extraCols[this][edge[this]] !== undefined){
-                    if (nodes[edge.origin].extraCols[this][edge[this]] == 1){
-                        delete nodes[edge.origin].extraCols[this][edge[this]];
+                if (nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]] !== undefined){
+                    if (nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]] == 1){
+                        delete nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]];
                     } else {
-                        nodes[edge.origin].extraCols[this][edge[this]]--;
+                        nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]]--;
                     }
                 }
             })
@@ -385,19 +388,19 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
         lastTime = time;
     }
     /*Edges de delta positivo se calcula aqui*/
-    while (pos < edges.length && (edges[pos].time <= time + lapseTime)){
+    while (pos < edges.length && (edges[pos][NGLC_TIME_COLUMN_NAME] <= time + lapseTime)){
         var edge = edges[pos];
-        if (edgesToPaint[edge.origin + "-" + edge.destination] === undefined) {
-            edgesToPaint[edge.origin + "-" + edge.destination] = {edge: edge, count: 1};
+        if (edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] === undefined) {
+            edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] = {edge: edge, count: 1};
         } else {
-            edgesToPaint[edge.origin + "-" + edge.destination].count++;
+            edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].count++;
         }
         pos++;
     }
     paintGraphUpdateEdges(nodes,edgesToPaint)
     paintFooter(selectedNodes, extraColumnsActive);
     if (repaint) {
-        end = +edges[edges.length - 1].time + (lapseTime / 2);
+        end = +edges[edges.length - 1][NGLC_TIME_COLUMN_NAME] + (lapseTime / 2);
         paintSlideBar(start, time, end)
     }
     return pos;
@@ -631,8 +634,8 @@ var paintGraphUpdateEdges = function (nodes,edges){
     /* Set up the edges for vis library*/
     var paintEdges = $.map (edges, function (value){
         var edge = {}
-        edge.from = value.edge.origin
-        edge.to = value.edge.destination;
+        edge.from = value.edge[NGLC_ORIGIN_COLUMN_NAME]
+        edge.to = value.edge[NGLC_DESTINATION_COLUMN_NAME];
         edge.label = value.count;
         edge.style = "arrow"
         return [edge]
