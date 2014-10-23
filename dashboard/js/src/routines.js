@@ -28,11 +28,45 @@ $(document).ready(function(){
 var clear = function(){}
 
 function generateInteractiveMenus(){
-    var list = $("#views-drop-down")
+    list = $("#views-drop-down")
 //    var request = new EJS.newRequest();
     var request = new XMLHttpRequest;
     var linesPainted = 0;
     $.each(views, function (pos, value){
+        if (linesPainted != 0 && value.length != 0){
+            $('<li class="divider"></li>').appendTo(list);
+        }
+        linesPainted = 0;
+        $.each(value,function(pos,value) {
+            var request = new XMLHttpRequest();
+            request.open('GET', value.ref, false);  // `false` makes the request synchronous
+            request.send(null)
+            if (request.status === 200) {
+                var li = $('<li/>')
+                $('<a/>',{
+                    ref: value.ref,
+                    id: value.id,
+                    href: "#",
+                    class: "contentLink subLink",
+                    text: value.title
+                }).appendTo(li);
+                li.appendTo(list)
+                linesPainted++;
+                $("#"+value.id).click(changeView.bind(undefined,value))
+            } else {
+                console.log("Ignore the GET exception...")
+            }
+
+        })
+
+    })
+
+    var list = $("#demo-drop-down")
+    linesPainted = 0;
+    if (demoViews[0].length == 0){
+        $("#demo-drop-down").remove();
+    }
+    $.each(demoViews, function (pos, value){
         if (linesPainted != 0 && value.length != 0){
             $('<li class="divider"></li>').appendTo(list);
         }
@@ -205,6 +239,13 @@ var cookie_debug = getCookie(COOKIE_DEBUG);
 if (cookie_debug !== undefined){
     GLOBAL_DEBUG = cookie_debug == "true";
 }
+var demoViews = []
+demoViews[0] = [];
+if (GLOBAL_DEBUG){
+    demoViews[0][0] = {id: "d3plusDemo",constantsPrefix: "d3p",ref: "js/templates/template_d3p.ejs",title : "Demo D3 plus", js: "js/src/d3plusDemo.js"}
+}
+
+
 var views = [];
 views[0] = []
 views[1] = []

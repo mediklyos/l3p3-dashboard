@@ -123,7 +123,6 @@ body {
     background-image: url('../icons/rightArrow_black.png');
 }
 
-
 #content-father{
     overflow-x: hidden;
 }
@@ -373,6 +372,24 @@ body {
 
 #nglc-footer-id h5 {
     text-align: center;
+}
+/*size of the image*/
+#nglc-next-step-img {
+    background: url('../icons/step1.png') no-repeat;
+    width: 20px;
+    height: 20px;
+}
+#nglc-next-step-img:hover {
+    background: url('../icons/step1_black.png') no-repeat;
+}
+
+#nglc-prev-step-img {
+    background: url('../icons/step2.png') no-repeat;
+    width: 20px;
+    height: 20px;
+}
+#nglc-prev-step-img:hover {
+    background: url('../icons/step2_black.png') no-repeat;
 }
 
 .left-divider {

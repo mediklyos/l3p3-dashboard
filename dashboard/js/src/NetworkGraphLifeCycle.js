@@ -56,6 +56,8 @@ var extraColumnsShown = ["id", "Priority"];
 var columnsIgnored = {time:true,origin:true,destination:true}
 var extraColumnsActive = {};
 var selectedNodes = {};
+var timerFirst = 1000;
+var timerRest = 200;
 
 var nglc_startRoutine = function (){
     nglc_reset();
@@ -328,7 +330,8 @@ var parseEdges = function(stringEdges){
 
 /**
  * Carga los nodos y las aristas desde el principio. Devuelve el primero que no se pinta por si se quiere recalcular
- * el grafo desde ese punto sin tener que calcular todos los puntos de nuevo
+ * el grafo desde ese punto sin tener que calcular todos los puntos de nuevo. Esta es la función clave del proceso y
+ * la que más recursos consume
  *
  * @param edges
  * @param time
@@ -501,6 +504,7 @@ var bootstapTableFooter = function (columnName, node){
 var paintSlideBar = function (start,currentTime,end){
     var sliderPanel = $("#"+NGLC_SLIDER_PANEL);
     sliderPanel.empty();
+
     var internalDiv = $('<div/>',{
         class : "div-border",
         id: NGLC_SLIDER_SUBPANEL
@@ -514,7 +518,8 @@ var paintSlideBar = function (start,currentTime,end){
 
 
 
-
+    internalDiv.append($('<div id="nglc-prev-step-img" class="nglc-box-margins-horizontal"/>').mousedown(botStart).mouseup(botStop))
+    internalDiv.append($('<div id="nglc-next-step-img" class="nglc-box-margins-horizontal"/>').mousedown(upStart).mouseup(upStop))
     var divStartDate = $('<div/>',{
         id: NGLC_DIV_START_DATE,
         text: new Intl.DateTimeFormat(myLocale, formatOptions).format(startDate)
@@ -567,9 +572,18 @@ var paintSlideBar = function (start,currentTime,end){
 }
 
 var resizingSlider = function (){
-    var width = $('#'+NGLC_SLIDER_PANEL).width() - $('#'+NGLC_DIV_START_DATE).outerWidth() - $('#'+NGLC_DIV_END_DATE).outerWidth() -100 // Margin
+    if ($('#'+NGLC_SLIDER_SUBPANEL).length){
+        var restWith = 100;
+        $.each($('#'+NGLC_SLIDER_SUBPANEL).children(),function (){
+            if (this.id != NGLC_INTERNAL_SLIDER){
+                restWith += $(this).outerWidth();
+            }
+        })
+//        var width = $('#'+NGLC_SLIDER_PANEL).width() - $('#'+NGLC_DIV_START_DATE).outerWidth() - $('#'+NGLC_DIV_END_DATE).outerWidth() -100 // Margin
+//        width = $('#'+NGLC_SLIDER_PANEL).width() - $('#'+NGLC_DIV_START_DATE).position().left - $('#'+NGLC_DIV_START_DATE).outerWidth() - $('#'+NGLC_DIV_END_DATE).outerWidth() -100 // Margin
+        $('#'+NGLC_INTERNAL_SLIDER).width($('#'+NGLC_SLIDER_PANEL).outerWidth() - restWith);
+    }
 //    var width = 0;
-    $('#'+NGLC_INTERNAL_SLIDER).width(width);
 }
 var getFormatOptions = function (start,end,precision){
     /*More efficiency*/
@@ -730,6 +744,38 @@ var getOptions = function() {
 }
 
 /*DEBUG*/
+var upStart = function (event){
+    event.target.isStoped = false;
+    up();
+    setTimeout(upStartTimer.bind(event.target),timerFirst);
+}
+var upStartTimer = function (){
+    if (!this.isStoped){
+        up()
+        setTimeout(upStartTimer.bind(this),timerRest);
+    }
+}
+var upStop = function (event) {
+    event.target.isStoped = true;
+}
+
+
+
+/*DEBUG*/
+var botStart = function (event){
+    event.target.isStoped = false;
+    bot();
+    setTimeout(botStartTimer.bind(event.target),timerFirst);
+}
+var botStartTimer = function (){
+    if (!this.isStoped){
+        bot()
+        setTimeout(botStartTimer.bind(this),timerRest);
+    }
+}
+var botStop = function (event) {
+    event.target.isStoped = true;
+}
 
 var up = function (){
     current = +(current) + lapseTime;
