@@ -62,12 +62,13 @@ var nglc_startRoutine = function (){
     lapseTime = 4000000;
     velocity = 4000000;
     if (GLOBAL_DEBUG){
-//        setTimeLineFile("data/nglc-demo/rfc-data_2.csv")
+        setTimeLineFile("data/nglc-demo/rfc-data_2.csv")
 //        setTimeLineFile("data/nglc-demo/rfc-data.csv")
 //        setNetworkFile("data/nglc-demo/nodes.json")
-//        setNetworkFile("data/nglc-demo/nodes2.json")
+        setNetworkFile("data/nglc-demo/nodes2.json")
+//        setNetworkFile("data/nglc-demo/nodes4.json")
 //        setTimeLineFile("data/nglc-demo/timeLine.csv")
-//        loadFromUrl(networkUrl,timeLineUrl)
+        loadFromUrl(networkUrl,timeLineUrl)
     }
 }
 var resetEdges = function () {
@@ -347,33 +348,68 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
     start = +edges[0][NGLC_TIME_COLUMN_NAME] - (lapseTime/2);
     // Estas aristas no son necesarias pero el track para el número de elementos si
 
-    /* Si es hacia atras se recalcula */
+    /*Tiempo hacia atras*/
     if (lastTime > time){
-        pos = 0;
-        lastLoaded = 0;
-        resetShowedElements();
-        $.map(nodes,function (value){
-            value.elements = 0;
-        })
-    }
-    if (edges[pos][NGLC_TIME_COLUMN_NAME] <= time) {
-        while (pos < edges.length && (edges[pos][NGLC_TIME_COLUMN_NAME] <= time )) {
+        // -- porque la posición donde apunta es el siguiente que hay que mirar en caso de ir a delante
+        pos--;
+        while (pos >= 0 && (edges[pos][NGLC_TIME_COLUMN_NAME] > time )) {
             var edge = edges[pos];
             /*Nodes update*/
-            if (nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements) {
-                nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements--;
+            if ((nodes[edge[NGLC_ORIGIN_COLUMN_NAME]] !== undefined)) {
+                nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements++;
             }
-            nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].elements++;
+            if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined) && nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].elements){
+                nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].elements--;
+            }
 
             /*Columns updating*/
 
             $.each(extraColumnsShown,function(){
-                if (nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]] === undefined){
-                    nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]] = 1;
-                } else {
-                    nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]]++;
+                if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined) && nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]] !== undefined){
+                    if (nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]] == 1){
+                        delete nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]];
+                    } else {
+                        nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]]--;
+                    }
                 }
-                if (nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]] !== undefined){
+                if ((nodes[edge[NGLC_ORIGIN_COLUMN_NAME]] !== undefined)) {
+                    if (nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]] === undefined) {
+                        nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]] = 1;
+                    } else {
+                        nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]]++;
+                    }
+                }
+
+            })
+
+            pos--;
+        }
+        pos++;
+
+        lastLoaded = pos;
+        lastTime = time;
+    } else if (edges[pos][NGLC_TIME_COLUMN_NAME] <= time) {
+        while (pos < edges.length && (edges[pos][NGLC_TIME_COLUMN_NAME] <= time )) {
+            var edge = edges[pos];
+            /*Nodes update*/
+            if ((nodes[edge[NGLC_ORIGIN_COLUMN_NAME]] !== undefined) && nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements) {
+                nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements--;
+            }
+            if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined)){
+                nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].elements++;
+            }
+
+            /*Columns updating*/
+
+            $.each(extraColumnsShown,function(){
+                if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined)) {
+                    if (nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]] === undefined) {
+                        nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]] = 1;
+                    } else {
+                        nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]]++;
+                    }
+                }
+                if ((nodes[edge[NGLC_ORIGIN_COLUMN_NAME]] !== undefined) && nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]] !== undefined){
                     if (nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]] == 1){
                         delete nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]];
                     } else {
@@ -390,10 +426,12 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
     /*Edges de delta positivo se calcula aqui*/
     while (pos < edges.length && (edges[pos][NGLC_TIME_COLUMN_NAME] <= time + lapseTime)){
         var edge = edges[pos];
-        if (edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] === undefined) {
-            edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] = {edge: edge, count: 1};
-        } else {
-            edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].count++;
+        if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined)) {
+            if (edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] === undefined) {
+                edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] = {edge: edge, count: 1};
+            } else {
+                edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].count++;
+            }
         }
         pos++;
     }
