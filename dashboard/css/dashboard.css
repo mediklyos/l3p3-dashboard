@@ -391,7 +391,11 @@ body {
 #nglc-prev-step-img:hover {
     background: url('../icons/step2_black.png') no-repeat;
 }
+/*d3p view classes and ids*/
+.d3p-buttons {
+    margin: 2px;
 
+}
 .left-divider {
     border-right: 1px solid #ccc;
     padding: 0px 5px;

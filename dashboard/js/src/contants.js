@@ -16,6 +16,7 @@ var LEFT_COLUMN_BUTTON_OPEN = "left-column-button"
 var LEFT_COLUMN = "left-column"
 var LEFT_COLUMN_CONTENT = "left-column-div"
 var LEFT_COLUMN_ELEMENTS = "left-column-class"
+var LEFT_MAIN_CLASS = "left-main"
 var TITLE_VIEW_ID = "view-title"
 var FOOTER_ID = "footer";
 var FOOTER_CONTENT_ID = "footer-content";

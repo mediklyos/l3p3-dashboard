@@ -3,7 +3,11 @@
  */
 
 
-function createSetButtons(id,parent,buttonsList,buttons_id_prefix,buttons_class,callback){
+function createSetButtons(id,parent,buttonsList,buttons_id_prefix,buttons_class,callback,inline){
+    if (inline === undefined){
+        inline = true;
+    }
+
     var parentPanel;
     if (parent instanceof String){
         parentPanel = $("#"+parent);
@@ -25,11 +29,14 @@ function createSetButtons(id,parent,buttonsList,buttons_id_prefix,buttons_class,
 //    buttonsList = ["uno","dos","tres","cuatro","cinco","seis"]
     $.each(buttonsList, function (key,value){
         var button = $('<button/>',{
-            class: "btn btn-default",
+            class: "btn btn-default "+buttons_class,
             text: value,
             value: value,
             id: buttons_id_prefix + key
         })
+        if (true){
+            button.attr('type',"button")
+        }
         button.click(function(){
             var active = !$(this).hasClass('active');
             $(this).toggleClass('btn-primary',active)
@@ -38,6 +45,9 @@ function createSetButtons(id,parent,buttonsList,buttons_id_prefix,buttons_class,
 
         })
         button.appendTo(buttonsPanel);
+        if (!inline){
+            $('<br/>').appendTo(buttonsPanel);
+        }
     })
     return buttonsPanel;
 }

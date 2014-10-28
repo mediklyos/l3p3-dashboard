@@ -153,7 +153,7 @@ var loadTimeLineClick = function () {
 var initLeftColumnAndFooter = function () {
     var leftDiv = $("#"+LEFT_COLUMN_CONTENT);
     var main = $('<div/>',{
-        class: "left-main",
+        class: LEFT_MAIN_CLASS,
         id : NGLC_LEFT_MAIN
     })
     var buttonsBox = $('<div/>',{class: "nglc-box-margins"}).appendTo(main)

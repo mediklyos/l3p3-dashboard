@@ -65,35 +65,36 @@ function generateInteractiveMenus(){
     linesPainted = 0;
     if (demoViews[0].length == 0){
         $("#demo-drop-down").remove();
-    }
-    $.each(demoViews, function (pos, value){
-        if (linesPainted != 0 && value.length != 0){
-            $('<li class="divider"></li>').appendTo(list);
-        }
-        linesPainted = 0;
-        $.each(value,function(pos,value) {
-            var request = new XMLHttpRequest();
-            request.open('GET', value.ref, false);  // `false` makes the request synchronous
-            request.send(null)
-            if (request.status === 200) {
-                var li = $('<li/>')
-                $('<a/>',{
-                    ref: value.ref,
-                    id: value.id,
-                    href: "#",
-                    class: "contentLink subLink",
-                    text: value.title
-                }).appendTo(li);
-                li.appendTo(list)
-                linesPainted++;
-                $("#"+value.id).click(changeView.bind(undefined,value))
-            } else {
-                console.log("Ignore the GET exception...")
+    } else {
+        $.each(demoViews, function (pos, value){
+            if (linesPainted != 0 && value.length != 0){
+                $('<li class="divider"></li>').appendTo(list);
             }
+            linesPainted = 0;
+            $.each(value,function(pos,value) {
+                var request = new XMLHttpRequest();
+                request.open('GET', value.ref, false);  // `false` makes the request synchronous
+                request.send(null)
+                if (request.status === 200) {
+                    var li = $('<li/>')
+                    $('<a/>',{
+                        ref: value.ref,
+                        id: value.id,
+                        href: "#",
+                        class: "contentLink subLink",
+                        text: value.title
+                    }).appendTo(li);
+                    li.appendTo(list)
+                    linesPainted++;
+                    $("#"+value.id).click(changeView.bind(undefined,value))
+                } else {
+                    console.log("Ignore the GET exception...")
+                }
+
+            })
 
         })
-
-    })
+    }
 
     var mainLinks = $(".staticLink");
     $.each(mainLinks,function(){
@@ -274,7 +275,8 @@ $(function(){
 //    $("#"+views[0][2].id).addClass("active");
 //    $("#"+views[0][2].id).parents().addClass("active");
 //    $("#content").html(new EJS ({url: views[0][2].ref}).render());
-        changeView(views[0][2]);
+//        changeView(views[0][2]);
+        changeView(demoViews[0][0]);
 //    $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
     } else {
         $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
@@ -296,6 +298,7 @@ var toggleLeftColumn = function (state) {
 
 var enableLeftColumn = function (){
     $("#"+LEFT_COLUMN).css('display','')
+    $("#"+LEFT_COLUMN_CONTENT).empty();
     $(window).trigger('resize');
 }
 
