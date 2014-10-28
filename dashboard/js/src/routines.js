@@ -303,9 +303,9 @@ var enableLeftColumn = function (){
 }
 
 var disableLeftColumn = function (){
+    toggleLeftColumn(false)
     $("#"+LEFT_COLUMN).css('display','none')
     $(window).trigger('resize');
-
 }
 
 $(function (){
@@ -314,12 +314,14 @@ $(function (){
     toggleLeftColumn(false)
 })
 var disableFooter = function () {
+    toggleFooter(false)
     $("#"+FOOTER_ID).css('display','none')
     $(window).trigger('resize');
 }
 
 var enableFooter = function () {
     $("#"+FOOTER_ID).css('display','')
+    $("#"+FOOTER_CONTENT_ID).empty();
     $(window).trigger('resize');
 }
 var toggleFooter = function (state){

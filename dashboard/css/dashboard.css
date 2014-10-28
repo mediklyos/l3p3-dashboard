@@ -134,6 +134,7 @@ body {
     width: 300px;
     height: 100%;
     float:left;
+    overflow-y: auto;
 
 
 
@@ -394,7 +395,16 @@ body {
 /*d3p view classes and ids*/
 .d3p-buttons {
     margin: 2px;
+}
 
+#d3p-footer {
+    margin: 5px;
+}
+/*.btn.d3p-buttons>input[type=radio] {*/
+    /*position: fixed !important;*/
+/*}*/
+.d3p-buttons input{
+    position: fixed !important;
 }
 .left-divider {
     border-right: 1px solid #ccc;
