@@ -36,6 +36,7 @@ var GLOBAL_EVENTS_SOURCE_FILE = DATA_URL + "events-allnodes.csv";
 var ID_DASHBOARD_ACTIVE_VIEW_SCRIPT = "dashboard-active-view-script"
 
 var SHOW_FOOTER_CLASS = "footer-show"
+var MAXIMIZE_FOOTER_CLASS = "maximize-footer"
 
 
 var RESET = false

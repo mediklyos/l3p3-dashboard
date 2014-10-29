@@ -5,8 +5,10 @@
 var PRE = demoViews[0][0].constantsPrefix;
 var ID_EXAMPLE = PRE +"-example"
 var D3P_FOOTER = PRE + "-footer"
+var D3P_FOOTER_CODE = PRE + "-footer-code"
 var d3pExamples = {}
 
+var D3P_TEMPLATE_DIR = "/js/templates/d3pDemo/"
 //var ID_EXAMPLE_1 = PRE +"-example-1"
 //var ID_EXAMPLE_3 = PRE +"-example-3"
 //var ID_EXAMPLE_4 = PRE +"-example-4"
@@ -18,14 +20,29 @@ var active = undefined;
 var d3plusDemoResizeFunction = function (){
     if (active !== undefined){
         $("#viz").css('width','100%');
+        $("#viz").css('height','100%');
 //        $("#viz1").css('width','100%');
-        d3pExamples[active].function()
+        changeExample(active)
     }
 }
 
 var d3plusSetFooter = function (content) {
     $("#"+FOOTER_CONTENT_ID).empty();
-    $("#"+FOOTER_CONTENT_ID).append('<p id="'+D3P_FOOTER+'">'+content+'</p>')
+    $('<div/>',{
+        id : D3P_FOOTER
+    }).appendTo("#"+FOOTER_CONTENT_ID)
+    $('<h3>'+d3pExamples[active].title+'</h3>').appendTo("#"+D3P_FOOTER);
+    $('<p id="'+D3P_FOOTER+'">'+content+'</p>').appendTo("#"+D3P_FOOTER)
+    $(function (){
+        if (d3pExamples[active].codeRef !== undefined && d3pExamples[active].codeRef !== ""){
+            $('<h4>Code:</h4>').appendTo("#"+D3P_FOOTER);
+            $('<div/>',{
+                id: D3P_FOOTER_CODE
+            }).appendTo("#"+D3P_FOOTER)
+            $("#"+D3P_FOOTER_CODE).html(new EJS({url: D3P_TEMPLATE_DIR + d3pExamples[active].codeRef}).render());
+
+        }
+    })
 }
 
 var d3pStartRoutine = function () {
@@ -70,6 +87,7 @@ var changeExample = function (example){
     active = example;
     $("#viz").empty();
     d3pExamples[example].function();
+
 }
 
 var d3pExample0 = function (){
@@ -88,8 +106,7 @@ var d3pExample0 = function (){
         .shape("check")
         .cols(["foo", "bar", "baz"])
         .draw()
-    d3plusSetFooter('This visualization accompanies <a href="http://d3plus.org/blog/advanced/2014/09/28/new-visualization-guide/">this blog post</a> by Alexander Simoes, which is a guide to creating new visualization types. It is a table, or more descriptively, a visual representation of a table.');
-//     d3plusSetFooter('Hola');
+    d3plusSetFooter('<p>This visualization accompanies <a href="http://d3plus.org/blog/advanced/2014/09/28/new-visualization-guide/">this blog post</a> by Alexander Simoes, which is a guide to creating new visualization types. It is a table, or more descriptively, a visual representation of a table.</p>');
 }
 
  var d3pExample1 = function (){
@@ -121,7 +138,7 @@ var d3pExample0 = function (){
         .y("value")
         .time("year")
         .draw()
-     d3plusSetFooter('Data can be drawn using a Box and Whisker Plot, which helps highlight outliers and give a quick snapshot of the different quartiles of the dataset.')
+     d3plusSetFooter('<p>Data can be drawn using a Box and Whisker Plot, which helps highlight outliers and give a quick snapshot of the different quartiles of the dataset.</p>')
 
 }
 
@@ -154,7 +171,7 @@ var d3pExample2 = function () {
          .y("year")
          .time("year")
          .draw()
-    d3plusSetFooter('In this advanced Bar Chart example, there are both negative and positive values in the data and they are being displayed on a stacked <a href="https://github.com/alexandersimoes/d3plus/wiki/Visualizations#x">x axis</a>. Additionally, <a href="https://github.com/alexandersimoes/d3plus/wiki/Visualizations#time">.time( )</a> is being declared in order to enable a timeline that allows changing the scope of the data being displayed.')
+    d3plusSetFooter('<p>In this advanced Bar Chart example, there are both negative and positive values in the data and they are being displayed on a stacked <a href="https://github.com/alexandersimoes/d3plus/wiki/Visualizations#x">x axis</a>. Additionally, <a href="https://github.com/alexandersimoes/d3plus/wiki/Visualizations#time">.time( )</a> is being declared in order to enable a timeline that allows changing the scope of the data being displayed.</p>')
 }
 var d3pExample3 = function () {
     var data = [
@@ -184,10 +201,10 @@ var d3pExample3 = function () {
         .x("year")
         .y("value")
         .draw()
-    d3plusSetFooter('<strong>D3plus</strong> has the ability to create all sorts of Bar Charts. Each axis is chosen independently from one another, and data defaults to grouping along the <a href="https://github.com/alexandersimoes/d3plus/wiki/Visualizations#x">x axis</a>.')
+    d3plusSetFooter('<p><strong>D3plus</strong> has the ability to create all sorts of Bar Charts. Each axis is chosen independently from one another, and data defaults to grouping along the <a href="https://github.com/alexandersimoes/d3plus/wiki/Visualizations#x">x axis</a>.</p>')
 }
 var d3pExample4 = function () {
-    d3plusSetFooter('Pie Charts are really easy to make with <strong>d3plus</strong>. The data only needs to have <a href="https://github.com/alexandersimoes/d3plus/wiki/Visualizations#id">.id()</a> and <a href="https://github.com/alexandersimoes/d3plus/wiki/Visualizations#size">.size()</a> values. In general, it operates very similar to <a href="http://d3plus.org/examples/basic/9029130/">tree maps</a>, including <a href="http://d3plus.org/examples/advanced/9860411/">data nesting and grouping</a>.')
+    d3plusSetFooter('<p>Pie Charts are really easy to make with <strong>d3plus</strong>. The data only needs to have <a href="https://github.com/alexandersimoes/d3plus/wiki/Visualizations#id">.id()</a> and <a href="https://github.com/alexandersimoes/d3plus/wiki/Visualizations#size">.size()</a> values. In general, it operates very similar to <a href="http://d3plus.org/examples/basic/9029130/">tree maps</a>, including <a href="http://d3plus.org/examples/advanced/9860411/">data nesting and grouping</a>.</p>')
     var data = [
         {"value": 100, "name": "alpha"},
         {"value": 70, "name": "beta"},
@@ -228,7 +245,7 @@ var d3pExample5 = function () {
         .draw()
 }
 var d3pExample6 = function () {
-    d3plusSetFooter('Enclosure diagrams use containment (nesting) to represent the hierarchy. The size of each leaf node’s circle reveals a quantitative dimension of each data point. The enclosing circles show the approximate cumulative size of each subtree, but note that because of wasted space there is some distortion between levels; only the leaf nodes can be compared accurately. Although circle packing does not use space as efficiently as a treemap, the “wasted” space more prominently reveals the hierarchy.')
+    d3plusSetFooter('<p>Enclosure diagrams use containment (nesting) to represent the hierarchy. The size of each leaf node’s circle reveals a quantitative dimension of each data point. The enclosing circles show the approximate cumulative size of each subtree, but note that because of wasted space there is some distortion between levels; only the leaf nodes can be compared accurately. Although circle packing does not use space as efficiently as a treemap, the “wasted” space more prominently reveals the hierarchy.</p>')
 
     var sample_data = [
         {"value": 100, "name": "alpha", "group": "group 1"},
@@ -251,7 +268,7 @@ var d3pExample6 = function () {
         .draw()
 }
 var d3pExample7 = function () {
-    d3plusSetFooter('It is possible to add custom HTML content to large tooltips by passing an HTML-formatted string to the "html" key in <a href="https://github.com/alexandersimoes/d3plus/wiki/Tooltip-Parameters#object">.tooltip( )</a>. In this example, a custom link to Google.com is inserted into the large tooltip that appears when clicking on a square in the Tree Map.')
+    d3plusSetFooter('<p>It is possible to add custom HTML content to large tooltips by passing an HTML-formatted string to the "html" key in <a href="https://github.com/alexandersimoes/d3plus/wiki/Tooltip-Parameters#object">.tooltip( )</a>. In this example, a custom link to Google.com is inserted into the large tooltip that appears when clicking on a square in the Tree Map.')
 
     var sample_data = [
         {"value": 100, "name": "alpha"},
@@ -386,7 +403,7 @@ var d3pExample10 = function () {
         .draw()
 }
 var d3pExample11 = function () {
-    d3plusSetFooter('<a href="https://github.com/alexandersimoes/d3plus/wiki/Forms">D3plus Forms</a> support nesting just like Visualizations.')
+    d3plusSetFooter('<p><a href="https://github.com/alexandersimoes/d3plus/wiki/Forms">D3plus Forms</a> support nesting just like Visualizations.</p>')
     var sampleData = [
         {"group": "fruits", "food": "apple"},
         {"group": "fruits", "food": "banana"},
@@ -412,7 +429,7 @@ var d3pExample11 = function () {
         .draw()
 }
 var d3pExample12 = function () {
-    d3plusSetFooter('Using <a href="https://github.com/alexandersimoes/d3plus/wiki/Color-Utilities#text">d3plus.color.text</a> provides the ability to dynamically assign a text color (either light or dark) depending on a background color.')
+    d3plusSetFooter('<p>Using <a href="https://github.com/alexandersimoes/d3plus/wiki/Color-Utilities#text">d3plus.color.text</a> provides the ability to dynamically assign a text color (either light or dark) depending on a background color.</p>')
     var colors = d3plus.color.scale.range()
 
     colors = colors.concat(["#525252", "#737373", "#969696", "#bdbdbd", "#d9d9d9", "#f7f7f7"])
@@ -550,7 +567,7 @@ var d3pExample14 = function () {
         .text(String)
 }
 var d3pExample15 = function () {
-    d3plusSetFooter('Using <a href="https://github.com/alexandersimoes/d3plus/wiki/Color-Utilities#lighter">d3plus.color.lighter( )</a>, a color\'s luminosity can be increased based on a specified increment. In this example, each color in the default <strong>D3plus</strong> color scale is shown at various ligher states, by increments of <code>0.1</code>. ')
+    d3plusSetFooter('<p>Using <a href="https://github.com/alexandersimoes/d3plus/wiki/Color-Utilities#lighter">d3plus.color.lighter( )</a>, a color\'s luminosity can be increased based on a specified increment. In this example, each color in the default <strong>D3plus</strong> color scale is shown at various ligher states, by increments of <code>0.1</code>. </p>')
 
 }
 var d3pExample16 = function () {
@@ -660,7 +677,7 @@ var d3pExample21 = function () {
 }
 
 var d3pExample22 = function () {
-    d3plusSetFooter('The default color heatmap used by the <a href="https://github.com/alexandersimoes/d3plus/wiki/Color-Parameters#object">.color( )</a> method when coloring by a range of positive numbers can be changed using the "heatmap" key inside of the method\'s object.')
+    d3plusSetFooter('<p>The default color heatmap used by the <a href="https://github.com/alexandersimoes/d3plus/wiki/Color-Parameters#object">.color( )</a> method when coloring by a range of positive numbers can be changed using the "heatmap" key inside of the method\'s object.</p>')
 
     var sample_data = [
         {"value": 2315987123, "country": "nausa", "name": "United States"},
@@ -709,7 +726,7 @@ var d3pExample23 = function () {
         .draw()
 }
 var d3pExample24 = function () {
-    d3plusSetFooter('The order and sorting of the squares displayed by the <a href="https://github.com/alexandersimoes/d3plus/wiki/Legend#object">.legend( )</a> can be changed by accessing the inner object of the method.')
+    d3plusSetFooter('<p>The order and sorting of the squares displayed by the <a href="https://github.com/alexandersimoes/d3plus/wiki/Legend#object">.legend( )</a> can be changed by accessing the inner object of the method.</p>')
     var sample_data = [
         {"value": 70, "name": "alpha"},
         {"value": 100, "name": "beta"},
@@ -735,7 +752,7 @@ var d3pExample24 = function () {
         .draw()
 }
 var d3pExample25 = function () {
-    d3plusSetFooter('Setting the "label" key available in the <a href="https://github.com/alexandersimoes/d3plus/wiki/Edges-List#object">.edges( )</a> method enables the edges to be labeled by a value in the data.')
+    d3plusSetFooter('<p>Setting the "label" key available in the <a href="https://github.com/alexandersimoes/d3plus/wiki/Edges-List#object">.edges( )</a> method enables the edges to be labeled by a value in the data.</p>')
     var connections = [
         {"source": "alpha", "target": "beta", "strength": 1.25},
         {"source": "alpha", "target": "gamma", "strength": 2.463},
@@ -757,7 +774,7 @@ var d3pExample25 = function () {
         .draw()
 }
 var d3pExample26 = function () {
-    d3plusSetFooter('Setting the "size" key available in the <a href="https://github.com/alexandersimoes/d3plus/wiki/Edges-List#object">.edges( )</a> method enables the edge widths to be sized by a value in the data.')
+    d3plusSetFooter('<p>Setting the "size" key available in the <a href="https://github.com/alexandersimoes/d3plus/wiki/Edges-List#object">.edges( )</a> method enables the edge widths to be sized by a value in the data.</p>')
     var connections = [
         {"source": "alpha", "target": "beta", "strength": 1.25},
         {"source": "alpha", "target": "gamma", "strength": 2.463},
@@ -851,7 +868,7 @@ var d3pExample29 = function () {
 }
 
 var d3pExample30 = function () {
-    d3plusSetFooter('Using the <a href="https://github.com/alexandersimoes/d3plus/wiki/Size-Parameters">.size( )</a> method enables the nodes in Rings to be sized by a value in the data.')
+    d3plusSetFooter('<p>Using the <a href="https://github.com/alexandersimoes/d3plus/wiki/Size-Parameters">.size( )</a> method enables the nodes in Rings to be sized by a value in the data.</p>')
     var sample_data = [
         {"name": "alpha", "value": 20},
         {"name": "beta", "value": 12},
@@ -884,7 +901,7 @@ var d3pExample30 = function () {
         .draw()
 }
 var d3pExample31 = function () {
-    d3plusSetFooter('The "arrows" property of the <a href="https://github.com/alexandersimoes/d3plus/wiki/Edges-List">.edges( )</a> method toggles the visibility of edge directional arrows. The directionality defaults to pointing at the "target" node.')
+    d3plusSetFooter('<p>The "arrows" property of the <a href="https://github.com/alexandersimoes/d3plus/wiki/Edges-List">.edges( )</a> method toggles the visibility of edge directional arrows. The directionality defaults to pointing at the "target" node.</p>')
     var sample_data = [
         {"name": "alpha", "size": 10},
         {"name": "beta", "size": 12},
@@ -929,7 +946,7 @@ var d3pExample31 = function () {
         .draw()
 }
 var d3pExample32 = function () {
-    d3plusSetFooter('With the Network visualization, if <a href="https://github.com/alexandersimoes/d3plus/wiki/Node-Positions">Node Positions</a> are not specified, <strong>D3plus</strong> will determine a layout that aims to reduce node and edge overlapping. This layout happens dynamically, on the fly, and you will see this if you refresh the page.')
+    d3plusSetFooter('<p>With the Network visualization, if <a href="https://github.com/alexandersimoes/d3plus/wiki/Node-Positions">Node Positions</a> are not specified, <strong>D3plus</strong> will determine a layout that aims to reduce node and edge overlapping. This layout happens dynamically, on the fly, and you will see this if you refresh the page.</p>')
     var sample_data = [
         {"name": "alpha", "size": 10},
         {"name": "beta", "size": 12},
@@ -961,7 +978,7 @@ var d3pExample32 = function () {
         .draw()
 }
 var d3pExample33 = function () {
-    d3plusSetFooter('The Stacked Area Chart, along with the other Chart Visualizations, has access to the various keys offered by the <a href="https://github.com/alexandersimoes/d3plus/wiki/Axis-Parameters">.x( )</a> and <a href="https://github.com/alexandersimoes/d3plus/wiki/Axis-Parameters">.y( )</a> methods. In this example, the <a href="https://github.com/alexandersimoes/d3plus/wiki/Axis-Parameters">.x( )</a> scale is changed to "share" after 2 seconds.')
+    d3plusSetFooter('<p>The Stacked Area Chart, along with the other Chart Visualizations, has access to the various keys offered by the <a href="https://github.com/alexandersimoes/d3plus/wiki/Axis-Parameters">.x( )</a> and <a href="https://github.com/alexandersimoes/d3plus/wiki/Axis-Parameters">.y( )</a> methods. In this example, the <a href="https://github.com/alexandersimoes/d3plus/wiki/Axis-Parameters">.x( )</a> scale is changed to "share" after 2 seconds.</p>')
     var sample_data = [
         {"year": 1993, "name":"alpha", "value": 20},
         {"year": 1994, "name":"alpha", "value": 30},
@@ -992,7 +1009,7 @@ var d3pExample33 = function () {
     },2000)
 }
 var d3pExample34 = function () {
-    d3plusSetFooter('When creating a Geo Map, it is possible to initiate the visualization using only a subset of the available geographies passed to <a href="https://github.com/alexandersimoes/d3plus/wiki/Visualization-Methods#Geography-Data">.coords( )</a>. Similar to many of the other methods, the <a href="https://github.com/alexandersimoes/d3plus/wiki/Visualization-Methods#Geography-Data#object">.coords( )</a> method allows you to <a href="https://github.com/alexandersimoes/d3plus/wiki/Data-Filtering">Filter Data</a> by it\'s <a href="https://github.com/alexandersimoes/d3plus/wiki/Unique-ID">.id( )</a> key. In our example here, we are "<a href="https://github.com/alexandersimoes/d3plus/wiki/Data-Filtering#solo">soloing</a>" a few countries in Europe.')
+    d3plusSetFooter('<p>When creating a Geo Map, it is possible to initiate the visualization using only a subset of the available geographies passed to <a href="https://github.com/alexandersimoes/d3plus/wiki/Visualization-Methods#Geography-Data">.coords( )</a>. Similar to many of the other methods, the <a href="https://github.com/alexandersimoes/d3plus/wiki/Visualization-Methods#Geography-Data#object">.coords( )</a> method allows you to <a href="https://github.com/alexandersimoes/d3plus/wiki/Data-Filtering">Filter Data</a> by it\'s <a href="https://github.com/alexandersimoes/d3plus/wiki/Unique-ID">.id( )</a> key. In our example here, we are "<a href="https://github.com/alexandersimoes/d3plus/wiki/Data-Filtering#solo">soloing</a>" a few countries in Europe.</p>')
     var sample_data = [
         {"value": 2315987123, "country": "eufra", "name": "France"},
         {"value": 38157121349, "country": "euprt", "name": "Portugal"},
@@ -1005,7 +1022,7 @@ var d3pExample34 = function () {
         .type("geo_map")
         .coords({
             "solo": ["euesp","euita","eufra","euprt"],
-            "value": "/davelandry/raw/9042807/countries.json"
+            "value": "/data/d3pDemo/countries.json"
         })
         .id("country")
         .text("name")
@@ -1105,7 +1122,7 @@ var d3pExample38 = function () {
 
 // instantiate d3plus
     var visualization = d3plus.viz()
-        .container("#exports")
+        .container("#viz")
         .data(trade_data)
         .type("tree_map")
         .id("product")
@@ -1114,7 +1131,7 @@ var d3pExample38 = function () {
         .draw()
 }
 var d3pExample39 = function () {
-    d3plusSetFooter('When passing the <a href="https://github.com/alexandersimoes/d3plus/wiki/Unique-ID#array">.id( )</a> method an <em>array</em> instead of a single key, the Tree Map visualization will group squares based on the keys (and order) you pass it in the <em>array</em>. The <a href="https://github.com/alexandersimoes/d3plus/wiki/Visible-Depth">.depth( )</a> method can then be set to chose which nesting level to display.')
+    d3plusSetFooter('<p>When passing the <a href="https://github.com/alexandersimoes/d3plus/wiki/Unique-ID#array">.id( )</a> method an <em>array</em> instead of a single key, the Tree Map visualization will group squares based on the keys (and order) you pass it in the <em>array</em>. The <a href="https://github.com/alexandersimoes/d3plus/wiki/Visible-Depth">.depth( )</a> method can then be set to chose which nesting level to display.</p>')
     var sample_data = [
         {"value": 100, "name": "alpha", "group": "group 1"},
         {"value": 70, "name": "beta", "group": "group 2"},
@@ -1155,7 +1172,7 @@ var d3pExample40 = function () {
         .draw()
 }
 var d3pExample41 = function () {
-    d3plusSetFooter('By passing D3plus a list of node positions and connections, a Network can be created and data can be mapped to the size of each node.')
+    d3plusSetFooter('<p>By passing D3plus a list of node positions and connections, a Network can be created and data can be mapped to the size of each node.</p>')
     // create sample dataset
     var sample_data = [
         {"name": "alpha", "size": 10},
@@ -1203,7 +1220,7 @@ var d3pExample41 = function () {
         .draw()
 }
 var d3pExample42 = function () {
-    d3plusSetFooter('An easy way to map data to locations around the world. The <a href="https://github.com/alexandersimoes/d3plus/wiki/Unique-ID">.id( )</a> key in your data must match the "id" key in the topojson that you import.')
+    d3plusSetFooter('<p>An easy way to map data to locations around the world. The <a href="https://github.com/alexandersimoes/d3plus/wiki/Unique-ID">.id( )</a> key in your data must match the "id" key in the topojson that you import.</p>')
     var sample_data = [
         {"value": 2315987123, "country": "nausa", "name": "United States"},
         {"value": 38157121349, "country": "aschn", "name": "China"},
@@ -1224,8 +1241,8 @@ var d3pExample42 = function () {
         .draw()
 }
 var d3pExample43 = function () {
-    d3plusSetFooter('The Line Plot shows data points as lines that change y-value over a continuous x-axis. Lines will ' +
-        'be segmented if data points are not present for a give x value')
+    d3plusSetFooter('<p>The Line Plot shows data points as lines that change y-value over a continuous x-axis. Lines will ' +
+        'be segmented if data points are not present for a give x value</p>')
     var sample_data = [
         {"year": 1991, "name":"alpha", "value": 17},
         {"year": 1992, "name":"alpha", "value": 20},
@@ -1255,9 +1272,9 @@ var d3pExample43 = function () {
         .draw()
 }
 var d3pExample44 = function () {
-    d3plusSetFooter('Rings is a way to view network connections focused on 1 node in the network. It displays primary ' +
+    d3plusSetFooter('<p>Rings is a way to view network connections focused on 1 node in the network. It displays primary ' +
         'and secondary connections of a specific node, as well allowing the user to click on a node to recenter the ' +
-        'visualization on that selected node.')
+        'visualization on that selected node.</p>')
     // create list of node connections
     var connections = [
         {"source": "alpha", "target": "beta"},
@@ -1278,7 +1295,7 @@ var d3pExample44 = function () {
         .draw()
 }
 var d3pExample45 = function () {
-    d3plusSetFooter('A simple Scatter Plot visualization that displays data across an X and Y axis.')
+    d3plusSetFooter('<p>A simple Scatter Plot visualization that displays data across an X and Y axis.</p>')
     var sample_data = [
         {"value": 100, "weight": .45, "type": "alpha"},
         {"value": 70, "weight": .60, "type": "beta"},
@@ -1297,9 +1314,9 @@ var d3pExample45 = function () {
         .draw()
 }
 var d3pExample46 = function () {
-    d3plusSetFooter('The Stacked Area chart is a variation of the Chart Visualization with values drawn as areas stacked ' +
+    d3plusSetFooter('<p>The Stacked Area chart is a variation of the Chart Visualization with values drawn as areas stacked ' +
         'on top of one another with a continuous x-axis. This visualization allows a quick assessment of how the data ' +
-        'breaks up by share of the whole over a specified variable, most commonly "time".')
+        'breaks up by share of the whole over a specified variable, most commonly "time".</p>')
     // sample data array
     var sample_data = [
         {"year": 1993, "name":"alpha", "value": 20},
@@ -1324,9 +1341,9 @@ var d3pExample46 = function () {
         .draw()
 }
 var d3pExample47 = function () {
-    d3plusSetFooter('Tree Maps are a great way to show your dataset as shares of a whole. Unlike Pie Charts, which have ' +
+    d3plusSetFooter('<p>Tree Maps are a great way to show your dataset as shares of a whole. Unlike Pie Charts, which have ' +
         'a lot of unused white space along the edges of the visualization, Tree Maps allow for smaller data points to ' +
-        'become much more visible because the visualization is allowed to take up the entirity of the screen space.')
+        'become much more visible because the visualization is allowed to take up the entirity of the screen space.</p>')
     // sample data array
     var sample_data = [
         {"value": 100, "name": "alpha"},
@@ -1346,55 +1363,78 @@ var d3pExample47 = function () {
         .size("value") // sizing of blocks
         .draw() // finally, draw the visualization!
 }
+var d3pExample48 = function () {
+    d3plusSetFooter('<p>In D3plus, all methods support passing a function that will handle the logic of fetching a given attribute. By passing <a href="https://github.com/alexandersimoes/d3plus/wiki/Visualizations#color">.color( )</a> a function, the returned color can be determined based off special conditions that the data may meet.</p>')
+    var sample_data = [
+        {"value": 100, "name": "alpha", "growth": 0.9},
+        {"value": 70, "name": "beta", "growth": 0.4},
+        {"value": 40, "name": "gamma", "growth": -0.3},
+        {"value": 15, "name": "delta", "growth": -0.65},
+        {"value": 5, "name": "epsilon", "growth": 0.7},
+        {"value": 1, "name": "zeta", "growth": 0.2}
+    ];
 
-d3pExamples[40] = {title: "Grouped Tree Map",function:d3pExample40/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
-d3pExamples[41] = {title: "Simple Static Network",function:d3pExample41/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
-d3pExamples[42] = {title: "Simple Geo Map",function:d3pExample42/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
-d3pExamples[43] = {title: "Simple Line Plot",function:d3pExample43/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
-d3pExamples[44] = {title: "Simple Rings",function:d3pExample44/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
-d3pExamples[45] = {title: "Simple Scatter Plot",function:d3pExample45/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
-d3pExamples[46] = {title: "Simple Stacked Area",function:d3pExample46/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
-d3pExamples[47] = {title: "Simple Tree Map",function:d3pExample47/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
+    var visualization = d3plus.viz()
+        .container("#viz")
+        .data(sample_data)
+        .type("tree_map")
+        .id("name")
+        .size("value")
+        .color(function(d){
+            return d.growth > 0 ? "#008800" : "#880000";
+        })
+        .draw();
+}
 
 
-d3pExamples[0] = {title: "Simple Table",function:d3pExample0/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-d3pExamples[1] = {title: "Simple Box and Whisker", function:d3pExample1/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-d3pExamples[2] = {title: "Stacked Bar Chart",function:d3pExample2/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-d3pExamples[3] = {title: "Simple Bar Chart",function:d3pExample3/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-d3pExamples[4] = {title: "Simple Pie Chart",function:d3pExample4/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-d3pExamples[5] = {title: "Custom Data Aggregations",function:d3pExample5/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-d3pExamples[6] = {title: "Simple Bubbles",function:d3pExample6/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-d3pExamples[7] = {title: "Adding Static HTML Content",function:d3pExample7/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-d3pExamples[8] = {title: "Assigning Custom Color",function:d3pExample8/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-d3pExamples[9] = {title: "Adding Nodes and Edges to a Network",function:d3pExample9/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-d3pExamples[10] = {title: "Custom Text and Number Formatting",function:d3pExample10/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-//d3pExamples[11] = {title: "Multi-level Nesting in Forms",function:d3pExample11/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-d3pExamples[12] = {title: "Legible Text on Colored Backgrounds",function:d3pExample12/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-d3pExamples[13] = {title: "SVG Text Wrapping",function:d3pExample13/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-d3pExamples[14] = {title: "Colored Text Legible on<br> White Backgrounds",function:d3pExample14/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-//d3pExamples[15] = {title: "Lighten Colors",function:d3pExample15/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-d3pExamples[16] = {title: "Hiding the Focus Tooltip",function:d3pExample16/*,resize:d3pResize1,drawingContainer: 'viz1'*/}
-//d3pExamples[17] = {title: "Forms from Javascript",function:d3pExample17/*,resize:d3pResize17,drawingContainer: 'viz1'*/}
-//d3pExamples[18] = {title: "Forms from HTML",function:d3pExample18/*,resize:d3pResize18,drawingContainer: 'viz1'*/}
-d3pExamples[19] = {title: "Changing the Language to Portuguese",function:d3pExample19/*,resize:d3pResize19,drawingContainer: 'viz1'*/}
-d3pExamples[20] = {title: "Adding Custom Interface Elements",function:d3pExample20/*,resize:d3pResize2,drawingContainer: 'viz1'*/}
-d3pExamples[21] = {title: "Using a Timeline",function:d3pExample21/*,resize:d3pResize2,drawingContainer: 'viz1'*/}
-d3pExamples[22] = {title: "Changing the Default Color Heatmap",function:d3pExample22/*,resize:d3pResize2,drawingContainer: 'viz1'*/}
-d3pExamples[23] = {title: "Changing the Default Color Range",function:d3pExample23/*,resize:d3pResize2,drawingContainer: 'viz1'*/}
-d3pExamples[24] = {title: "Change Legend Order",function:d3pExample24/*,resize:d3pResize2,drawingContainer: 'viz1'*/}
-d3pExamples[25] = {title: "Labeling Edges in Rings",function:d3pExample25/*,resize:d3pResize2,drawingContainer: 'viz1'*/}
-d3pExamples[26] = {title: "Sizing Edges in Rings",function:d3pExample26/*,resize:d3pResize2,drawingContainer: 'viz1'*/}
-d3pExamples[27] = {title: "Changing Font Styles",function:d3pExample27/*,resize:d3pResize2,drawingContainer: 'viz1'*/}
-d3pExamples[28] = {title: "Change Legend Sizing",function:d3pExample28/*,resize:d3pResize2,drawingContainer: 'viz1'*/}
-d3pExamples[29] = {title: "Titles and Footers",function:d3pExample29/*,resize:d3pResize2,drawingContainer: 'viz1'*/}
-d3pExamples[30] = {title: "Rings Sized by Data",function:d3pExample30/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
-d3pExamples[31] = {title: "Edge Directional Arrows in a Network",function:d3pExample31/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
-d3pExamples[32] = {title: "Automatic Node Positions in Network",function:d3pExample3/*,resize:d3pResize32,drawingContainer: 'viz1'*/}
-d3pExamples[33] = {title: "Stacked Areas as Share Percentages",function:d3pExample33/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
-d3pExamples[34] = {title: "Filtering Geo Map Coordinates",function:d3pExample34/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
-d3pExamples[35] = {title: "Tree Map Colored by Values",function:d3pExample35/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
-d3pExamples[36] = {title: "Grouped Line Chart",function:d3pExample36/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
-d3pExamples[37] = {title: "Grouped Scatterplot",function:d3pExample37/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
-d3pExamples[38] = {title: "Share Percentage Labels on a Tree Map",function:d3pExample38/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
-d3pExamples[39] = {title: "Nested Tree Map",function:d3pExample39/*,resize:d3pResize3,drawingContainer: 'viz1'*/}
+var pos = 0;
 
+d3pExamples[pos++] = {title: "Simple Table",function:d3pExample0/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "0.ejs"}
+d3pExamples[pos++] = {title: "Simple Box and Whisker", function:d3pExample1/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "1.ejs"}
+d3pExamples[pos++] = {title: "Stacked Bar Chart",function:d3pExample2/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "2.ejs"}
+d3pExamples[pos++] = {title: "Simple Bar Chart",function:d3pExample3/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "3.ejs"}
+d3pExamples[pos++] = {title: "Simple Pie Chart",function:d3pExample4/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "4.ejs"}
+d3pExamples[pos++] = {title: "Custom Data Aggregations",function:d3pExample5/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "5.ejs"}
+d3pExamples[pos++] = {title: "Simple Bubbles",function:d3pExample6/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "6.ejs"}
+d3pExamples[pos++] = {title: "Adding Static HTML Content",function:d3pExample7/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "7.ejs"}
+d3pExamples[pos++] = {title: "Assigning Custom Color",function:d3pExample8/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "8.ejs"}
+d3pExamples[pos++] = {title: "Adding Nodes and Edges to a Network",function:d3pExample9/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "9.ejs"}
+d3pExamples[pos++] = {title: "Custom Text and Number Formatting",function:d3pExample10/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "10.ejs"}
+pos++//d3pExamples[pos++] = {title: "Multi-level Nesting in Forms",function:d3pExample11/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "11.ejs"}
+d3pExamples[pos++] = {title: "Legible Text on Colored Backgrounds",function:d3pExample12/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "12.ejs"}
+d3pExamples[pos++] = {title: "SVG Text Wrapping",function:d3pExample13/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "13.ejs"}
+d3pExamples[pos++] = {title: "Colored Text Legible on<br> White Backgrounds",function:d3pExample14/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "14.ejs"}
+pos++//d3pExamples[pos++] = {title: "Lighten Colors",function:d3pExample15/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "15.ejs"}
+d3pExamples[pos++] = {title: "Hiding the Focus Tooltip",function:d3pExample16/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "16.ejs"}
+pos++//d3pExamples[pos++] = {title: "Forms from Javascript",function:d3pExample17/*,resize:d3pResize17,drawingContainer: 'viz1'*/,codeRef: "17.ejs"}
+pos++//d3pExamples[pos++] = {title: "Forms from HTML",function:d3pExample18/*,resize:d3pResize18,drawingContainer: 'viz1'*/,codeRef: "18.ejs"}
+d3pExamples[pos++] = {title: "Changing the Language to Portuguese",function:d3pExample19/*,resize:d3pResize19,drawingContainer: 'viz1'*/,codeRef: "19.ejs"}
+d3pExamples[pos++] = {title: "Adding Custom Interface Elements",function:d3pExample20/*,resize:d3pResize2,drawingContainer: 'viz1'*/,codeRef: "20.ejs"}
+d3pExamples[pos++] = {title: "Using a Timeline",function:d3pExample21/*,resize:d3pResize2,drawingContainer: 'viz1'*/,codeRef: "21.ejs"}
+d3pExamples[pos++] = {title: "Changing the Default Color Heatmap",function:d3pExample22/*,resize:d3pResize2,drawingContainer: 'viz1'*/,codeRef: "22.ejs"}
+d3pExamples[pos++] = {title: "Changing the Default Color Range",function:d3pExample23/*,resize:d3pResize2,drawingContainer: 'viz1'*/,codeRef: "23.ejs"}
+d3pExamples[pos++] = {title: "Change Legend Order",function:d3pExample24/*,resize:d3pResize2,drawingContainer: 'viz1'*/,codeRef: "24.ejs"}
+d3pExamples[pos++] = {title: "Labeling Edges in Rings",function:d3pExample25/*,resize:d3pResize2,drawingContainer: 'viz1'*/,codeRef: "25.ejs"}
+d3pExamples[pos++] = {title: "Sizing Edges in Rings",function:d3pExample26/*,resize:d3pResize2,drawingContainer: 'viz1'*/,codeRef: "26.ejs"}
+d3pExamples[pos++] = {title: "Changing Font Styles",function:d3pExample27/*,resize:d3pResize2,drawingContainer: 'viz1'*/,codeRef: "27.ejs"}
+d3pExamples[pos++] = {title: "Change Legend Sizing",function:d3pExample28/*,resize:d3pResize2,drawingContainer: 'viz1'*/,codeRef: "28.ejs"}
+d3pExamples[pos++] = {title: "Titles and Footers",function:d3pExample29/*,resize:d3pResize2,drawingContainer: 'viz1'*/,codeRef: "29.ejs"}
+d3pExamples[pos++] = {title: "Rings Sized by Data",function:d3pExample30/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "30.ejs"}
+d3pExamples[pos++] = {title: "Edge Directional Arrows in a Network",function:d3pExample31/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "31.ejs"}
+d3pExamples[pos++] = {title: "Automatic Node Positions in Network",function:d3pExample3/*,resize:d3pResize32,drawingContainer: 'viz1'*/,codeRef: "32.ejs"}
+d3pExamples[pos++] = {title: "Stacked Areas as Share Percentages",function:d3pExample33/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "33.ejs"}
+d3pExamples[pos++] = {title: "Filtering Geo Map Coordinates",function:d3pExample34/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "34.ejs"}
+d3pExamples[pos++] = {title: "Tree Map Colored by Values",function:d3pExample35/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "35.ejs"}
+d3pExamples[pos++] = {title: "Grouped Line Chart",function:d3pExample36/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "36.ejs"}
+d3pExamples[pos++] = {title: "Grouped Scatterplot",function:d3pExample37/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "37.ejs"}
+d3pExamples[pos++] = {title: "Share Percentage Labels on a Tree Map",function:d3pExample38/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "38.ejs"}
+d3pExamples[pos++] = {title: "Nested Tree Map",function:d3pExample39/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "39.ejs"}
+d3pExamples[pos++] = {title: "Grouped Tree Map",function:d3pExample40/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "40.ejs"}
+d3pExamples[pos++] = {title: "Simple Static Network",function:d3pExample41/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "41.ejs"}
+d3pExamples[pos++] = {title: "Simple Geo Map",function:d3pExample42/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "42.ejs"}
+d3pExamples[pos++] = {title: "Simple Line Plot",function:d3pExample43/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "43.ejs"}
+d3pExamples[pos++] = {title: "Simple Rings",function:d3pExample44/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "44.ejs"}
+d3pExamples[pos++] = {title: "Simple Scatter Plot",function:d3pExample45/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "45.ejs"}
+d3pExamples[pos++] = {title: "Simple Stacked Area",function:d3pExample46/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "46.ejs"}
+d3pExamples[pos++] = {title: "Simple Tree Map",function:d3pExample47/*,resize:d3pResize3,drawingContainer: 'viz1'*/,codeRef: "47.ejs"}
+d3pExamples[pos++] = {title: "Custom Colors using a Function",function:d3pExample48/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "48.ejs"}

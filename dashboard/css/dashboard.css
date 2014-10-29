@@ -156,6 +156,23 @@ body {
     right: 0px;
     left: 0px;
 }
+/*
+ * Placeholder dashboard ideas
+ */
+#content {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 100%;
+}
+#content.footer-show {
+    height: 400px;
+    height: calc(100vh - 350px); /* 300 footer + 50 header*/
+    /*height: -moz-calc(100% - 300px); *//* For firefox browser*/
+    height: -webkit-calc(100% - 300px); /* for webkit browsers*/
+}
+#content.footer-show.maximize-footer {
+    display: none;
+}
 
 #footer {
     bottom: 0px;
@@ -169,6 +186,15 @@ body {
     display: inherit;
     height: 300px;
 }
+
+#footer.footer-show.maximize-footer {
+    border-top: 3px double dimgrey;
+    display: inherit;
+    height: 100%;
+    bottom: 0px;
+    top: 0px;
+}
+
 #footer-content {
     display: none;
     overflow-y: auto;
@@ -187,6 +213,33 @@ body {
     top: -15px;
     z-index: 10;
 
+}
+
+
+
+#footer-button-maximize {
+    display: none;
+    position: absolute;
+    right: 16px;
+    background: url('../icons/maximize_normal.png');
+    width: 15px;
+    height: 15px;
+    top: 0px;
+    z-index: 10;
+
+}
+
+#footer-button-maximize:hover {
+    background: url('../icons/maximize_hover.png');
+}
+#footer-button-maximize.footer-show {
+    display: inherit;
+}
+#footer-button-maximize.maximize-footer {
+    background: url('../icons/minimize_normal.png');
+}
+#footer-button-maximize.maximize-footer:hover {
+    background: url('../icons/minimize_hover.png');
 }
 #footer-button:hover {
     background: url('../icons/topArrow-black.png');
@@ -211,20 +264,7 @@ body {
 .left-main {
     padding: 5px;
 }
-/*
- * Placeholder dashboard ideas
- */
-#content {
-    overflow-y: auto;
-    overflow-x: hidden;
-    height: 100%;
-}
-#content.footer-show {
-    height: 400px;
-    height: calc(100vh - 350px); /* 300 footer + 50 header*/
-    /*height: -moz-calc(100% - 300px); *//* For firefox browser*/
-    height: -webkit-calc(100% - 300px); /* for webkit browsers*/
-}
+
 .placeholders {
   margin-bottom: 30px;
   text-align: center;
@@ -398,11 +438,22 @@ body {
 }
 
 #d3p-footer {
-    margin: 5px;
+    width: 1000px;
+    display: block;
+    margin-left: auto;
+    margin-right: auto
 }
-/*.btn.d3p-buttons>input[type=radio] {*/
-    /*position: fixed !important;*/
+/*#d3p-footer-code {*/
+    /*margin-top: 10px;*/
 /*}*/
+
+#d3p-footer-code div{
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+
+}
+
 .d3p-buttons input{
     position: fixed !important;
 }
@@ -429,3 +480,4 @@ body {
 thead {
     font-weight: bold;
 }
+

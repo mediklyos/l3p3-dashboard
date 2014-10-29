@@ -331,8 +331,18 @@ var toggleFooter = function (state){
     } else {
         $("#"+CONTENT_FATHER).children().toggleClass(SHOW_FOOTER_CLASS,state)
         $("#"+CONTENT_FATHER).children().children().toggleClass(SHOW_FOOTER_CLASS,state)
-
     }
     $(window).trigger('resize');
 }
 
+var toggleMaximizeFooter = function (state) {
+    if (state === undefined){
+        $("#"+CONTENT_FATHER).children().toggleClass(MAXIMIZE_FOOTER_CLASS)
+        $("#"+CONTENT_FATHER).children().children().toggleClass(MAXIMIZE_FOOTER_CLASS)
+    } else {
+        $("#"+CONTENT_FATHER).children().toggleClass(MAXIMIZE_FOOTER_CLASS,state)
+        $("#"+CONTENT_FATHER).children().children().toggleClass(MAXIMIZE_FOOTER_CLASS,state)
+    }
+    $(window).trigger('resize');
+
+}
