@@ -6,6 +6,7 @@ var PRE = demoViews[0][0].constantsPrefix;
 var ID_EXAMPLE = PRE +"-example"
 var D3P_FOOTER = PRE + "-footer"
 var D3P_FOOTER_CODE = PRE + "-footer-code"
+var D3P_BUTTONS_LIST = PRE + "-buttons-list"
 var d3pExamples = {}
 
 var D3P_TEMPLATE_DIR = "/js/templates/d3pDemo/"
@@ -73,11 +74,12 @@ var initLeftColumn = function (){
         class: "btn-toolbar lg-col-12",
         role:"toolbar",
         "data-toggle":  "buttons",
+        id : D3P_BUTTONS_LIST,
 //        style: 'height: 100px'
         style: 'height: 100%'
         }).appendTo(main);
     $.each(d3pExamples,function(key,value){
-        $('<label class="d3p-buttons btn btn-default"><input type="radio" name="d3pExample" value="'+value.title+'"/>'+value.title+"</label><br>").appendTo(buttonsDiv).click(function(){
+        $('<label class="d3p-buttons btn btn-default" title="'+value.title+'"><input type="radio" name="d3pExample" value="'+key+'"/>'+value.title+"</label><br>").appendTo(buttonsDiv).click(function(){
             changeExample(key);
         });
     })
@@ -1403,7 +1405,7 @@ d3pExamples[pos++] = {title: "Custom Text and Number Formatting",function:d3pExa
 pos++//d3pExamples[pos++] = {title: "Multi-level Nesting in Forms",function:d3pExample11/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "11.ejs"}
 d3pExamples[pos++] = {title: "Legible Text on Colored Backgrounds",function:d3pExample12/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "12.ejs"}
 d3pExamples[pos++] = {title: "SVG Text Wrapping",function:d3pExample13/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "13.ejs"}
-d3pExamples[pos++] = {title: "Colored Text Legible on<br> White Backgrounds",function:d3pExample14/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "14.ejs"}
+d3pExamples[pos++] = {title: "Colored Text Legible on White Backgrounds",function:d3pExample14/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "14.ejs"}
 pos++//d3pExamples[pos++] = {title: "Lighten Colors",function:d3pExample15/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "15.ejs"}
 d3pExamples[pos++] = {title: "Hiding the Focus Tooltip",function:d3pExample16/*,resize:d3pResize1,drawingContainer: 'viz1'*/,codeRef: "16.ejs"}
 pos++//d3pExamples[pos++] = {title: "Forms from Javascript",function:d3pExample17/*,resize:d3pResize17,drawingContainer: 'viz1'*/,codeRef: "17.ejs"}

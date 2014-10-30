@@ -96,7 +96,6 @@
     </div>
     <script>
         $(function(){
-            var ODV_CLEARED = false;
             odvResizeFunction();
             $(window).resize(odvResizeFunction)
             clear = function() {
@@ -147,7 +146,7 @@
 
             if (debug){
                 $("#"+ORV_COLUMNS_CLICKS).find('.btn').removeClass('btn-primary').addClass('btn-default');
-                MAX_COLS = 4;
+                ODV_MAX_COLS = 4;
                 resizingCols();
                 document.getElementsByClassName('odv-canvas')[0].setAttribute('height',600)
 //        onlineResourceView_postLoad("localhost:8080")

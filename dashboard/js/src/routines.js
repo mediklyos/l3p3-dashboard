@@ -243,8 +243,8 @@ if (cookie_debug !== undefined){
 var demoViews = []
 demoViews[0] = [];
 if (GLOBAL_DEBUG){
-    demoViews[0][0] = {id: "d3plusDemo",constantsPrefix: "d3p",ref: "js/templates/template_d3p.ejs",title : "Demo D3 plus", js: "js/src/d3plusDemo.js"}
 }
+demoViews[0][0] = {id: "d3plusDemo",constantsPrefix: "d3p",ref: "js/templates/template_d3p.ejs",title : "Demo D3 plus", js: "js/src/d3plusDemo.js"}
 
 
 var views = [];
@@ -253,6 +253,7 @@ views[1] = []
 views[2] = []
 if (GLOBAL_DEBUG){
 
+    views[0][5] = {id: "predictorMonitor",constantsPrefix: "pv",ref: "js/templates/template_predictor.ejs",title : "Predictor Monitor", js: "js/src/predictorView.js"}
     views[0][4] = {id: "TemporalAssociationNetwork",constantsPrefix: "tan",ref: "js/templates/template_temporal_association_network.ejs",title : "Temporal Association Network", js: "js/src/temporalAssociationNetwork.js"}
     views[0][3] = {id: "ColorMapViewer",constantsPrefix: "CMV",ref: "js/templates/template_color_map.ejs",title : "Color map", js: "js/src/color_map.js"}
     views[2][0] = {id: "examples",constantsPrefix: "",ref: "js/templates/example.ejs",title: "Examples", js: "js/src/example.js"}
@@ -275,8 +276,8 @@ $(function(){
 //    $("#"+views[0][2].id).addClass("active");
 //    $("#"+views[0][2].id).parents().addClass("active");
 //    $("#content").html(new EJS ({url: views[0][2].ref}).render());
-//        changeView(views[0][2]);
-        changeView(demoViews[0][0]);
+        changeView(views[0][5]);
+//        changeView(demoViews[0][0]);
 //    $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
     } else {
         $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());

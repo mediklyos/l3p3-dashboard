@@ -330,11 +330,6 @@ body {
     width: auto;
 }
 
-.odv-canvas {
-    width: 100%;
-    margin-bottom: 3px;
-}
-
 .div-border {
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -342,7 +337,6 @@ body {
     min-height: 32px;
 }
 
-/*Centering the content of slider in odv view*/
 
 .center-content-panel {
     display: inline-block;
@@ -350,9 +344,15 @@ body {
     text-align: center;
 }
 
-
 .panel-button {
     min-height: 30px;
+}
+
+/*Centering the content of slider in odv view*/
+
+.odv-canvas {
+    width: 100%;
+    margin-bottom: 3px;
 }
 
 #odv-threshold-slider-panel div, #odv-velocity-slider-panel div, .odv-chart-slider .ui-slider{
@@ -370,11 +370,38 @@ body {
     border-color: #ef2929;
 }
 
-#dd-filters-row {
+#odv-charts {
     overflow-y: auto;
 }
 
-#odv-charts {
+/*Centering the content of slider in pv view*/
+
+.pv-canvas {
+    width: 100%;
+    margin-bottom: 3px;
+}
+
+#pv-threshold-slider-panel div, #odv-velocity-slider-panel div, .odv-chart-slider .ui-slider{
+    display: inline-block;
+}
+
+.pv-chart-slider-label{
+    display: inline;
+}
+
+#pv-velocity-slider-panel .ui-slider-range, .odv-chart .controls  *.ui-slider-range  {
+    background: #ef2929;
+}
+#pv-velocity-slider-panel .ui-slider-handle, .odv-chart .controls *.ui-slider-handle {
+    border-color: #ef2929;
+}
+
+#pv-charts {
+    overflow-y: auto;
+}
+
+
+#dd-filters-row {
     overflow-y: auto;
 }
 
@@ -435,6 +462,11 @@ body {
 /*d3p view classes and ids*/
 .d3p-buttons {
     margin: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 95%;
+    /*white-space: inherit;*/
+    /*text-align: left;*/
 }
 
 #d3p-footer {
@@ -460,6 +492,10 @@ body {
 .left-divider {
     border-right: 1px solid #ccc;
     padding: 0px 5px;
+}
+
+#d3p-buttons-list {
+    margin-left: 5px;
 }
 
 

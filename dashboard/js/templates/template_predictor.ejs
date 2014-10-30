@@ -1,0 +1,160 @@
+<!-- TODO eliminar los elementos que ya no se utilizan, ahroa mismo están comentados-->
+<div class="main">
+    <!-- Everything must be inside a div so that the ejs works -->
+    <div class="row" id="pv-tool-bar">
+        <div class="col-lg-12">
+
+            <div class="form-inline" role="form">
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="input-group-addon" id="pv-prefix-url" data-toggle="tooltip" data-original-title="You can try this server: pvs.herokuapp.com">ws://</div>
+                        <input id="pv-input-url" type="text" class="form-control my-form" placeholder="url" onkeydown="onlineResourceView_postLoad_enter(event)">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-default" id="pv-upload-button" onclick="onlineResourceView_postLoad_click()">Load</button>
+                </div>
+                <div class="form-group">
+                    <div class="btn-group btn-toggle" data-toggle="buttons" id="pv-columns-clicks" onclick="columnsClick(event)">
+                        <label class="btn btn-default">
+                            <input name="pv-columns" value="1" type="radio">1</label>
+                        <label class="btn btn-primary active">
+                            <input name="pv-columns" value="2" type="radio">2</label>
+                        <label class="btn btn-default">
+                            <input name="pv-columns" value="3" type="radio">3</label>
+                        <label class="btn btn-default">
+                            <input name="pv-columns" value="4" type="radio">4</label>
+                    </div>
+                </div>
+
+                <!--<div class="form-group">-->
+                    <!--<div id="pv-velocity-slider-panel" class="div-border center-content-panel">-->
+                    <!--</div>-->
+                <!--</div>-->
+                <div class="form-group">
+                    <div id="pv-threshold-slider-panel" class="div-border center-content-panel">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-default" id="pv-increment-charts-height" onclick="incrementChartsHeight()">+Height</button>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-default" id="pv-decrement-charts-height" onclick="decrementChartsHeight()">-Height</button>
+                </div>
+            </div>
+
+
+
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-10" id="pv-charts">
+
+        </div>
+        <div class="pv-chart template">
+            <h2 class="title"></h2>
+            <canvas height="80"  class="pv-canvas"></canvas>
+            <div class="my-stats" style="margin-bottom: 2px;">
+            <div class="div-border">
+                <div class="stats">
+                    <div class="stat template">
+                        <span class="stat-name"></span>
+                        <span class="stat-value"></span>
+                        <!--<input type="button" class="stat-button" value="Color Map" style="width: 75px; height: 25px;"/>-->
+                    </div>
+                </div>
+            </div>
+            </div>
+            <div class="controls">
+                <div class="div-border center-content-panel pv-chart-slider">
+                </div>
+                <div class="center-content-panel">
+                    <button type="button" data-toggle="button" class="btn btn-default pv-dynamic-height" onclick="setDynamicHeight(event)">Dynamic height</button>
+                </div>
+                <div class="center-content-panel">
+                    <button type="button" class="btn btn-default" onclick="save(event.target)">Save</button>
+                </div>
+                <div class="center-content-panel">
+                    <button type="button" class="btn btn-default" onclick="pause(event.target)">Pause</button>
+                </div>
+                <div class="center-content-panel">
+                    <button type="button" class="btn btn-default" onclick="resume(event.target)">Resume</button>
+                </div>
+
+            </div>
+        </div>
+        <div class="col-lg-2" id="pv-events-col">
+            <h2>Alerts</h2>
+            <div class="col-lg-2" id="pv-events-list">
+                <div class="btn-group pv-button-entry template" >
+                    <a class="btn btn-default pv-entry-description"  id="dd-button-data-data/titanic.csv">a</a>
+                    <a class="btn btn-default pv-entry-delete"><span class="glyphicon glyphicon-trash"></span></a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(function(){
+            var PV_CLEARED = false;
+            pvResizeFunction();
+            $(window).resize(pvResizeFunction)
+            clear = function() {
+                // Este clear es limpiar las conexiones
+//                pv_clear(true)
+                $(window).unbind('resize',pvResizeFunction)
+            }
+            /*Este slider no se utiliza ya porque no tiene sentido*/
+//            $("#"+PV_VELOCITY_SLIDER_PANEL).append('<div class="text" style="padding-right: 15px" >Refresh Time</div>')
+//            var slider = jQuery('<div/>').slider({
+//                range: 'min',
+//                min: 10,
+//                max: 100,
+//                value: 50,
+//                step: 1,
+//                stop : function (event, ui){
+//                    changeRefreshTime(ui.value);
+//                }
+//            }).appendTo("#"+PV_VELOCITY_SLIDER_PANEL);
+//            slider.width(100);
+
+            $("#"+PV_THRESHOLD_SLIDER_PANEL).append('<div style="padding-right: 15px" >Threshold: <span id='+PV_SPAN_THRESHOLD_VALUE+'>100%</span></div>')
+            pvSetThreshold(100);
+            var slider2 = jQuery('<div/>').slider({
+                range: 'min',
+                min: 0,
+                max: 100,
+                value: 100,
+                step: 1,
+                slide: function (event,ui){
+                    $('#'+PV_SPAN_THRESHOLD_VALUE).text(ui.value+"%")
+                },
+                stop : function (event, ui){
+                    setThreshold(ui.value);
+                }
+            }).appendTo("#"+PV_THRESHOLD_SLIDER_PANEL);
+            slider2.width(100);
+            // Altura dinamica
+            $("#"+PV_EVENTS_COL).css('height','calc(100vh - '+(parseInt($("#"+PV_EVENTS_COL).offset().top) + 20)+'px)');
+            $("#"+PV_EVENTS_LIST).css('max-height','calc(100vh - '+(parseInt($("#"+PV_EVENTS_LIST).offset().top) + 20)+'px)');
+//            $("#"+PV_EVENTS_LIST).css('height','223px');
+        })
+        $(document).ready(function(){
+            $("#pv-prefix-url").tooltip({
+                placement : 'left'
+            });
+        });
+        $(function (){
+            enableFooter()
+
+            if (debug){
+//                $("#"+ORV_COLUMNS_CLICKS).find('.btn').removeClass('btn-primary').addClass('btn-default');
+//                MAX_COLS = 4;
+//                resizingCols();
+//                document.getElementsByClassName('pv-canvas')[0].setAttribute('height',600)
+//        onlineResourceView_postLoad("localhost:8080")
+//                onlineResourceView_postLoad("pvs.herokuapp.com")
+
+            }
+        })
+    </script>
+</div>
