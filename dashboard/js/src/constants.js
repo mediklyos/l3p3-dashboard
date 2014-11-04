@@ -11,6 +11,8 @@ var dashboard_locale = "es-ES"
 var BORDER_SIZE = 20;
 var ACTIVE_CLASS = "active";
 
+/*Dashboard classes*/
+var DASHBOARD_TEMPLATES = "dashboard-templates"
 var CONTENT_LINK_CLASS_NAME = "contentLink"
 var LEFT_COLUMN_BUTTON_OPEN = "left-column-button"
 var LEFT_COLUMN = "left-column"

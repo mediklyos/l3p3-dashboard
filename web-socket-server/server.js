@@ -1,7 +1,15 @@
 var DEBUG = false;
+var port = 10082
 process.argv.forEach(function (val, index) {
     if (val == "debug") {
         DEBUG = true;
+    } else {
+        var values = val.split("=")
+        if (values.length  == 2){
+            if (values[0] == "port"){
+                port = parseInt(values[1])
+            }
+        }
     }
 
 });
@@ -26,13 +34,14 @@ var NORMAL_MODE = 0;
 var WS_MODE = 1;
 
 var WebSocketServer = require('ws').Server;
-var port = 10082;
 var wss = new WebSocketServer({port: port});
 var readline = require('readline');
 var rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
 });
+console.log("Listen on port: "+port)
+
 /*ws mode vars*/
 var wsActive = undefined
 /*

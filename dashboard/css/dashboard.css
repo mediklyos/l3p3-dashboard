@@ -83,6 +83,10 @@ body {
 .main {
   padding: 20px;
 }
+
+.dashboard-templates {
+    display: none;
+}
 @media (min-width: 768px) {
   .main {
     padding-right: 40px;
@@ -400,7 +404,54 @@ body {
     overflow-y: auto;
 }
 
+#pv-main {
+    max-height: 100%;
+}
 
+#pv-tool-bar {
+    margin: 5px;
+}
+
+
+#pv-input-url {
+    width: 150px;
+}
+#pv-tool-bar>div {
+    margin: 2px 0px;
+    display: block;
+}
+
+.pv-canvas {
+    width: 100%;
+    margin-bottom: 3px;
+}
+
+.pv-select-graph {
+    width: 32px;
+    height: 32px;
+    background: url('../icons/minigraph.png') no-repeat;
+}
+
+.pv-select-graph.active {
+    background: url('../icons/minigraph.png') no-repeat;
+    background-color: #e6e6e6;
+}
+
+.pv-svg-up-canvas {
+    position: absolute;
+}
+
+.pv-events-count {
+    width: 100%;
+}
+
+.pv-events-count span {
+    float: right;
+    margin-left: 3px;
+}
+/*.pv-events-count span.title {*/
+    /*float: left;*/
+/*}*/
 #dd-filters-row {
     overflow-y: auto;
 }

@@ -373,10 +373,15 @@
       return;
     }
 
+    this.extraActionsInAnimation = undefined;
     // Renders a frame, and queues the next frame for later rendering
     var animate = function() {
+
       this.frame = SmoothieChart.AnimateCompatibility.requestAnimationFrame(function() {
         var rendered = this.render();
+         if (this.extraActionsInAnimation !== undefined){
+              this.extraActionsInAnimation();
+         }
         animate();
         if (rendered && this.end){
           this.stop();
