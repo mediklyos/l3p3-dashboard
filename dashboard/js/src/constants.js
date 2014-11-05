@@ -10,6 +10,8 @@ var dashboard_locale = "es-ES"
 
 var BORDER_SIZE = 20;
 var ACTIVE_CLASS = "active";
+var FULL_SCREEN_KEY = 102 //f
+
 
 /*Dashboard classes*/
 var DASHBOARD_TEMPLATES = "dashboard-templates"
@@ -24,8 +26,8 @@ var FOOTER_ID = "footer";
 var FOOTER_CONTENT_ID = "footer-content";
 var CONTENT = "content"
 
-var CSS_CLASS_HIDDEN_LEFT_COLUMN = "hidden-left-column"
-
+var CSS_CLASS_SHOW_LEFT_COLUMN = "show-left-column"
+var CSS_ENABLE_CLASS = "enable"
 var DATA_URL = "data/";
 
 /*Single nodes*/

@@ -10,8 +10,7 @@
                     </div>
                     <button class="btn btn-default" id="pv-upload-button" onclick="pvLoadSource_click()">Load</button>
                 </div>
-                <!--<div class="form-group">-->
-                <!--</div>-->
+
                 <div class="form-group">
                     <button class="btn btn-default" id="pv-add-graph" onclick="pvAddGraph()">Add Graph</button>
                     <div class="btn-group btn-toggle" data-toggle="buttons" id="pv-columns-click" onclick="pvColumnsClick(event)">
@@ -26,10 +25,6 @@
                     </div>
                 </div>
 
-                <!--<div class="form-group">-->
-                    <!--<div id="pv-velocity-slider-panel" class="div-border center-content-panel">-->
-                    <!--</div>-->
-                <!--</div>-->
                 <div class="form-group">
                     <div id="pv-threshold-slider-panel" class="div-border center-content-panel">
                     </div>
@@ -44,12 +39,11 @@
                 <div class="col-lg-10">
                     <!--<h2 class="title"></h2>-->
                     <canvas height="80"  class="pv-canvas"></canvas>
-                    <svg class="pv-svg-footer-class">
-                    </svg>
+                    <svg class="pv-svg-footer-class"></svg>
                     <div class="my-stats" style="margin-bottom: 2px;">
                         <div class="controls">
                             <div class="center-content-panel">
-                                <button title="hola" type="button" class="btn btn-default pv-select-graph" onclick="PVSelectChart(event)"></button>
+                                <button type="button" class="btn btn-default pv-select-graph" onclick="PVSelectChart(event)"></button>
                             </div>
                             <div class="center-content-panel">
                                 <button type="button" class="btn btn-default" id="" onclick="pvActiveNames(event)">names</button>
@@ -59,32 +53,7 @@
 
                                 </div>
                             </div>
-                            <!--<div class="div-border center-content-panel pv-chart-slider">-->
-                            <!--</div>-->
-                            <!--<div class="center-content-panel">-->
-                                <!--<button type="button" data-toggle="button" class="pv-dynamic-height btn btn-default" onclick="setDynamicHeight(event)">Dynamic height</button>-->
-                            <!--</div>-->
-                            <!--<div class="center-content-panel">-->
-                                <!--<button type="button" class="btn btn-default" onclick="save(event.target)">Save</button>-->
-                            <!--</div>-->
-                            <!--<div class="center-content-panel">-->
-                                <!--<button type="button" class="btn btn-default" onclick="pause(event.target)">Pause</button>-->
-                            <!--</div>-->
-                            <!--<div class="center-content-panel">-->
-                                <!--<button type="button" class="btn btn-default" onclick="resume(event.target)">Resume</button>-->
-                            <!--</div>-->
-
                         </div>
-                        <!--<div class="div-border">-->
-                            <!--<div class="stats">-->
-                                <!--&lt;!&ndash;<div class="stat template">&ndash;&gt;-->
-                                    <!--&lt;!&ndash;<span class="stat-name"></span>&ndash;&gt;-->
-                                    <!--&lt;!&ndash;<span class="stat-value"></span>&ndash;&gt;-->
-                                    <!--&lt;!&ndash;&lt;!&ndash;<input type="button" class="stat-button" value="Color Map" style="width: 75px; height: 25px;"/>&ndash;&gt;&ndash;&gt;-->
-                                <!--&lt;!&ndash;</div>&ndash;&gt;-->
-
-                            <!--</div>-->
-                        <!--</div>-->
                     </div>
 
                 </div>
@@ -114,7 +83,7 @@
     </div>
     <script>
         $(function(){
-            var PV_CLEARED = false;
+//            var PV_CLEARED = false;
             pvResizeFunction();
             $(window).resize(pvResizeFunction)
             clear = function() {
@@ -122,19 +91,7 @@
 //                pv_clear(true)
                 $(window).unbind('resize',pvResizeFunction)
             }
-            /*Este slider no se utiliza ya porque no tiene sentido*/
-//            $("#"+PV_VELOCITY_SLIDER_PANEL).append('<div class="text" style="padding-right: 15px" >Refresh Time</div>')
-//            var slider = jQuery('<div/>').slider({
-//                range: 'min',
-//                min: 10,
-//                max: 100,
-//                value: 50,
-//                step: 1,
-//                stop : function (event, ui){
-//                    changeRefreshTime(ui.value);
-//                }
-//            }).appendTo("#"+PV_VELOCITY_SLIDER_PANEL);
-//            slider.width(100);
+
 
             $("#"+PV_THRESHOLD_SLIDER_PANEL).append('<div style="padding-right: 15px;width: 130px" >Threshold: <span id='+PV_SPAN_THRESHOLD_VALUE+'>100%</span></div>')
             pvSetThreshold(100);

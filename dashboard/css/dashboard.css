@@ -104,33 +104,27 @@ body {
 .img-transparency:hover {
     opacity: 1;
 }
-#left-column-button.hidden-left-column {
-    background-image: url('../icons/rightArrow.png');
-    position: absolute;
-    margin-left: 0px;
+
+#left-column {
+    display: none;
 }
-#left-column-button {
-    position: inherit;
-    float:left;
-    margin-left: -15px;
-    width: 15px;
-    height: 15px;
+#left-column.enable{
+    display: inherit;
+}
+
+#left-column-button.show-left-column {
     background-image: url('../icons/leftArrow.png');
-    z-index: 10;
+    position: inherit;
+    margin-left: -15px;
 }
 
-#left-column-button:hover {
-    background-image: url('../icons/leftArrow_black.png');
+#left-column-div {
+    display: none;
 }
 
-#left-column-button.hidden-left-column:hover {
-    background-image: url('../icons/rightArrow_black.png');
+#left-column-div.show-left-column {
+    display: inherit;
 }
-
-#content-father{
-    overflow-x: hidden;
-}
-
 #left-column-div {
     /*position: fixed;*/
     background-color: #f0f0f0;
@@ -139,10 +133,31 @@ body {
     height: 100%;
     float:left;
     overflow-y: auto;
-
-
-
 }
+#left-column-button {
+    float:left;
+    width: 15px;
+    height: 15px;
+    z-index: 10;
+    background-image: url('../icons/rightArrow.png');
+    position: absolute;
+    margin-left: 0px;
+}
+
+#left-column-button:hover {
+    background-image: url('../icons/rightArrow_black.png');
+}
+
+#left-column-button.show-left-column:hover {
+    background-image: url('../icons/leftArrow_black.png');
+}
+
+#content-father{
+    overflow-x: hidden;
+}
+
+
+
 
 .navbar-header.center {
     float: left;
@@ -183,7 +198,13 @@ body {
     background-color: #f0f0f0;
     border-top: 0px;
     position: relative;
+    display: none;
 }
+
+#footer.enable {
+    display: inherit;
+}
+
 
 #footer.footer-show {
     border-top: 3px double dimgrey;
@@ -257,13 +278,6 @@ body {
     background: url('../icons/bottonArrow.png');
 }
 
-#left-column-div.hidden-left-column {
-    display: none;
-    /*width: 0px;*/
-    /*-moz-transition: height 2s; *//* Firefox 4 */
-    /*-webkit-transition: width 2s; *//* Safari and Chrome */
-    /*-o-transition: height 2s; *//* Opera */
-}
 
 .left-main {
     padding: 5px;

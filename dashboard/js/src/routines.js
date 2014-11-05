@@ -170,7 +170,7 @@ function changeView(view){
     disableFooter();
     toggleLeftColumn(false)
 
-    $("#"+LEFT_COLUMN_BUTTON_OPEN).addClass(CSS_CLASS_HIDDEN_LEFT_COLUMN)
+    $("#"+LEFT_COLUMN_BUTTON_OPEN).remove(CSS_CLASS_SHOW_LEFT_COLUMN)
     $("."+CONTENT_LINK_CLASS_NAME+"."+ACTIVE_CLASS).parents().removeClass("active");
     $("#"+TITLE_VIEW_ID).text(view.title)
     var parent = $("#"+ID_DASHBOARD_ACTIVE_VIEW_SCRIPT)[0];
@@ -285,43 +285,54 @@ $(function(){
 //
 })
 
+var keyPress = function (event){
+    console.log(event.keyCode )
+    if (event.keyCode == FULL_SCREEN_KEY){
+        if ($("."+SHOW_FOOTER_CLASS).length > 0 || $("."+CSS_CLASS_SHOW_LEFT_COLUMN).length > 0){
+            toggleFooter(false)
+            toggleLeftColumn(false)
+        } else {
+            toggleFooter(true)
+            toggleLeftColumn(true)
+        }
+    }
+}
+$(document).keypress(keyPress);
 var toggleLeftColumn = function (state) {
-//    $("#"+LEFT_COLUMN_BUTTON_OPEN).removeClass(CSS_CLASS_HIDDEN_LEFT_COLUMN)
-//    $("#"+LEFT_COLUMN).removeClass(CSS_CLASS_HIDDEN_LEFT_COLUMN)
     if (state === undefined){
-        $("#"+LEFT_COLUMN).children().toggleClass(CSS_CLASS_HIDDEN_LEFT_COLUMN)
+        $("#"+LEFT_COLUMN).children().toggleClass(CSS_CLASS_SHOW_LEFT_COLUMN)
     }
     else {
-        $("#"+LEFT_COLUMN).children().toggleClass(CSS_CLASS_HIDDEN_LEFT_COLUMN,!state)
+        $("#"+LEFT_COLUMN).children().toggleClass(CSS_CLASS_SHOW_LEFT_COLUMN,state)
     }
     $(window).trigger('resize');
 }
 
 var enableLeftColumn = function (){
-    $("#"+LEFT_COLUMN).css('display','')
+    $("#"+LEFT_COLUMN).addClass(CSS_ENABLE_CLASS )
     $("#"+LEFT_COLUMN_CONTENT).empty();
     $(window).trigger('resize');
 }
 
 var disableLeftColumn = function (){
     toggleLeftColumn(false)
-    $("#"+LEFT_COLUMN).css('display','none')
+    $("#"+LEFT_COLUMN).removeClass(CSS_ENABLE_CLASS )
     $(window).trigger('resize');
 }
 
 $(function (){
+    /*Disable by default*/
     disableLeftColumn();
     disableFooter();
-    toggleLeftColumn(false)
 })
 var disableFooter = function () {
     toggleFooter(false)
-    $("#"+FOOTER_ID).css('display','none')
+    $("#"+FOOTER_ID).removeClass(CSS_ENABLE_CLASS )
     $(window).trigger('resize');
 }
 
 var enableFooter = function () {
-    $("#"+FOOTER_ID).css('display','')
+    $("#"+FOOTER_ID).addClass(CSS_ENABLE_CLASS )
     $("#"+FOOTER_CONTENT_ID).empty();
     $(window).trigger('resize');
 }
