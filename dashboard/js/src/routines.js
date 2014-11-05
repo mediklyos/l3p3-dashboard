@@ -286,8 +286,7 @@ $(function(){
 })
 
 var keyPress = function (event){
-    console.log(event.keyCode )
-    if (event.keyCode == FULL_SCREEN_KEY){
+    if (event.keyCode == FULL_SCREEN_KEY && event.ctrlKey){
         if ($("."+SHOW_FOOTER_CLASS).length > 0 || $("."+CSS_CLASS_SHOW_LEFT_COLUMN).length > 0){
             toggleFooter(false)
             toggleLeftColumn(false)

@@ -10,7 +10,7 @@ var dashboard_locale = "es-ES"
 
 var BORDER_SIZE = 20;
 var ACTIVE_CLASS = "active";
-var FULL_SCREEN_KEY = 102 //f
+var FULL_SCREEN_KEY = 17 //f
 
 
 /*Dashboard classes*/

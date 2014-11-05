@@ -37,6 +37,7 @@ var PV_SVG_FOOTER_LINE_SEPARATION = 60000 // in milliseconds
 var PV_SVG_FOOTER_SUB_LINE_HEIGHT = 3
 var PV_SVG_FOOTER_STROKE_VERTICAL_LINE = 1
 var PV_SVG_FOOTER_FONT_FAMILY = "monospace"
+var PV_HEIGHT_STEP = 10;
 if (GLOBAL_DEBUG){
 
 
@@ -70,6 +71,7 @@ if (GLOBAL_DEBUG){
     debugEvents.push(TEST_EVENT_NAME+num++)
     debugEvents.push(TEST_EVENT_NAME+num++)
     var timeRange = [1500,5000]
+    var PV_STOP = false
 }
 
 
@@ -104,9 +106,15 @@ var PV_BORDER_SIZE = 20;
 
 var pvResizeFunction = function (){
 
-    $("#"+PV_CHARTS).css('max-height','calc(100vh - '+($("#"+PV_CHARTS).offset().top + PV_BORDER_SIZE)+'px');
+//    $("#"+PV_CHARTS).css('max-height','calc(100vh - '+($("#"+PV_CHARTS).offset().top + PV_BORDER_SIZE)+'px');
     resizingCanvasChart();
-    resizingCanvasChart();
+}
+
+var pv_clear = function (){
+    if (GLOBAL_DEBUG){
+        PV_STOP = true;
+
+    }
 }
 
 var pvSetThreshold = function (value) {
@@ -141,9 +149,6 @@ var pvAddGraph = function () {
     canvas[0].smoothie = smoothie;
     canvas[0].smoothie.paintName = true;
 
-//    $('<svg/>',{
-//
-//    }).appendTo(section);
     charts.push(smoothie)
     smoothie.streamTo(section.find('canvas').get(0), PV_TIMEOUT);
     smoothie.extraActionsInAnimation = drawOnCanvasEvents.bind(canvas[0])//.bind(this.smoothie);
@@ -156,10 +161,7 @@ var pvAddGraph = function () {
 //        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas[0],TEST_EVENT_NAME+ev++),15000);
 //        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas[0],TEST_EVENT_NAME+ev++),23100);
     }
-//    resizingCanvasChart (section)
-    resizingCanvasChart ($('.'+DASHBOARD_TEMPLATES).find('.'+PV_CHART))
-    resizingCanvasChart ($('.'+DASHBOARD_TEMPLATES).find('.'+PV_CHART))
-//    section.find('canvas')[0].id = predictor;
+    pvResizeFunction()
 }
 
 var pvActiveNames = function (event) {
@@ -216,28 +218,30 @@ var resizingCanvasChart = function (charts){
     } else {
         canvas = charts.find('canvas')
     }
-//    canvas.parent().parent().css("padding-bottom","300px")
-//    canvas.parent().parent().css("padding-bottom","380px")
-    var width = canvas.parent().width();
+    canvas.attr('height',actualHeight)
+    $(function (){
+
+        var width = canvas.parent().width();
 //    width = canvas.width();
 //    width = canvas.parent().outerWidth()
-    canvas.attr('width', width)
-    canvas.attr('height',actualHeight)
-    $.each(canvas,function(){
-        if (this.smoothie !== undefined) {
-            var timePerPixel = parseInt(this.smoothie.graphTime / width);
-            this.smoothie.graphTime = timePerPixel * width;
-            this.smoothie.zero = 0.5
-            this.smoothie.options.millisPerPixel = timePerPixel;
-            var svg =  $(this).parent().find('svg.'+PV_SVG_FOOTER_CLASS);
+        canvas.attr('width', width)
+        $.each(canvas,function(){
+            if (this.smoothie !== undefined) {
+                var timePerPixel = parseInt(this.smoothie.graphTime / width);
+                this.smoothie.graphTime = timePerPixel * width;
+                this.smoothie.zero = 0.5
+                this.smoothie.options.millisPerPixel = timePerPixel;
+                var svg =  $(this).parent().find('svg.'+PV_SVG_FOOTER_CLASS);
 
-            drawFooter(svg,width,timePerPixel,this.smoothie.footerVerticalLine);
-            drawOnCanvasBase(this)
+                drawFooter(svg,width,timePerPixel,this.smoothie.footerVerticalLine);
+                drawOnCanvasBase(this)
 //            this.
-        }
-        var divChart = getCharDiv(canvas);
-        divChart.find("."+PV_EVENTS_COUNT_PARENT).css('height',canvas.parent().height())
+            }
+            var divChart = getCharDiv(canvas);
+            divChart.find("."+PV_EVENTS_COUNT_PARENT).css('height',canvas.parent().height())
+        })
     })
+
 
 
 }
@@ -516,15 +520,12 @@ var PVSelectChart = function (event) {
 
 }
 var pvResizingCols = function () {
-        var colNum =Math.floor(PV_MAX_LG_COL / PV_COLS);
-        $('#'+PV_CHARTS).find('.'+PV_CHART).removeClassPrefix('col-').addClass('col-lg-'+colNum);
-        // De esta forma se ejecuta al cargar ejecutar todas las cosas, se hace asi porque antes no se
-        // sabe cuanto vale el ancho
-        resizingCanvasChart();
-        resizingCanvasChart ($('.'+DASHBOARD_TEMPLATES).find('.'+PV_CHART))
-//        $(function () {
-//            $('#'+ODV_CHARTS).find('canvas').attr('width', $('#'+ODV_CHARTS).find('canvas').width());
-//        })
+    var colNum =Math.floor(PV_MAX_LG_COL / PV_COLS);
+    $('#'+PV_CHARTS).find('.'+PV_CHART).removeClassPrefix('col-').addClass('col-lg-'+colNum);
+    // De esta forma se ejecuta al cargar ejecutar todas las cosas, se hace asi porque antes no se
+    // sabe cuanto vale el ancho
+    pvResizeFunction()
+
 
 }
 
@@ -646,8 +647,9 @@ var getCharDiv = function (actualDom) {
     if (!(actualDom instanceof jQuery)){
         actualDom = $(actualDom)
     }
-    while (!actualDom.hasClass(PV_CHART)){
+    while (!actualDom.hasClass(PV_CHART) && actualDom.length != 0){
         actualDom = actualDom.parent();
+
     }
     return actualDom;
 
@@ -661,11 +663,12 @@ var pv_print = function (string){
 
 if (GLOBAL_DEBUG){
     var generateEvent = function (){
-
+        if (PV_STOP){
+            return;
+        }
         var nChart = parseInt(Math.random()*($("canvas").length-1)) + 1
         var canvas= $("canvas")[nChart];
         var nEvent = parseInt((Math.random()*(debugEvents.length+2)))-2
-        console.log(nEvent)
         if (nEvent < 0) {
             var prediction =  parseInt(Math.random()*100)
             var event = pvAddEventToSmoothie(canvas,debugEvents[0]+"_"+nChart)
@@ -694,3 +697,32 @@ if (GLOBAL_DEBUG){
 
 }
 
+
+function pvIncrementChartsHeight(){
+    actualHeight += PV_HEIGHT_STEP;
+    pvResizeFunction()
+//    var newValue = parseInt($('.'+PV_CHART).find('canvas').attr('height'))+ODV_HEIGHT_STEP;
+//    $('.'+ODV_CHART).find('canvas').attr('height',newValue);
+//    $.each(charts,function (key, value){
+//        value.options.labels.fontSize = value.options.labels.fontSize + ODV_FONT_STEP;
+//    })
+}
+function pvDecrementChartsHeight(){
+    if (actualHeight <= PV_HEIGHT_STEP*2){
+        return
+    }
+    actualHeight -= PV_HEIGHT_STEP;
+    pvResizeFunction()
+//    var newValue = parseInt($('.'+ODV_CHART).find('canvas').attr('height'))-ODV_HEIGHT_STEP;
+//    if (newValue > 0)
+//        $('.odv-chart').find('canvas').attr('height',newValue);
+//
+//    $.each(charts, function (key, value) {
+//        newValue =  value.options.labels.fontSize - ODV_FONT_STEP
+//        // Para guardar la relaccion de steps
+//        if (newValue > 2) {
+//            value.options.labels.fontSize = newValue
+//        }
+//    })
+
+}

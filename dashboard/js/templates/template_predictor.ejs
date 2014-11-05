@@ -30,37 +30,36 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <button class="btn btn-default" id="pv-increment-charts-height" onclick="incrementChartsHeight()">+Height</button>
-                    <button class="btn btn-default" id="pv-decrement-charts-height" onclick="decrementChartsHeight()">-Height</button>
+                    <button class="btn btn-default" id="pv-increment-charts-height" onclick="pvIncrementChartsHeight()">+Height</button>
+                    <button class="btn btn-default" id="pv-decrement-charts-height" onclick="pvDecrementChartsHeight()">-Height</button>
                 </div>
         </div>
         <div class="pv-chart">
             <div class="pv-int-chart">
+                <!--<h2 class="title"></h2>-->
                 <div class="col-lg-10">
-                    <!--<h2 class="title"></h2>-->
                     <canvas height="80"  class="pv-canvas"></canvas>
                     <svg class="pv-svg-footer-class"></svg>
-                    <div class="my-stats" style="margin-bottom: 2px;">
-                        <div class="controls">
-                            <div class="center-content-panel">
-                                <button type="button" class="btn btn-default pv-select-graph" onclick="PVSelectChart(event)"></button>
-                            </div>
-                            <div class="center-content-panel">
-                                <button type="button" class="btn btn-default" id="" onclick="pvActiveNames(event)">names</button>
-                            </div>
-                            <div class="pv-events-legend" style="display: inline">
-                                <div>
-
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
                 <div class="col-lg-2 div-border pv-events-count-parent">
                     <b>Observation window</b>
                     <div class="pv-events-count">
 
+                    </div>
+                </div>
+                <div class="my-stats col-lg-12" >
+                    <div class="controls">
+                        <div class="center-content-panel">
+                            <button type="button" class="btn btn-default pv-select-graph" onclick="PVSelectChart(event)"></button>
+                        </div>
+                        <div class="center-content-panel">
+                            <button type="button" class="btn btn-default" id="" onclick="pvActiveNames(event)">names</button>
+                        </div>
+                        <div class="pv-events-legend" style="display: inline">
+                            <div>
+
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div><!-- pv-int-chart -->
@@ -88,7 +87,8 @@
             $(window).resize(pvResizeFunction)
             clear = function() {
                 // Este clear es limpiar las conexiones
-//                pv_clear(true)
+                pv_clear(true)
+
                 $(window).unbind('resize',pvResizeFunction)
             }
 
