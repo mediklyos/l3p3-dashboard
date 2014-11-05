@@ -404,6 +404,28 @@ body {
     overflow-y: auto;
 }
 
+.pv-chart {
+    /*border: black;*/
+    /*border-width: 1px;*/
+    /*border-style: groove;*/
+    /*padding : 2px;*/
+    /*margin: 4px;*/
+}
+
+.pv-int-chart {
+    border-top: black;
+    border-top-width: 2px;
+    border-top-style: groove;
+    padding-top : 2px;
+    margin-top: 4px;
+    /*border: black;*/
+    /*border-width: 1px;*/
+    /*border-style: groove;*/
+    /*padding : 2px;*/
+    /*margin: 4px;*/
+
+}
+
 #pv-main {
     max-height: 100%;
 }
@@ -446,9 +468,33 @@ body {
 }
 
 .pv-events-count span {
-    float: right;
-    margin-left: 3px;
+    /*float: right;*/
+    /*margin-left: 3px;*/
 }
+.pv-events-count-parent {
+    overflow-y: auto;
+    overflow-x: hidden;
+
+}
+.pv-events-count {
+    /*height: 100px;*/
+}
+.pv-events-count>div {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    /*float: right;*/
+    /*margin-left: 3px;*/
+}
+
+.pv-events-count>div.tooltip {
+    white-space: inherit;
+}
+
+.pv-events-count .tooltip {
+    background: red;
+    /*position: static;*/
+}
+
 /*.pv-events-count span.title {*/
     /*float: left;*/
 /*}*/

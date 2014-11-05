@@ -1,3 +1,5 @@
+#!/usr/bin/nodejs
+
 var DEBUG = false;
 var port = 10082
 process.argv.forEach(function (val, index) {
@@ -153,8 +155,9 @@ var executeCommand = function (input,callback){
                             print("#ws=" + wsList.length);//+". The list of open sockets: ")
 
                         } else if (parseInt(command[1]) !== NaN) {
-                            wsActive = parseInt(command[1]);
-                            if (wsList.length > wsActive) {
+
+                            if (wsList.length > parseInt(command[1])) {
+                                wsActive = parseInt(command[1]);
                                 print("Web Socket communication mode, Active to " + wsActive)
                                 mode = WS_MODE;
                             } else {
@@ -200,8 +203,8 @@ var executeCommand = function (input,callback){
                                 print("#ws=" + wsList.length);//+". The list of open sockets: ")
 
                             } else if (parseInt(command[1]) !== NaN) {
-                                wsActive = parseInt(command[1]);
-                                if (wsList.length > wsActive) {
+                                if (wsList.length > parseInt(command[1])) {
+                                    wsActive = parseInt(command[1]);
                                     print("Web Socket communication mode, Active to " + wsActive)
                                     mode = WS_MODE;
                                 } else {

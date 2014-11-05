@@ -40,50 +40,63 @@
                 </div>
         </div>
         <div class="pv-chart">
-            <h2 class="title"></h2>
-            <canvas height="80"  class="pv-canvas"></canvas>
-            <svg class="pv-svg-footer-class">
-            </svg>
-            <div class="my-stats" style="margin-bottom: 2px;">
-                <div class="div-border">
-                    <div class="stats">
-                        <!--<div class="stat template">-->
-                            <!--<span class="stat-name"></span>-->
-                            <!--<span class="stat-value"></span>-->
-                            <!--&lt;!&ndash;<input type="button" class="stat-button" value="Color Map" style="width: 75px; height: 25px;"/>&ndash;&gt;-->
-                        <!--</div>-->
-                        <div class="pv-events-count">
-                            <span>uno</span><span>dos</span><span>uno</span><span>uno</span>
+            <div class="pv-int-chart">
+                <div class="col-lg-10">
+                    <!--<h2 class="title"></h2>-->
+                    <canvas height="80"  class="pv-canvas"></canvas>
+                    <svg class="pv-svg-footer-class">
+                    </svg>
+                    <div class="my-stats" style="margin-bottom: 2px;">
+                        <div class="controls">
+                            <div class="center-content-panel">
+                                <button title="hola" type="button" class="btn btn-default pv-select-graph" onclick="PVSelectChart(event)"></button>
+                            </div>
+                            <div class="center-content-panel">
+                                <button type="button" class="btn btn-default" id="" onclick="pvActiveNames(event)">names</button>
+                            </div>
+                            <div class="pv-events-legend" style="display: inline">
+                                <div>
+
+                                </div>
+                            </div>
+                            <!--<div class="div-border center-content-panel pv-chart-slider">-->
+                            <!--</div>-->
+                            <!--<div class="center-content-panel">-->
+                                <!--<button type="button" data-toggle="button" class="pv-dynamic-height btn btn-default" onclick="setDynamicHeight(event)">Dynamic height</button>-->
+                            <!--</div>-->
+                            <!--<div class="center-content-panel">-->
+                                <!--<button type="button" class="btn btn-default" onclick="save(event.target)">Save</button>-->
+                            <!--</div>-->
+                            <!--<div class="center-content-panel">-->
+                                <!--<button type="button" class="btn btn-default" onclick="pause(event.target)">Pause</button>-->
+                            <!--</div>-->
+                            <!--<div class="center-content-panel">-->
+                                <!--<button type="button" class="btn btn-default" onclick="resume(event.target)">Resume</button>-->
+                            <!--</div>-->
+
                         </div>
+                        <!--<div class="div-border">-->
+                            <!--<div class="stats">-->
+                                <!--&lt;!&ndash;<div class="stat template">&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<span class="stat-name"></span>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;<span class="stat-value"></span>&ndash;&gt;-->
+                                    <!--&lt;!&ndash;&lt;!&ndash;<input type="button" class="stat-button" value="Color Map" style="width: 75px; height: 25px;"/>&ndash;&gt;&ndash;&gt;-->
+                                <!--&lt;!&ndash;</div>&ndash;&gt;-->
+
+                            <!--</div>-->
+                        <!--</div>-->
+                    </div>
+
+                </div>
+                <div class="col-lg-2 div-border pv-events-count-parent">
+                    <b>Observation window</b>
+                    <div class="pv-events-count">
+
                     </div>
                 </div>
-            </div>
-            <div class="controls">
-                <div class="center-content-panel">
-                    <button type="button" class="btn btn-default pv-select-graph" onclick="PVSelectChart(event)"></button>
-                </div>
-                <div class="center-content-panel">
-                    <button type="button" class="btn btn-default" id="" onclick="pvActiveNames(event)">names</button>
-                </div>
-
-                <div class="div-border center-content-panel pv-chart-slider">
-                </div>
-                <div class="center-content-panel">
-                    <button type="button" data-toggle="button" class="pv-dynamic-height btn btn-default" onclick="setDynamicHeight(event)">Dynamic height</button>
-                </div>
-                <div class="center-content-panel">
-                    <button type="button" class="btn btn-default" onclick="save(event.target)">Save</button>
-                </div>
-                <div class="center-content-panel">
-                    <button type="button" class="btn btn-default" onclick="pause(event.target)">Pause</button>
-                </div>
-                <div class="center-content-panel">
-                    <button type="button" class="btn btn-default" onclick="resume(event.target)">Resume</button>
-                </div>
-
-            </div>
+            </div><!-- pv-int-chart -->
         </div>
-    </div>
+        </div>
     <div class="row">
         <div class="col-lg-12" id="pv-charts">
 
@@ -154,49 +167,11 @@
         pvStartRoutines();
 
         if (GLOBAL_DEBUG){
-
             pvAddGraph();
             activeSmoothie = 0;
             $($("canvas")[1]).parent().find("."+PV_SELECT_CHART_BUTTON).addClass('active')
             _pvLoadSource("localhost:10082")
 
-//        $(function (){
-//
-////                $("#"+ORV_COLUMNS_CLICKS).find('.btn').removeClass('btn-primary').addClass('btn-default');
-////                MAX_COLS = 4;
-////                resizingCols();
-////                document.getElementsByClassName('pv-canvas')[0].setAttribute('height',600)
-////        onlineResourceView_postLoad("localhost:8080")
-////                onlineResourceView_postLoad("pvs.herokuapp.com")
-//
-//            }
         }
     </script>
-    <style>
-        /*g#toolTip {*/
-            /*visibility: hidden;*/
-        /*}*/
-        /*g#toolTip rect {*/
-            /*fill: #FFCC00;*/
-        /*}*/
-        /*g#toolTip text {*/
-            /*font-size: 16px;*/
-        /*}*/
-    </style>
-    <!--<svg xmlns="http://www.w3.org/2000/svg">-->
-        <!--<title>Main Title</title>-->
-        <!--<g id="group1">-->
-            <!--<title>Title One</title>-->
-            <!--<circle cx="120" cy="60" r="40" fill="#993333" />-->
-        <!--</g>-->
-        <!--<g id="group2">-->
-            <!--<title>Title Two</title>-->
-            <!--<circle cx="60" cy="60" r="40" fill="#339933" />-->
-            <!--<g id="group3">-->
-                <!--<circle cx="180" cy="60" r="40" fill="#333399" />-->
-                <!--<title>Title Three</title>-->
-            <!--</g>-->
-        <!--</g>-->
-    <!--</svg>-->
-
 </div>
