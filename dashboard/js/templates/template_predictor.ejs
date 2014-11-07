@@ -2,52 +2,103 @@
 <div id="pv-main" class="main">
     <!-- Everything must be inside a div so that the ejs works -->
     <div class="dashboard-templates">
-        <div id="pv-tool-bar" class="form-inline" role="form">
-                <div class="form-group">
-                    <div class="input-group">
-                        <div class="input-group-addon" id="pv-prefix-url" data-toggle="tooltip" data-original-title="You can try this server: pvs.herokuapp.com">ws://</div>
-                        <input id="pv-input-url" type="text" class="form-control my-form" placeholder="url" onkeydown="pvLoadSource(event)">
-                    </div>
-                    <button class="btn btn-default" id="pv-upload-button" onclick="pvLoadSource_click()">Load</button>
+        <div class="pv-footer-chart-stats" class="col-lg-12">
+            <div class="pv-table-graph-footer">
+                <div class="pv-table-title"></div>
+                <div class="pv-table-evens-occurrence pv-prediction-table">
+                    <table class="table table-condensed pv-table-evens-occurrence">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Events happened</th>
+                            </tr>
+                            <tr>
+                                <th>Event</th>
+                                <th>Moment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="dashboard-templates">
+                                <td class="pv-td-1"></td><td class="pv-td-2"></td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
+                <div class="pv-table-evens-prediction pv-prediction-table">
+                    <table class="table table-condensed">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Occurrece events</th>
+                            </tr>
+                            <tr>
+                                <th>Event</th>
+                                <th>Prediction</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="dashboard-templates">
+                            <td class="pv-td-1"></td><td class="pv-td-2"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="hr"></div>
+            </div>
+            <!--<div id="pv-footer-chart-stats-events">-->
 
-                <div class="form-group">
-                    <button class="btn btn-default" id="pv-add-graph" onclick="pvAddGraph()">Add Graph</button>
-                    <div class="btn-group btn-toggle" data-toggle="buttons" id="pv-columns-click" onclick="pvColumnsClick(event)">
-                        <label class="btn btn-default">
-                            <input name="pv-columns" value="1" type="radio">1</label>
-                        <label class="btn btn-primary active">
-                            <input name="pv-columns" value="2" type="radio">2</label>
-                        <label class="btn btn-default">
-                            <input name="pv-columns" value="3" type="radio">3</label>
-                        <label class="btn btn-default">
-                            <input name="pv-columns" value="4" type="radio">4</label>
-                    </div>
-                </div>
+            <!--</div>-->
 
-                <div class="form-group">
-                    <div id="pv-threshold-slider-panel" class="div-border center-content-panel">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <button class="btn btn-default" id="pv-increment-charts-height" onclick="pvIncrementChartsHeight()">+Height</button>
-                    <button class="btn btn-default" id="pv-decrement-charts-height" onclick="pvDecrementChartsHeight()">-Height</button>
-                </div>
         </div>
-        <div class="pv-chart">
-            <div class="pv-int-chart">
-                <!--<h2 class="title"></h2>-->
-                <div class="col-lg-10">
-                    <canvas height="80"  class="pv-canvas"></canvas>
-                    <svg class="pv-svg-footer-class"></svg>
-                </div>
-                <div class="col-lg-2 div-border pv-events-count-parent">
-                    <b>Observation window</b>
-                    <div class="pv-events-count">
 
-                    </div>
+        <table class="table table-condensed">
+            <thead>
+            <tr>
+                <td>Id</td>
+            </tr>
+            <tr>
+                <td>Time</td><td>Event</td>
+            </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+        <!-- template pv-tool-bar-->
+        <div id="pv-tool-bar" class="form-inline" role="form">
+            <div class="form-group">
+                <div class="input-group">
+                    <div class="input-group-addon" id="pv-prefix-url" data-toggle="tooltip" data-original-title="You can try this server: pvs.herokuapp.com">ws://</div>
+                    <input id="pv-input-url" type="text" class="form-control my-form" placeholder="url" onkeydown="pvLoadSource(event)">
                 </div>
-                <div class="my-stats col-lg-12" >
+                <button class="btn btn-default" id="pv-upload-button" onclick="pvLoadSource_click()">Load</button>
+            </div>
+
+            <div class="form-group">
+                <button class="btn btn-default" id="pv-add-graph" onclick="pvAddGraph()">Add Graph</button>
+                <div class="btn-group btn-toggle" data-toggle="buttons" id="pv-columns-click" onclick="pvColumnsClick(event)">
+                    <label class="btn btn-default">
+                        <input name="pv-columns" value="1" type="radio">1</label>
+                    <label class="btn btn-primary active">
+                        <input name="pv-columns" value="2" type="radio">2</label>
+                    <label class="btn btn-default">
+                        <input name="pv-columns" value="3" type="radio">3</label>
+                    <label class="btn btn-default">
+                        <input name="pv-columns" value="4" type="radio">4</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div id="pv-threshold-slider-panel" class="div-border center-content-panel">
+                </div>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-default" id="pv-increment-charts-height" onclick="pvIncrementChartsHeight()">+Height</button>
+                <button class="btn btn-default" id="pv-decrement-charts-height" onclick="pvDecrementChartsHeight()">-Height</button>
+            </div>
+        </div>
+
+        <!-- template pv-chart-->
+        <div class="pv-chart">
+                <div class="my-stats col-lg-12">
                     <div class="controls">
                         <div class="center-content-panel">
                             <button type="button" class="btn btn-default pv-select-graph" onclick="PVSelectChart(event)"></button>
@@ -62,23 +113,21 @@
                         </div>
                     </div>
                 </div>
-            </div><!-- pv-int-chart -->
-        </div>
-        </div>
-    <div class="row">
-        <div class="col-lg-12" id="pv-charts">
-
-        </div>
-
-        <div class="col-lg-2" style="display: none" id="pv-events-col">
-            <h2>Alerts</h2>
-            <div class="col-lg-2" id="pv-events-list">
-                <div class="btn-group pv-button-entry template" >
-                    <a class="btn btn-default pv-entry-description"  id="dd-button-data-data/titanic.csv">a</a>
-                    <a class="btn btn-default pv-entry-delete"><span class="glyphicon glyphicon-trash"></span></a>
+                <div class="col-lg-10">
+                    <canvas height="80"  class="pv-canvas"></canvas>
+                    <svg class="pv-svg-footer-class"></svg>
                 </div>
-            </div>
-        </div>
+                <div class="col-lg-2 div-border pv-events-count-parent">
+                    <b>Observation window</b>
+                    <div class="pv-events-count">
+
+                    </div>
+                </div>
+        </div> <!-- pv-chart-->
+    </div> <!-- END TEMPLATES-->
+    <div class="" id="pv-charts">
+
+    </div>
     </div>
     <script>
         $(function(){
@@ -110,9 +159,6 @@
             }).appendTo("#"+PV_THRESHOLD_SLIDER_PANEL);
             slider2.width(100);
             // Altura dinamica
-            $("#"+PV_EVENTS_COL).css('height','calc(100vh - '+(parseInt($("#"+PV_EVENTS_COL).offset().top) + 20)+'px)');
-            $("#"+PV_EVENTS_LIST).css('max-height','calc(100vh - '+(parseInt($("#"+PV_EVENTS_LIST).offset().top) + 20)+'px)');
-//            $("#"+PV_EVENTS_LIST).css('height','223px');
         })
         $(document).ready(function(){
             $("#pv-prefix-url").tooltip({
@@ -128,6 +174,7 @@
             activeSmoothie = 0;
             $($("canvas")[1]).parent().find("."+PV_SELECT_CHART_BUTTON).addClass('active')
             _pvLoadSource("localhost:10082")
+            toggleFooter(true);
 
         }
     </script>

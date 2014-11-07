@@ -25,8 +25,19 @@ var PV_INPUT_URL = PRE + "-input-url"
 var PV_EVENTS_COUNT = PRE + "-events-count"
 var PV_EVENTS_COUNT_PARENT = PRE + "-events-count-parent"
 var PV_EVENTS_LEGEND = PRE + "-events-legend"
+var PV_TOOLTIP  = PRE + "-tooltip"
+var PV_TOOLTIP_EVENTS_OCCURRED = PRE + "-tooltip-events-occurred"
+var PV_TOOLTIP_EVENTS_OCCURRED_INTERNAL = PRE + "-tooltip-events-occurred-internal"
+var PV_FOOTER_CHART = PRE + "-footer-chart-stats"
+var PV_FOOTER_TABLE_GRAPH = PRE + "-table-graph-footer"
+var PV_FOOTER_CHART_EVENTS = PRE + "-footer-chart-stats-events"
+var PV_TABLE_EVENTS_OCCURRENCE = PRE + "-table-evens-occurrence"
+var PV_CELL_1 = PRE +"-td-1"
+var PV_CELL_2 = PRE +"-td-2"
 
 
+
+var PV_PREFIX_CLASS_EVENTS = PRE + "-event-class-prefix-"
 /*Other constants*/
 var PV_TIMEOUT = 1000
 var PV_MAX_LG_COL = 12;
@@ -38,6 +49,10 @@ var PV_SVG_FOOTER_SUB_LINE_HEIGHT = 3
 var PV_SVG_FOOTER_STROKE_VERTICAL_LINE = 1
 var PV_SVG_FOOTER_FONT_FAMILY = "monospace"
 var PV_HEIGHT_STEP = 10;
+var PV_EVENT_CIRCLE_RADIUS = 2;
+var PV_EVENT_CIRCLE_RADIUS_HOVER = 4;
+var PV_EVENT_LINE_WIDTH = 1;
+var PV_EVENT_LINE_WIDTH_HOVER = 2;
 if (GLOBAL_DEBUG){
 
 
@@ -72,6 +87,7 @@ if (GLOBAL_DEBUG){
     debugEvents.push(TEST_EVENT_NAME+num++)
     var timeRange = [1500,5000]
     var PV_STOP = false
+    var pv_pause = false;
 }
 
 
@@ -105,8 +121,12 @@ var activeSmoothie = undefined;
 var PV_BORDER_SIZE = 20;
 
 var pvResizeFunction = function (){
-
+    var cssWidth = (100 / PV_COLS) - 2;
+    var colNum =Math.floor(PV_MAX_LG_COL / PV_COLS);
+//    $('#'+PV_CHARTS).find('.'+PV_CHART).removeClassPrefix('col-').addClass('col-lg-'+colNum);
+    $('#'+PV_CHARTS).find('.'+PV_CHART).css('width',cssWidth+"%")
 //    $("#"+PV_CHARTS).css('max-height','calc(100vh - '+($("#"+PV_CHARTS).offset().top + PV_BORDER_SIZE)+'px');
+    resizingCanvasChart();
     resizingCanvasChart();
 }
 
@@ -121,21 +141,30 @@ var pvSetThreshold = function (value) {
     // TODO copiar del anterios
 }
 
-var pvInitLeftColumn = function (){
+var pvInitLeftColumnAndFooter = function (){
     var toolBar = $("#"+PV_TOOL_BAR)
     toolBar.detach();
     toolBar.appendTo($("#"+LEFT_COLUMN_CONTENT));
+    var footerContent = $("."+PV_FOOTER_TABLE_GRAPH).clone()
+
+    $("#"+FOOTER_CONTENT_ID).append(footerContent)
+
 //    $(LEFT_COLUMN_CONTENT).append
 }
 var pvStartRoutines = function (){
-    pvInitLeftColumn();
+    pvInitLeftColumnAndFooter();
 }
 
+
+var graph = 0;
 var pvAddGraph = function () {
-    var colClass = "col-lg-"+parseInt(12/PV_COLS);
+//    var colClass = "col-lg-"+parseInt(12/PV_COLS);
     var section = $('.'+DASHBOARD_TEMPLATES).find('.'+PV_CHART).clone()
+
     section.find('.template').removeClass('section')
-    section.removeAttr('class').addClass(PV_CHART).addClass(colClass);
+    section.removeAttr('class').addClass(PV_CHART)//.addClass("col-lg-1");
+    section.attr("id","asdf-"+graph)
+    section.find(".pv-events-legend").text("asdf-"+graph++)
     section.appendTo('#'+PV_CHARTS);
     var smoothie = new SmoothieChart(PV_SMOOTHIE_DEFAULT_OPTIONS);
     smoothie.timelines = {}
@@ -195,8 +224,8 @@ var pvAddEventToSmoothie = function (canvas,eventName){
 var pvAddEventOccurrenceToCanvas = function (canvas,eventId){
     var jQCanvas = $(canvas)
     var event = pvAddEventToSmoothie(canvas,eventId)
-    canvas.smoothie.eventsHappend.push({event:event,time: (new Date()).getTime()})
-    paintLeftEvents(jQCanvas)
+    canvas.smoothie.eventsHappend.push({event:event,time: Date.now()})
+    paintEvents(jQCanvas)
 
 //    var eventsCount = $(getCharDiv(jQCanvas)).find('.'+PV_EVENTS_COUNT).empty();
 //    $.each(smoothie.eventsHappend,function (key) {
@@ -248,7 +277,7 @@ var resizingCanvasChart = function (charts){
 
 var first = true;
 var drawOnCanvasEvents = function () {
-    if (!first){
+    if (!first || pv_pause ){
         return;
     }
 //    first = false;
@@ -257,10 +286,12 @@ var drawOnCanvasEvents = function () {
     var jQSvg = jQCanvas.parent().find("."+PV_SVG_UP_CANVAS)
     jQSvg.find("."+PV_SVG_EVENTS_IN_UP_CANVAS).remove();
     var d3Svg = d3.select(jQSvg[0]);
-    var thisDate = (new Date()).getTime()
+    var thisDate = Date.now()
     var cy = jQSvg.height()-2
     var toDelete = []
     var count = 1;
+    // TODO particularizar eliminar este tipo de tooltip
+    jQSvg.find("."+PV_TOOLTIP_EVENTS_OCCURRED).remove();
     $.each(this.smoothie.eventsHappend,function (key) {
 
         var difference = thisDate - this.time;
@@ -270,13 +301,51 @@ var drawOnCanvasEvents = function () {
         }else {
             var cx = jQSvg.width()*canvas.smoothie.zero;
             var pixelDifference = parseInt(difference / canvas.smoothie.options.millisPerPixel)
+            var lineWidth;
+            var radius;
+            var fontWeight;
             cx -= pixelDifference;
+            if (this.isHover || this.isClicked){
+                if (this.isClicked){
+                    radius = radius
+                }
+                lineWidth = PV_EVENT_LINE_WIDTH_HOVER
+                radius = PV_EVENT_CIRCLE_RADIUS_HOVER
+                fontWeight = 'bold'
+                var content = $('<div/>', {
+                    class: PV_TOOLTIP_EVENTS_OCCURRED_INTERNAL
+                }).append('<span>Event ID: '+this.event.id+'<br>Time: '+new Date(this.time)+'</span>');
+                content.css('border-color',this.event.color)
+                content.css('color',this.event.color)
+                if (this.event.color.charAt(0) == "#"){
+                    content.css('background','rgba('+$c.hex2hsv(this.event.color).a.toString()+', 0.2)')
+                } else {
+                    content.css('background','rgba('+$c.name2rgb(this.event.color).a.toString()+', 0.2)')
+
+                }
+//                content.css()
+                var tooltip = createTooltip(d3Svg,content ,PV_TOOLTIP_EVENTS_OCCURRED,MY_ALIGNMENT_TOP_LEFT,cx,0)
+                // TODO el problma es en el repintado, si esta parado se quita
+                tooltip.style('z-index',"20");
+//                d3plus.color.text,,,
+                tooltip[0][0].onclick = function () {
+                    this.isClicked = false;paint
+                }.bind(this)
+
+
+
+            } else {
+                lineWidth = PV_EVENT_LINE_WIDTH
+                radius = PV_EVENT_CIRCLE_RADIUS
+                fontWeight = 'normal'
+
+            }
             d3Svg.append('line')
                 .attr('x1',cx)
                 .attr('x2',cx)
                 .attr('y1',0)
                 .attr('y2',cy)
-                .attr('stroke-width', PV_SVG_FOOTER_STROKE_VERTICAL_LINE)
+                .attr('stroke-width', lineWidth)
                 .attr('stroke', this.event.color)
                 .attr('shape-rendering',"crispEdges")
                 .attr("class", PV_SVG_EVENTS_IN_UP_CANVAS)
@@ -284,12 +353,13 @@ var drawOnCanvasEvents = function () {
             var circle = d3Svg.append('circle')
                 .attr('cx', cx)
                 .attr('cy', cy)
-                .attr('r', 2)
+                .attr('r', radius)
                 .attr("class", PV_SVG_EVENTS_IN_UP_CANVAS)
                 .style("fill", this.event.color)
             circle.append('title')
                 .text(this.event.id)
                 .style("fill", this.event.color);
+
             if (canvas.smoothie.paintName) {
                 var text = d3Svg.append('text')
                     .attr("class", PV_SVG_EVENTS_IN_UP_CANVAS)
@@ -297,6 +367,7 @@ var drawOnCanvasEvents = function () {
                     .attr('font-family', PV_SVG_FOOTER_FONT_FAMILY)
                     .attr('font-size', (PV_SVG_FOOTER_LINE_FONT_SIZE+5) + "px")
                     .attr('text-anchor', "end")
+                    .attr('font-weight',fontWeight)
 //            .attr('transform',"rotate(270 "+cx+","+cy+")")
                     .attr('transform', "rotate(270)")
                     .text(this.event.id)
@@ -310,7 +381,7 @@ var drawOnCanvasEvents = function () {
         for (var i = toDelete.length-1;i >=0;i-- ) {
             canvas.smoothie.eventsHappend.splice(toDelete[i],1);
         }
-        paintLeftEvents(jQCanvas)
+        paintEvents(jQCanvas)
         paintLegendEvents(jQCanvas)
 
     }
@@ -340,14 +411,105 @@ var paintLegendEvents = function (jQCanvas) {
     })
 }
 
-var paintLeftEvents = function (jQCanvas){
+var paintEvents = function (jQCanvas){
     var eventsCount = $(getCharDiv(jQCanvas)).find('.'+PV_EVENTS_COUNT).empty();
-    $.each(jQCanvas[0].smoothie.eventsHappend,function (key) {
+    var size = jQCanvas[0].smoothie.eventsHappend.length
+    /*Paint in the left*/
+    paintEventsInADiv(eventsCount,jQCanvas[0].smoothie.eventsHappend, function (events,pos) {
+        return (events.length -1 - pos)+") " ;
+    })
+    if (isActiveGraph(getCharDiv(jQCanvas))) {
+        // PONER EL TITULO
+
+        var tbody =$("#"+FOOTER_CONTENT_ID).find("."+PV_TABLE_EVENTS_OCCURRENCE ).find('tbody');
+        var genericLine = tbody.find("tr."+DASHBOARD_TEMPLATES)
+        tbody.empty()
+        tbody.append(genericLine)
+        for (var i = jQCanvas[0].smoothie.eventsHappend.length -1; i >= 0;i--){
+            var event = jQCanvas[0].smoothie.eventsHappend[i];
+            var line = genericLine.clone().removeAttr('class')
+            var className = PV_PREFIX_CLASS_EVENTS+event.event.id+"-"+event.time
+            var spanEvent =$('<span>'+event.event.id+'</span>').css('color',event.event.color)
+            var spanTime =$('<span>'+event.time+'</span>').css('color',event.event.color)
+            line.find('.'+PV_CELL_1).removeAttr('class').addClass(className).append(spanEvent);
+            line.find('.'+PV_CELL_2).removeAttr('class').addClass(className).append(spanTime);
+            tbody.append(line);
+//            var divs = line.find('td')
+            line.hover(
+                function (classId){
+                    $("."+classId).css('font-weight','bold')
+                    this.isHover = true;
+                }.bind(event,className),
+                function (classId){
+                    if (this.isClicked) {
+                        $("."+classId).css('font-weight','bold')
+                    } else {
+                        $("."+classId).css('font-weight','normal')
+                    }
+                    this.isHover = false;
+                }.bind(event,className)
+            )
+            line.click(function(classId) {
+                this.isClicked = !this.isClicked;
+                if (this.isClicked){
+                    $("."+classId).css('font-weight','bolt')
+                } else{
+                    $("."+classId).css('font-weight','normal')
+                }
+            }.bind(event,className))
+        }
+//        $.each(jQCanvas[0].smoothie.eventsHappend,function() {
+//
+//        })
+//        paintEventsInADiv($("#"+PV_FOOTER_CHART_EVENTS),jQCanvas[0].smoothie.eventsHappend,function (events,pos) {
+//            return ""
+//        })
+
+    }
+}
+
+var paintFooter = function (){
+
+}
+var paintEventsInADiv = function (container, eventsHappened,prefix) {
+    var size = eventsHappened.length
+    $.each(eventsHappened,function (key) {
         var div = $('<div title="ID:'+this.event.id+'\nDate:'+(new Date(this.time)).toUTCString()+'"/>')
-        var span1=$('<span>'+this.event.id+'</span>').css('color',this.event.color)
-        var span0=$('<span>'+(key)+') </span>')
-        div.append(span0).append(span1)
-        eventsCount.append(div)
+        var span1=$('<span>'+this.event.id+'</span>').css('color',this.event.color)//.css('font-weight','bold')
+        var className = PV_PREFIX_CLASS_EVENTS+this.event.id+"-"+this.time
+        if (prefix !== undefined) {
+            var span0=$('<span>'+prefix(eventsHappened,key)+'</span>').appendTo(div)
+        }
+        span1.addClass(className);
+        if (this.isClicked || this.isHover){
+            span1.css('font-weight','bold')
+        } else{
+            span1.css('font-weight','normal')
+        }
+        div.append(span1)
+        div.hover(
+            function (classId){
+                $("."+classId).css('font-weight','bold')
+                this.isHover = true;
+            }.bind(this,className),
+            function (classId){
+                if (this.isClicked) {
+                    $("."+classId).css('font-weight','bold')
+                } else {
+                    $("."+classId).css('font-weight','normal')
+                }
+                this.isHover = false;
+            }.bind(this,className)
+        )
+        div.click(function(classId) {
+            this.isClicked = !this.isClicked;
+            if (this.isClicked){
+                $("."+classId).css('font-weight','bolt')
+            } else{
+                $("."+classId).css('font-weight','normal')
+            }
+        }.bind(this,className))
+        container.prepend(div)
     })
 }
 
@@ -447,7 +609,6 @@ var drawFooter = function (svg,width,timePerPixel,lineSeparation,zero){
     for (i = zeroPos+widthStep,j=1;i < width; i+=widthStep,j++  ){
         h_x = i;
 
-        var marks
         d3Svg.append('line')
             .attr('x1',h_x)
             .attr('x2',h_x)
@@ -465,7 +626,6 @@ var drawFooter = function (svg,width,timePerPixel,lineSeparation,zero){
             .attr('y',PV_SVG_FOOTER_LINE_FONT_SIZE + PV_SVG_FOOTER_SUB_LINE_HEIGHT)
             .text(footerTextCalculator(j,lineSeparation))
     }
-
 }
 
 var footerTextCalculator = function (pos, lineSeparation,precission){
@@ -517,13 +677,19 @@ var PVSelectChart = function (event) {
 //    $(event.target).removeClass('btn-default').addClass('btn-primary').addClass('active')
 //    $(event.target).removeClass('btn-default').addClass('btn-primary')
     $(event.target).addClass('active')
+    $("#"+PV_FOOTER_CHART_EVENTS).empty()
+    paintEvents(getCanvas(event.target))
+//    paintEventsInADiv($("#"+PV_FOOTER_CHART_EVENTS),getActiveGraph()[0].smoothie.eventsHappend,function (events,pos) {
+//        return "Fecha: "
+//    })
+
 
 }
 var pvResizingCols = function () {
-    var colNum =Math.floor(PV_MAX_LG_COL / PV_COLS);
-    $('#'+PV_CHARTS).find('.'+PV_CHART).removeClassPrefix('col-').addClass('col-lg-'+colNum);
+
     // De esta forma se ejecuta al cargar ejecutar todas las cosas, se hace asi porque antes no se
     // sabe cuanto vale el ancho
+
     pvResizeFunction()
 
 
@@ -542,8 +708,11 @@ function pvColumnsClick(event){
         button = button.parentNode;
     }
     $(button).removeClass('btn-default').addClass('btn-primary');
-    PV_COLS = parseInt($(button).find('input').attr('value'));
-    pvResizingCols();
+    var newCols = parseInt($(button).find('input').attr('value'))
+    if (newCols != PV_COLS) {
+        PV_COLS = newCols
+        pvResizingCols();
+    }
 
 //    $("#"+ORV_COLUMNS_CLICKS).find('.active').removeClass('btn-default').addClass('btn-primary');
 }
@@ -639,6 +808,10 @@ var getActiveGraph = function (){
 
 }
 
+var isActiveGraph= function (divGraph) {
+    return divGraph.find("button.active."+PV_SELECT_CHART_BUTTON).length != 0
+}
+
 var getCanvas = function (actualDom){
     return $(getCharDiv(actualDom)).find('canvas')
 }
@@ -662,30 +835,37 @@ var pv_print = function (string){
 }
 
 if (GLOBAL_DEBUG){
+    setTimeout(function() {
+        $($("."+PV_SELECT_CHART_BUTTON)[1]).trigger("click")
+        _pvLoadSource("localhost:10082")
+    },100);
+//    $()
     var generateEvent = function (){
         if (PV_STOP){
             return;
         }
-        var nChart = parseInt(Math.random()*($("canvas").length-1)) + 1
-        var canvas= $("canvas")[nChart];
-        var nEvent = parseInt((Math.random()*(debugEvents.length+2)))-2
-        if (nEvent < 0) {
-            var prediction =  parseInt(Math.random()*100)
-            var event = pvAddEventToSmoothie(canvas,debugEvents[0]+"_"+nChart)
+        if (!pv_pause) {
+            var nChart = parseInt(Math.random() * ($("canvas").length - 1)) + 1
+            var canvas = $("canvas")[nChart];
+            var nEvent = parseInt((Math.random() * (debugEvents.length + 2))) - 2
+            if (nEvent < 0) {
+                var prediction = parseInt(Math.random() * 100)
+                var event = pvAddEventToSmoothie(canvas, debugEvents[0] + "_" + nChart)
 
-            /*The step not work corretly in the librery, this code fix it because put 0 if not exist value or put
-             * the last value*/
-            if (event.timeSeries.data.length == 0){
-                event.timeSeries.append(Date.now()-1,0);
+                /*The step not work corretly in the librery, this code fix it because put 0 if not exist value or put
+                 * the last value*/
+                if (event.timeSeries.data.length == 0) {
+                    event.timeSeries.append(Date.now() - 1, 0);
 
+                } else {
+                    event.timeSeries.append(Date.now() - 1, event.timeSeries.data[event.timeSeries.data.length - 1][1]);
+                }
+                event.timeSeries.append(Date.now(), prediction);
             } else {
-                event.timeSeries.append(Date.now()-1,event.timeSeries.data[event.timeSeries.data.length-1][1]);
-            }
-            event.timeSeries.append(Date.now(),prediction);
-        } else {
-            var sEvent = debugEvents[nEvent]+"_"+nChart;
-            pvAddEventOccurrenceToCanvas(canvas,sEvent)
+                var sEvent = debugEvents[nEvent] + "_" + nChart;
+                pvAddEventOccurrenceToCanvas(canvas, sEvent)
 
+            }
         }
 
 
@@ -701,11 +881,6 @@ if (GLOBAL_DEBUG){
 function pvIncrementChartsHeight(){
     actualHeight += PV_HEIGHT_STEP;
     pvResizeFunction()
-//    var newValue = parseInt($('.'+PV_CHART).find('canvas').attr('height'))+ODV_HEIGHT_STEP;
-//    $('.'+ODV_CHART).find('canvas').attr('height',newValue);
-//    $.each(charts,function (key, value){
-//        value.options.labels.fontSize = value.options.labels.fontSize + ODV_FONT_STEP;
-//    })
 }
 function pvDecrementChartsHeight(){
     if (actualHeight <= PV_HEIGHT_STEP*2){
@@ -713,16 +888,4 @@ function pvDecrementChartsHeight(){
     }
     actualHeight -= PV_HEIGHT_STEP;
     pvResizeFunction()
-//    var newValue = parseInt($('.'+ODV_CHART).find('canvas').attr('height'))-ODV_HEIGHT_STEP;
-//    if (newValue > 0)
-//        $('.odv-chart').find('canvas').attr('height',newValue);
-//
-//    $.each(charts, function (key, value) {
-//        newValue =  value.options.labels.fontSize - ODV_FONT_STEP
-//        // Para guardar la relaccion de steps
-//        if (newValue > 2) {
-//            value.options.labels.fontSize = newValue
-//        }
-//    })
-
 }

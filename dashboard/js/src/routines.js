@@ -357,3 +357,17 @@ var toggleMaximizeFooter = function (state) {
     $(window).trigger('resize');
 
 }
+
+/**
+ * Obtains the width of a html element, this function ignore the css inherit properties
+ * @param obj
+ * @returns {*}
+ */
+var realWidth = function (obj) {
+    var clone = obj.clone();
+    clone.css({ position: "absolute", visibility: "hidden", display: "block" });
+    $('body').append(clone);
+    var width = clone.outerWidth();
+    clone.remove();
+    return width;
+}
