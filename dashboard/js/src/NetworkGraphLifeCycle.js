@@ -49,6 +49,8 @@ var NGLC_START_NODE_NAME = "Start"
 
 var NGLC_FILTER_PREFIX = "filter-";
 
+var NGLC_BUTTON_APPLY_FILTERS_VALUE = "Apply filters";
+
 /*View attributes*/
 var nodes;
 var edges;
@@ -76,8 +78,7 @@ var itemsFiltered = {};
 $.each(extraColumnsShown, function(index, value) {
     itemsFiltered[NGLC_FILTER_PREFIX+value] = []
 })
-/*itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345");
-itemsFiltered[NGLC_FILTER_PREFIX+"priority"].push("Normal");*/
+
 var nglc_startRoutine = function (){
     nglc_reset();
     lapseTime = 4000000;
@@ -275,6 +276,17 @@ var resetFilterPanel = function (){
         class: 'nglc-box-margins-vertical',
         text: NGLC_FILTERS_INPUTS_INFO
     }))
+    var divApplyFilterButton = $('<div />', {
+        class: "nglc-box-margins-vertical btn-group"
+    })
+    $('<input />', {
+        class: "btn btn-default nglc-buttons-columns-class",
+        value: NGLC_BUTTON_APPLY_FILTERS_VALUE,
+        type: "button"
+    }).click(function(){
+        nglc_startRoutine();
+    }).appendTo(divApplyFilterButton)
+    filterPanelsByAttributeValue.append(divApplyFilterButton)
 
     var myPanels = createSetFilterPanelsByAttributeValue(NGLC_FILTER_PANEL_BY_ATTR, filterPanelsByAttributeValue, extraColumnsShown, NGLC_FILTER_COLUMNS_PANELS_PREFIX_ID, NGLC_FILTER_COLUMNS_PANEL_CLASS, function(result) {
         if (result.active){
@@ -671,20 +683,40 @@ var bootstapTableFooter = function (columnName, node){
     table.append('<thead><tr><td>'+columnName+'</td><td>Arrival Time</td><td>Duration (mean)</td><td>#</td></tr></thead>')
     table.append('<tbody></tbody>');
     $.each(node.extraCols[columnName],function (key,value){
-        table.append("<tr><td>"+key+"</td><td>"+formatTimeMillisToDate(calculateMean(value, 'time'))+"</td><td>"+calculateMean(value, NGLC_MEANTIME_COLUMN_NAME)+"</td><td>"+value.length+"</td></tr>");
+        table.append("<tr><td>"+key+"</td><td>"+formatTimeMillisToDate(calculateMean(value, 'time'))+"</td><td>"+msToTime(calculateMean(value, NGLC_MEANTIME_COLUMN_NAME))+"</td><td>"+value.length+"</td></tr>");
     })
     return table;
 }
 
+/**
+ * Milliseconds to DD:MM:YYYY hh:mm:ss
+ * @param millis
+ * @returns {string}
+ */
 var formatTimeMillisToDate = function(millis) {
     function pad(s) { return (s < 10) ? '0' + s : s; }
     var d = new Date(millis);
     return [pad(d.getDate()), pad(d.getMonth()+1), d.getFullYear()].join('/') + " "+ [pad(d.getHours()), pad(d.getMinutes()), d.getSeconds()].join(':');
 }
 
-var formatTimeMillisToHours = function(millis) {
-    return [(millis/(1000*60*60))%24, (millis/(1000*60))%60, (millis/1000)%60].join(':');
+/**
+ * Milliseconds to hh:mm:ss
+ * @param duration
+ * @returns {string}
+ */
+function msToTime(duration) {
+    var milliseconds = parseInt((duration%1000)/100)
+        , seconds = parseInt((duration/1000)%60)
+        , minutes = parseInt((duration/(1000*60))%60)
+        , hours = parseInt((duration/(1000*60*60))%24);
+
+    hours = (hours < 10) ? "0" + hours : hours;
+    minutes = (minutes < 10) ? "0" + minutes : minutes;
+    seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+    return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
 }
+
 
 /**
  * This method calculates the mean value of a certain attribute of an array.
