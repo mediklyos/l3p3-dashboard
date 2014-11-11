@@ -671,20 +671,40 @@ var bootstapTableFooter = function (columnName, node){
     table.append('<thead><tr><td>'+columnName+'</td><td>Arrival Time</td><td>Duration (mean)</td><td>#</td></tr></thead>')
     table.append('<tbody></tbody>');
     $.each(node.extraCols[columnName],function (key,value){
-        table.append("<tr><td>"+key+"</td><td>"+formatTimeMillisToDate(calculateMean(value, 'time'))+"</td><td>"+calculateMean(value, NGLC_MEANTIME_COLUMN_NAME)+"</td><td>"+value.length+"</td></tr>");
+        table.append("<tr><td>"+key+"</td><td>"+formatTimeMillisToDate(calculateMean(value, 'time'))+"</td><td>"+msToTime(calculateMean(value, NGLC_MEANTIME_COLUMN_NAME))+"</td><td>"+value.length+"</td></tr>");
     })
     return table;
 }
 
+/**
+ * Milliseconds to DD:MM:YYYY hh:mm:ss
+ * @param millis
+ * @returns {string}
+ */
 var formatTimeMillisToDate = function(millis) {
     function pad(s) { return (s < 10) ? '0' + s : s; }
     var d = new Date(millis);
     return [pad(d.getDate()), pad(d.getMonth()+1), d.getFullYear()].join('/') + " "+ [pad(d.getHours()), pad(d.getMinutes()), d.getSeconds()].join(':');
 }
 
-var formatTimeMillisToHours = function(millis) {
-    return [(millis/(1000*60*60))%24, (millis/(1000*60))%60, (millis/1000)%60].join(':');
+/**
+ * Milliseconds to hh:mm:ss
+ * @param duration
+ * @returns {string}
+ */
+function msToTime(duration) {
+    var milliseconds = parseInt((duration%1000)/100)
+        , seconds = parseInt((duration/1000)%60)
+        , minutes = parseInt((duration/(1000*60))%60)
+        , hours = parseInt((duration/(1000*60*60))%24);
+
+    hours = (hours < 10) ? "0" + hours : hours;
+    minutes = (minutes < 10) ? "0" + minutes : minutes;
+    seconds = (seconds < 10) ? "0" + seconds : seconds;
+
+    return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
 }
+
 
 /**
  * This method calculates the mean value of a certain attribute of an array.
