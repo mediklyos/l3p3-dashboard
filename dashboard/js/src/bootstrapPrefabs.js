@@ -37,10 +37,11 @@ function createSetFilterPanelsByAttributeValue(id,parent,panelList,panel_id_pref
         var panelBodyRowColLG1 = jQuery('<div />',{class:'col-lg-12'})
         var formGroup = jQuery('<div />',{class:'form-group'})
         var inputfilter = jQuery('<input />',{class:"form-control", name: "filter-"+value, id: "filter-"+value})
-        var buttonUpdate = jQuery('<button />', {class: "btn btn-default", name: "updatebutton-"+value, text: "Update"}).click(function(){
+        var buttonUpdate = jQuery('<button />', {class: "btn btn-default", name: "updatebutton-"+value, text: "Update", style: "margin-right: 5px;"}).click(function(){
             var inputContent = $('#filter-'+value).val();
             //updateFilterContent("RFC1234, RFC1111,    RFC000, RFCa sd", 'filter-'+value)
             updateFilterContent(inputContent, 'filter-'+value)
+            $('#filter-'+value).val('');
         });
         var buttonReset = jQuery('<button />', {class: "btn btn-default", name: "resetbutton-"+value, text: "Reset"}).click(function(){
             $('#filter-'+value).val('');

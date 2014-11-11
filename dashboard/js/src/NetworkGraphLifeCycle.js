@@ -49,6 +49,8 @@ var NGLC_START_NODE_NAME = "Start"
 
 var NGLC_FILTER_PREFIX = "filter-";
 
+var NGLC_BUTTON_APPLY_FILTERS_VALUE = "Apply filters";
+
 /*View attributes*/
 var nodes;
 var edges;
@@ -76,8 +78,7 @@ var itemsFiltered = {};
 $.each(extraColumnsShown, function(index, value) {
     itemsFiltered[NGLC_FILTER_PREFIX+value] = []
 })
-/*itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345");
-itemsFiltered[NGLC_FILTER_PREFIX+"priority"].push("Normal");*/
+
 var nglc_startRoutine = function (){
     nglc_reset();
     lapseTime = 4000000;
@@ -275,6 +276,17 @@ var resetFilterPanel = function (){
         class: 'nglc-box-margins-vertical',
         text: NGLC_FILTERS_INPUTS_INFO
     }))
+    var divApplyFilterButton = $('<div />', {
+        class: "nglc-box-margins-vertical btn-group"
+    })
+    $('<input />', {
+        class: "btn btn-default nglc-buttons-columns-class",
+        value: NGLC_BUTTON_APPLY_FILTERS_VALUE,
+        type: "button"
+    }).click(function(){
+        nglc_startRoutine();
+    }).appendTo(divApplyFilterButton)
+    filterPanelsByAttributeValue.append(divApplyFilterButton)
 
     var myPanels = createSetFilterPanelsByAttributeValue(NGLC_FILTER_PANEL_BY_ATTR, filterPanelsByAttributeValue, extraColumnsShown, NGLC_FILTER_COLUMNS_PANELS_PREFIX_ID, NGLC_FILTER_COLUMNS_PANEL_CLASS, function(result) {
         if (result.active){
