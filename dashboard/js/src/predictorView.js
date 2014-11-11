@@ -66,10 +66,7 @@ var PV_SECOND = 1000;
 var PV_MINUTE = 60 * PV_SECOND
 var PV_HOUR = 60 * PV_MINUTE ;
 
-var COLORS = chroma.brewer['Dark2'];
-COLORS[0] = 'blue'
-COLORS[1] = 'green'
-COLORS[2] = 'orange'
+
 
 /*DEBUG vars*/
 if (GLOBAL_DEBUG){
@@ -178,7 +175,7 @@ var pvAddGraph = function () {
     canvas[0].smoothie = smoothie;
     canvas[0].smoothie.paintName = true;
 
-    charts.push(smoothie)
+    pvCharts.push(smoothie)
     smoothie.streamTo(section.find('canvas').get(0), PV_TIMEOUT);
     smoothie.extraActionsInAnimation = drawOnCanvasEvents.bind(canvas[0])//.bind(this.smoothie);
     if (GLOBAL_DEBUG){
@@ -203,16 +200,16 @@ var pvAddEventToSmoothie = function (canvas,eventName){
     if (smoothie.events[eventName] === undefined){
         var color = smoothie.actualColor;
         smoothie.actualColor++;
-        if (smoothie.actualColor >= COLORS.length){
+        if (smoothie.actualColor >= web_colors.length){
             smoothie.actualColor = 0;
         }
         smoothie.events[eventName] = {}
-        smoothie.events[eventName].color = COLORS[color];
+        smoothie.events[eventName].color = web_colors[color];
         smoothie.events[eventName].id = eventName
         smoothie.events[eventName].timeSeries = new TimeSeries();
         smoothie.addTimeSeries(smoothie.events[eventName].timeSeries,{
-            strokeStyle: COLORS[color],
-            fillStyle: chroma(COLORS[color]).darken().alpha(0.2).css(),
+            strokeStyle: web_colors[color],
+            fillStyle: chroma(web_colors[color]).darken().alpha(0.2).css(),
             lineWidth: 2
 
         })

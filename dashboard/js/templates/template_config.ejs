@@ -1,5 +1,7 @@
 <div class="main">
-
+    <div class="dashboard-templates">
+    <div class="my-color-box dashboard-templates" onclick="configRemoveColor(event)"><img src="../icons/delete-box.png"></div>
+    </div>
     <script>
         var DEBUG_CHECKBOX = "config-debug-checkbox"
     </script>
@@ -10,37 +12,38 @@
     </div>
     <div >
 
-        <div class="col-lg-offset-5 col-lg-2">
+        <div class="">
             <table class="table table-striped">
                 <tbody>
                 <tr>
-                    <td>Debug Mode</td>
-                    <td><input id="config-debug-checkbox" type="checkbox"></td>
+                    <td width="20%">Debug Mode</td>
+                    <td width="80%"><input id="config-debug-checkbox" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td>Colors</td>
+                    <td>
+                        <div id="config-colors">
+                            <!--<div class="my-color-box"><div>s</div></div>-->
+                        </div>
+                        <button class="btn btn-default" id="picker">Add color</button>
+                        <button class="btn btn-default" onclick="configColorReset()">Reset Colors</button>
+                    </td>
                 </tr>
                 </tbody>
             </table>
         </div>
         <div class="col-lg-1"></div>
     </div>
+    <div class="hr" style="margin: 3px 2px"/>
     <div >
         <div class="col-lg-12 text-center">
             <button class="btn btn-default" id="dd-upload-button" onclick="saveRoutine()">Save</button>
         </div>
     </div>
     <script>
-        var isDebug
-        $(function(){
-            isDebug = getCookie(COOKIE_DEBUG) == "true";
-            if (isDebug) {
-                document.getElementById(DEBUG_CHECKBOX).checked = debug;
-            }
 
-        })
-        var saveRoutine = function(){
-            GLOBAL_DEBUG = document.getElementById(DEBUG_CHECKBOX).checked;
-            setCookie(COOKIE_DEBUG,GLOBAL_DEBUG,10);
-            location.reload();
-        }
+
+        dashboardConfigStart();
 
     </script>
 </div>

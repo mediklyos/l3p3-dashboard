@@ -240,6 +240,12 @@ var cookie_debug = getCookie(COOKIE_DEBUG);
 if (cookie_debug !== undefined){
     GLOBAL_DEBUG = cookie_debug == "true";
 }
+var cookie_colors = getCookie(COOKIE_COLORS)
+if (cookie_colors !== undefined) {
+    web_colors =cookie_colors.split(",")
+} else {
+    web_colors = ORIGINAL_COLORS;
+}
 var demoViews = []
 demoViews[0] = [];
 if (GLOBAL_DEBUG){
@@ -276,9 +282,10 @@ $(function(){
 //    $("#"+views[0][2].id).addClass("active");
 //    $("#"+views[0][2].id).parents().addClass("active");
 //    $("#content").html(new EJS ({url: views[0][2].ref}).render());
-        changeView(views[0][5]);
 //        changeView(demoViews[0][0]);
-//    $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
+        changeView(views[0][5]);
+//        $("#content").html(new EJS ({url: "js/templates/template_config.ejs"}).render());
+
     } else {
         $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
     }

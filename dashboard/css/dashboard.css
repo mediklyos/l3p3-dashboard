@@ -85,7 +85,7 @@ body {
 }
 
 .dashboard-templates {
-    display: none;
+    display: none !important;
 }
 @media (min-width: 768px) {
   .main {
@@ -297,6 +297,34 @@ body {
   display: inline-block;
   border-radius: 50%;
 }
+
+#config-colors{
+    display: inline-block;
+    height: 100%;
+}
+.my-color-box {
+    height: 25px;
+    width: 25px;
+    margin: 3px;
+    display: inline-block;
+    vertical-align: middle;
+    border: 1px solid #000000;
+    border-radius: 2px;
+}
+.my-color-box:hover {
+    border: 0px;
+}
+.my-color-box:hover>img {
+    display: inherit;
+}
+.my-color-box>img{
+    display: none;
+}
+/*.my-color-box>div:hover {*/
+    /*background: url('../icons/delete-box.png') no-repeat;*/
+    /*height: 100%;*/
+    /*width: 100%;*/
+/*}*/
 
 #dd-main {
     /*padding-top : 20px;*/

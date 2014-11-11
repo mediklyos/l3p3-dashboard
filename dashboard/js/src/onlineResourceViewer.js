@@ -218,10 +218,7 @@ function initCharts(min, max) {
         }).appendTo(sliderDiv);
         slider.width(100);
 
-        var colors = chroma.brewer['Pastel2'];
-        colors[0] = 'blue'
-        colors[1] = 'green'
-        colors[2] = 'red'
+        var colors = web_colors
         var index = 0;
         allTimeSeries[sectionName] = {}
         allValueLabels[sectionName] = {}

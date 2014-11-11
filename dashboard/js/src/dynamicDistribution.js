@@ -734,10 +734,9 @@ function clickOnSecondaryFilter (attribute,target) {
 
 
 
-var color20 = d3.scale.category20();
 function myColors(pos){
-    pos = pos % 20;
-    return color20(pos);
+    pos = pos % web_colors.length;
+    return web_colors[pos];
 }
 
 function reset(){
