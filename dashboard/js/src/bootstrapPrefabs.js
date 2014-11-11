@@ -1,7 +1,141 @@
-/**
- * Created by Francisco Huertas on 07/08/2014.
- */
+function createSetFilterPanelsByAttributeValue(id,parent,panelList,panel_id_prefix,panels_class,callback,inline){
+    if (inline === undefined){
+        inline = true;
+    }
 
+    var parentPanel;
+    if (parent instanceof String){
+        parentPanel = $("#"+parent);
+    } else {
+        parentPanel = parent;
+    }
+    var buttonsPanel = $('<div/>', {
+        class:"panel-group",
+//        text: "hola",
+        id: id
+    }).appendTo(parentPanel)
+
+//    var buttonsSet = $('<div class="btn-group btn-toggle" data-toggle="buttons"/>').appendTo(buttonsPanel);
+//    buttonsSet.attr('id',DYNAMIC_DISTRIBUTION_BUTTONS_ATTR_TYPE_PREFIX+cols[key]);
+//    buttonsSet.click(toggleButtonsFunction.bind(undefined,DYNAMIC_DISTRIBUTION_BUTTONS_ATTR_TYPE_PREFIX+cols[key],function(attribute,value){
+//        colTypes[attribute] = value;
+//    }));
+//    buttonsList = ["uno","dos","tres","cuatro","cinco","seis"]
+    $.each(panelList, function (key,value){
+        var panel = $('<div/>',{
+            class: "panel panel-default "+panels_class,
+            //text: "Filter by " + value,
+            //value: value,
+            id: panel_id_prefix + key
+        })
+        // Panel title
+        jQuery('<div />',{class:'panel-heading', text: 'Filter by '+value}).appendTo(panel);
+
+        var panelBody = jQuery('<div />',{class:'panel-body'})
+
+        var panelBodyRow1 = jQuery('<div />',{class:'row'})
+        var panelBodyRowColLG1 = jQuery('<div />',{class:'col-lg-12'})
+        var formGroup = jQuery('<div />',{class:'form-group'})
+        var inputfilter = jQuery('<input />',{class:"form-control", name: "filter-"+value, id: "filter-"+value})
+        var buttonUpdate = jQuery('<button />', {class: "btn btn-default", name: "updatebutton-"+value, text: "Update"}).click(function(){
+            var inputContent = $('#filter-'+value).val();
+            //updateFilterContent("RFC1234, RFC1111,    RFC000, RFCa sd", 'filter-'+value)
+            updateFilterContent(inputContent, 'filter-'+value)
+        });
+        var buttonReset = jQuery('<button />', {class: "btn btn-default", name: "resetbutton-"+value, text: "Reset"}).click(function(){
+            $('#filter-'+value).val('');
+            resetFilterContent('filter-'+value)
+        });
+
+        formGroup.append(inputfilter)
+        panelBodyRowColLG1.append(formGroup)
+        panelBodyRowColLG1.append(buttonUpdate)
+        panelBodyRowColLG1.append(buttonReset)
+        panelBodyRow1.append(panelBodyRowColLG1)
+
+        var panelBodyRow2 = jQuery('<div />',{class:'row'})
+        var panelBodyRowColLG2 = jQuery('<div />',{class:'col-lg-12', id: 'items-filter-'+value})
+
+        panelBodyRow2.append(panelBodyRowColLG2)
+
+        panelBody.append(panelBodyRow1)
+        panelBody.append(panelBodyRow2)
+        panelBody.appendTo(panel)
+        panel.appendTo(buttonsPanel);
+        if (!inline) {
+            $('<br/>').appendTo(buttonsPanel);
+        }
+    })
+    return buttonsPanel;
+}
+
+var createFilterItemButton = function(item, filterId) {
+    //<div class="btn-group" id="button107" style="margin: 5px"><a class="btn btn-success disabled" href="#"><i class="icon-user icon-white"></i>RFC01234</a>
+    // <a class="btn btn-success dropdown-toggle" data-toggle="dropdown" href="#" style="padding-bottom: 14;padding-top: 14"><span class="caret"></span></a><ul class="dropdown-menu"><li><a onclick="deleteHastag(107);" href="#"><i class="icon-trash"></i> Delete</a></li> </ul> </div><div class="btn-group" id="button117" style="margin: 5px"><a class="btn btn-success disabled" href="#"><i class="icon-user icon-white"></i>RFC789456</a><a class="btn btn-success dropdown-toggle" data-toggle="dropdown" href="#" style="padding-bottom: 14;padding-top: 14"><span class="caret"></span></a><ul class="dropdown-menu"><li><a onclick="deleteHastag(117);" href="#"><i class="icon-trash"></i> Delete</a></li> </ul> </div>
+    var itemNoWhiteSpace = item.replace(/ /g,'')
+    var buttonGroup = jQuery('<div />', {
+        class: 'btn-group',
+        id: filterId+"-"+itemNoWhiteSpace,
+        style: 'margin: 5px'
+    })
+    // Add button item
+    jQuery('<a />', {
+        class: 'btn btn-success disabled',
+        href: '#',
+        text: item
+    }).appendTo(buttonGroup)
+    jQuery('<a />', {
+        class: 'btn btn-success',
+        href: '#',
+        onclick: "deleteItem('"+item+"', '"+filterId+"')"
+    }).append(jQuery('<span />', {class: 'glyphicon glyphicon-trash', style: 'margin: 3px'})).appendTo(buttonGroup)
+    $('#items-'+filterId).append(buttonGroup)
+}
+
+/**
+ * Delete item from filter content and html.
+ * @param item
+ * @param filterId
+ */
+var deleteItem = function(item, filterId) {
+    itemsFiltered[filterId] = jQuery.grep(itemsFiltered[filterId], function(value) {
+        return value != item;
+    });
+    $('#'+filterId+"-"+item.replace(/ /g,'')).remove();
+}
+
+var resetFilterContent = function(filterId) {
+    $.each(itemsFiltered[filterId], function(index, value) {
+        deleteItem(value, filterId)
+    })
+}
+
+/**
+ * Gets input text and formats it. Then updates the filter content.
+*/
+var updateFilterContent = function (text, filterId) {
+    filter = text.split(/,\s*/);
+    $.each(filter, function(index, value) {
+        if(insertIntoFilterContent(value, filterId)) {
+            createFilterItemButton(value, filterId)
+        }
+    })
+
+}
+
+var insertIntoFilterContent = function (item, filterId) {
+    var found = jQuery.inArray(item, itemsFiltered[filterId]);
+    //console.log(itemsFiltered[filterId])
+    console.log(itemsFiltered[filterId])
+    if (found >= 0) {
+        // Element was found, don't add it.
+        return false;
+    } else {
+        // Element was not found, add it.
+        itemsFiltered[filterId].push(item);
+        return true;
+    }
+}
 
 function createSetButtons(id,parent,buttonsList,buttons_id_prefix,buttons_class,callback,inline){
     if (inline === undefined){

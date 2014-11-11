@@ -1,111 +1,20 @@
-/**
- * Created by paco on 22/09/14.
- */
-
-
-/* Constants */
-var PRE = views[0][2].constantsPrefix;
-
-/*HTML id constants*/
-
-var NGLC_TEXT_EXPORT_BUTTON = "Export nodes";
-var NGLC_TEXT_LOAD_NODES = "Load Nodes"
-var NGLC_TEXT_LOAD_TIMELINE = "Load Timeline"
-var NGLC_GRAPH_CONTAINER = PRE + "-graph"
-var NGLC_SLIDER_PANEL = PRE +"-temporal-bar"
-var NGLC_GRAPH_PANEL = PRE + "-graph-panel"
-var NGLC_SLIDER_SUBPANEL = PRE + "-slider-subpanel"
-var NGLC_INTERNAL_SLIDER = PRE + "-internal-slider"
-var NGLC_DIV_START_DATE = PRE + "-start-date"
-var NGLC_DIV_END_DATE = PRE + "-end-date"
-var NGLC_ID_FILE_INPUT_NODES = PRE + "-input-nodes";
-var NGLC_ID_TIME_SLIDER = PRE + "-time-slider";
-var NGLC_FILTER_PANEL = PRE + "-filter-panel";
-var NGLC_FILTER_COLUMNS_BUTTONS_PREFIX_ID = PRE + "-buttons-columns-filter-"
-var NGLC_FILTER_COLUMNS_BUTTONS_CLASS = PRE + "-buttons-columns-class"
-var NGLC_FOOTER_ID = PRE + "-footer-id"
-var NGLC_FOOTER_NODE_TABLE = PRE + "-footer-node-table"
-var NGLC_LEFT_MAIN= PRE + "-left-main"
-var NGLC_FILTER_BOX= PRE + "-filter-box"
-var NGLC_FILTER_PANEL_BY_ATTR_BOX = PRE + "-filter-panel-by-attr-box";
-var NGLC_FILTER_PANEL_BY_ATTR = PRE + "-filter-panel-by-attr";
-var NGLC_FILTER_COLUMNS_PANELS_PREFIX_ID = PRE + "-panel-filter-"
-var NGLC_FILTER_COLUMNS_PANEL_CLASS = PRE + "-panel-filter-class"
-/*Textos localizacion*/
-var NGLC_FILTERS_COLS_INFO= "Columns ";
-var NGLC_FILTERS_INPUTS_INFO = "Filters";
-
-/*Configurable constants*/
-var NGLC_ORIGIN_COLUMN_NAME = "origin";
-var NGLC_DESTINATION_COLUMN_NAME = "destination";
-var NGLC_TIME_COLUMN_NAME = "time"
-var NGLC_MEANTIME_COLUMN_NAME = "meantime";
-var NGLC_ID_COLUMN_NAME = "id"
-var NGLC_PRIORITY_COLUMN_NAME = "priority"
-var NGLC_ZONE_COLUMN_NAME = "zone"
-var NGLC_CAUSE_COLUMN_NAME = "cause"
-
-var NGLC_START_NODE_NAME = "Start"
-
-var NGLC_FILTER_PREFIX = "filter-";
-
-/*View attributes*/
-var nodes;
-var edges;
-var elements;
-var networkGraph = undefined;
-var networkUrl;// = "data/nglc-demo/nodes.json";
-var timeLineUrl;
-var start;
-var end;
-var current;
-var lapseTime;
-var dataPainted = undefined;
-var velocity;
-var displayTimePrecision = 5;
-var lastLoaded = 0;
-var lastTime = 0;
-var extraColumnsShown = [NGLC_ID_COLUMN_NAME, NGLC_PRIORITY_COLUMN_NAME, NGLC_ZONE_COLUMN_NAME, NGLC_CAUSE_COLUMN_NAME];
-var columnsIgnored = {time:true,origin:true,destination:true}
-var extraColumnsActive = {};
-var selectedNodes = {};
-var timerFirst = 1000;
-var timerRest = 200;
-
-var itemsFiltered = {};
-$.each(extraColumnsShown, function(index, value) {
-    itemsFiltered[NGLC_FILTER_PREFIX+value] = []
-})
-/*itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345");
-itemsFiltered[NGLC_FILTER_PREFIX+"priority"].push("Normal");*/
-var nglc_startRoutine = function (){
-    nglc_reset();
-    lapseTime = 4000000;
-    velocity = 4000000;
-    if (GLOBAL_DEBUG){
-//        setTimeLineFile("data/nglc-demo/rfc-data_2.csv")
-//        setTimeLineFile("data/nglc-demo/rfc-data.csv")
-//        setNetworkFile("data/nglc-demo/nodes.json")
-//        setNetworkFile("data/nglc-demo/nodes2.json")
-//        setNetworkFile("data/nglc-demo/nodes4.json")
-        setNetworkFile("data/nglc-demo/nodes2.json")
-        setTimeLineFile("data/nglc-demo/outputvisual.csv")
-        loadFromUrl(networkUrl,timeLineUrl)
-    }
-}
 var resetEdges = function () {
     $("#"+NGLC_INTERNAL_SLIDER).slider("option","value",$("#"+NGLC_INTERNAL_SLIDER).slider("option","min"))
+
 }
 
 // Es aquí donde se crean las extraCols
 var resetShowedElements = function () {
     $.map(networkGraph.nodes,function (value,key){
         value.elements = 0;
-        value.extraCols = {};
+        value.extraCols = {}
 //        nodesExtraInfo[key].elements =
+        // Mario - Puede que esto vaya fuera
         $.each(extraColumnsShown,function (key2,value2) {
             value.extraCols[value2] = {};
         })
+        // Mario - Puede que esto se cambie por el each anterior
+        ////////value.extraCols["zone"] = {};
     })
 
 }
@@ -239,7 +148,6 @@ var initLeftColumnAndFooter = function () {
     }))
 
 }
-
 var resetFilterPanel = function (){
     var main = $("#"+NGLC_LEFT_MAIN);
     $("#"+NGLC_FILTER_BOX).remove();
@@ -254,72 +162,17 @@ var resetFilterPanel = function (){
 //    filterPanel.append($('<div/>',{
 //        class: "hr"
 //    }))
-
-    ////////////
-
-    var panel = createSetButtons(NGLC_FILTER_PANEL, filterPanel,extraColumnsShown,NGLC_FILTER_COLUMNS_BUTTONS_PREFIX_ID,NGLC_FILTER_COLUMNS_BUTTONS_CLASS, function(result) {
+    var panel = createSetButtons(NGLC_FILTER_PANEL, filterPanel,extraColumnsShown,NGLC_FILTER_COLUMNS_BUTTONS_PREFIX_ID,NGLC_FILTER_COLUMNS_BUTTONS_CLASS,function(result){
         if (result.active){
             extraColumnsActive[result.key] = true;
         } else {
             delete extraColumnsActive[result.key]
         }
         paintFooter(selectedNodes, extraColumnsActive);
+
     })
     panel.addClass("nglc-box-margins-vertical");
-
-    var filterPanelsByAttributeValue = jQuery('<div />',{class:'nglc-box-margins',id: NGLC_FILTER_PANEL_BY_ATTR_BOX}).appendTo(main);
-    filterPanelsByAttributeValue.append($('<div/>',{
-        class: "hr"
-    }))
-    filterPanelsByAttributeValue.append($('<div/>', {
-        class: 'nglc-box-margins-vertical',
-        text: NGLC_FILTERS_INPUTS_INFO
-    }))
-
-    var myPanels = createSetFilterPanelsByAttributeValue(NGLC_FILTER_PANEL_BY_ATTR, filterPanelsByAttributeValue, extraColumnsShown, NGLC_FILTER_COLUMNS_PANELS_PREFIX_ID, NGLC_FILTER_COLUMNS_PANEL_CLASS, function(result) {
-        if (result.active){
-            extraColumnsActive[result.key] = true;
-        } else {
-            delete extraColumnsActive[result.key]
-        }
-        paintFooter(selectedNodes, extraColumnsActive);
-    })
-    myPanels.addClass("nglc-box-margins-vertical");
 }
-/*
- <div class="panel panel-default">
- <div class="panel-heading">Filter by ID</div>
- <div class="panel-body">
- <div class="row">
- <div class="col-lg-12">
- <form method="POST" action="">
- <div class="form-group">
-
- <input name="hastags" class="form-control">
-
- </div>
-
- <button type="submit" class="btn btn-default">Update</button>
- <button type="reset" class="btn btn-default">Reset</button>
- </form>
- </div>
- </div>
- <div class="row">
- <!-- /.col-lg-6 (nested) -->
- <div class="col-lg-12">
- <div class="btn-group" id="button107" style="margin: 5px"><a class="btn btn-success disabled" href="#"><i class="icon-user icon-white"></i>RFC01234</a><a class="btn btn-success dropdown-toggle" data-toggle="dropdown" href="#" style="padding-bottom: 14;padding-top: 14"><span class="caret"></span></a><ul class="dropdown-menu"><li><a onclick="deleteHastag(107);" href="#"><i class="icon-trash"></i> Delete</a></li> </ul> </div><div class="btn-group" id="button117" style="margin: 5px"><a class="btn btn-success disabled" href="#"><i class="icon-user icon-white"></i>RFC789456</a><a class="btn btn-success dropdown-toggle" data-toggle="dropdown" href="#" style="padding-bottom: 14;padding-top: 14"><span class="caret"></span></a><ul class="dropdown-menu"><li><a onclick="deleteHastag(117);" href="#"><i class="icon-trash"></i> Delete</a></li> </ul> </div>
-
- </div>
- <!-- /.col-lg-6 (nested) -->
-
-
- </div>
- <!-- /.row (nested) -->
- </div>
- <!-- /.panel-body -->
- </div>
- */
-
 
 var nglc_reset = function () {
     nodes = [];
@@ -402,33 +255,6 @@ var parseEdges = function(stringEdges){
 
 /* Devuelve la primera posicion de edge no cargada*/
 
-var isFiltered = function (someEdge) {
-    var isFiltered = true;
-    var emptyFilter = true;
-    var filterByCol = [];
-            $.each(extraColumnsShown, function () {
-                if(itemsFiltered[NGLC_FILTER_PREFIX + this].length >0) {
-                    var found = $.inArray(someEdge[this], itemsFiltered[NGLC_FILTER_PREFIX + this]);
-                    //console.log(itemsFiltered[filterId])
-                    //console.log(someEdge[this])
-                    if (found >= 0) {
-                        //
-                        //console.log("found")
-                        filterByCol.push(true)
-                    } else {
-                        filterByCol.push(false)
-                    }
-                } else {
-                    filterByCol.push(true)
-                }
-
-            })
-
-    for(var i = 0; i < filterByCol.length; i++) {
-        isFiltered = isFiltered && filterByCol[i];
-    }
-    return !isFiltered;
-}
 
 /**
  * Carga los nodos y las aristas desde el principio. Devuelve el primero que no se pinta por si se quiere recalcular
@@ -445,6 +271,7 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
     if (repaint === undefined)
         repaint = true;
     var edgesToPaint = {}
+    var nodesDebug = true;
     var nodes = networkGraph.nodes;
     //    var otherLastLoaded =lastLoaded;
     // La posición actual. Si no está definida, será 0.
@@ -456,50 +283,58 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
 
     /*Tiempo hacia atras*/
     if (lastTime > time){
+        //console.log(pos);
         // -- porque la posición donde apunta es el siguiente que hay que mirar en caso de ir a delante
         pos--;
         while (pos >= 0 && (edges[pos][NGLC_TIME_COLUMN_NAME] > time )) {
             // Creo una variable edge en la que guardo la línea actual del csv.
             var edge = edges[pos];
-            if(!isFiltered(edge)) {
-                /*Nodes update*/
-                if ((nodes[edge[NGLC_ORIGIN_COLUMN_NAME]] !== undefined)) {
-                    nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements++;
-                }
-                if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined) && nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].elements) {
-                    nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].elements--;
-                }
-                /*Columns updating*/
-                $.each(extraColumnsShown, function () {
-                    if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined) && nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]] !== undefined) {
-                        if (nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]].length == 1) {
-                            delete nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]];
-                        } else {
-                            findAndDelete(nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]], edge['id'], "backwards")
-                        }
-                    }
-                    if ((nodes[edge[NGLC_ORIGIN_COLUMN_NAME]] !== undefined)) {
-                        var newPos = findPreviousEdge(edge, pos)
-                        if (newPos > 0) {
-                            if (nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]] === undefined) {
-                                nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]] = [];
-                                var objeto = {};
-                                objeto[NGLC_ID_COLUMN_NAME] = edges[newPos][NGLC_ID_COLUMN_NAME];
-                                objeto[NGLC_TIME_COLUMN_NAME] = edges[newPos][NGLC_TIME_COLUMN_NAME];
-                                objeto[NGLC_MEANTIME_COLUMN_NAME] = edges[newPos][NGLC_MEANTIME_COLUMN_NAME];
-                                nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]].push(objeto)
-                            } else {
-                                var objeto = {};
-                                objeto[NGLC_ID_COLUMN_NAME] = edges[newPos][NGLC_ID_COLUMN_NAME];
-                                objeto[NGLC_TIME_COLUMN_NAME] = edges[newPos][NGLC_TIME_COLUMN_NAME];
-                                objeto[NGLC_MEANTIME_COLUMN_NAME] = edges[newPos][NGLC_MEANTIME_COLUMN_NAME];
-                                nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]].push(objeto);
-                            }
-                        }
-                    }
-                })
-
+            /*Nodes update*/
+            if ((nodes[edge[NGLC_ORIGIN_COLUMN_NAME]] !== undefined)) {
+                nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements++;
             }
+            if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined) && nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].elements){
+                nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].elements--;
+            }
+
+            /*Columns updating*/
+            $.each(extraColumnsShown,function(){
+                if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined) && nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]] !== undefined){
+                    if (nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]].length == 1){
+                        delete nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]];
+                    } else {
+                        if(!nodesDebug) {
+                            nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]]--;
+                        } else {
+                            // Aquí tendría que eliminar el primer nodo, en lugar de restar un número
+                            //nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]]--;
+                            findAndDeleteBackwards(nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]], edge['time'], edge['meantime'], "backwards")
+                        }
+                    }
+                }
+                if ((nodes[edge[NGLC_ORIGIN_COLUMN_NAME]] !== undefined)) {
+                    if (nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]] === undefined) {
+                        if(!nodesDebug) {
+                            nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]] = 1;
+                        } else {
+                            nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]] = [];
+                            nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]].push(new Object({
+                                "id": edge["id"],
+                                "time": edge["time"],
+                                "meantime": edge["meantime"]}))
+                        }
+                    } else {
+                        if(!nodesDebug) {
+                            nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]]++
+                        } else {
+                            nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]].push(new Object({
+                                "id": edge["id"],
+                                "time": edge["time"],
+                                "meantime": edge["meantime"]}))
+                        }
+                    }
+                }
+            })
             pos--;
         }
         pos++;
@@ -507,50 +342,62 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
         lastTime = time;
     } else if (edges[pos][NGLC_TIME_COLUMN_NAME] <= time) {
         while (pos < edges.length && (edges[pos][NGLC_TIME_COLUMN_NAME] <= time )) {
+            //console.log(pos);
+            //////////////// Esta parte no se toca porque el número de elementos no influye en la estructura buscada - Edit
             var edge = edges[pos];
             /*Nodes update*/
-            if(!isFiltered(edge)) {
+            // Si el nodo actual es uno de los que puedo usar (por ejemplo no puedo usar Start) y tiene > 0 elementos, resto un elemento
+            if ((nodes[edge[NGLC_ORIGIN_COLUMN_NAME]] !== undefined) && nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements) {
+                nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements--;
+            }
+            // Si el nodo destino está definido, sumo un elemento
+            if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined)){
+                nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].elements++;
+            }
 
-
-                // Si el nodo actual es uno de los que puedo usar (por ejemplo no puedo usar Start) y tiene > 0 elementos, resto un elemento
-                if ((nodes[edge[NGLC_ORIGIN_COLUMN_NAME]] !== undefined) && nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements) {
-                    nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements--;
-                }
-                // Si el nodo destino está definido, sumo un elemento
-                if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined)){
-                    nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].elements++;
-                }
-                $.each(extraColumnsShown,function(){
-                    if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined)) {
-                        if (nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]] === undefined) {
+            /////////////// Hasta aquí no se toca - Edit
+            $.each(extraColumnsShown,function(){
+                if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined)) {
+                    if (nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]] === undefined) {
+                        if(!nodesDebug) {
+                            nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]] = 1;
+                        } else {
                             nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]] = [];
-                            var objeto = {};
-                            objeto[NGLC_ID_COLUMN_NAME] = edge[NGLC_ID_COLUMN_NAME];
-                            objeto[NGLC_TIME_COLUMN_NAME] = edge[NGLC_TIME_COLUMN_NAME];
-                            objeto[NGLC_MEANTIME_COLUMN_NAME] = edge[NGLC_MEANTIME_COLUMN_NAME];
-                                nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]].push(objeto);
-
-                        } else {
-                            var objeto = {};
-                            objeto[NGLC_ID_COLUMN_NAME] = edge[NGLC_ID_COLUMN_NAME];
-                            objeto[NGLC_TIME_COLUMN_NAME] = edge[NGLC_TIME_COLUMN_NAME];
-                            objeto[NGLC_MEANTIME_COLUMN_NAME] = edge[NGLC_MEANTIME_COLUMN_NAME];
-                                nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]].push(objeto);
-                            }
+                            nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]].push(new Object({
+                                "id": edge["id"],
+                                "time": edge["time"],
+                                "meantime": edge["meantime"]
+                            }));
                         }
-
-                    if ((nodes[edge[NGLC_ORIGIN_COLUMN_NAME]] !== undefined) && nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]] !== undefined){
-                        if (nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]].length == 1){
-                            delete nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]];
+                    } else {
+                        if(!nodesDebug) {
+                            nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]]++;
                         } else {
-                                findAndDelete(nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]], parseInt(edge[NGLC_TIME_COLUMN_NAME]), "forward")
-                            }
+                            nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]].push(new Object({
+                                "id": edge["id"],
+                                "time": edge["time"],
+                                "meantime": edge["meantime"]
+                            }));
                         }
-
-                })
-
-                /*El delta negativo se tiene que calcular dentro de este while*/
-            } pos++;
+                    }
+                }
+                if ((nodes[edge[NGLC_ORIGIN_COLUMN_NAME]] !== undefined) && nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]] !== undefined){
+                    if (nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]].length == 1){
+                        delete nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]];
+                    } else {
+                        if(!nodesDebug) {
+                            nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]]--;
+                        } else {
+                            // Aquí tendría que eliminar el nodo que haya salido del anterior
+                            //console.log(nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]])
+                            findAndDelete(nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]], parseInt(edge["time"]), "forward")
+                            //nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].extraCols[this][edge[this]]--;
+                        }
+                    }
+                }
+            })
+            pos++;
+            /*El delta negativo se tiene que calcular dentro de este while*/
         }
         lastLoaded = pos;
         lastTime = time;
@@ -560,15 +407,14 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
     while (pos < edges.length && (edges[pos][NGLC_TIME_COLUMN_NAME] <= time + lapseTime)){
         // Cojo la línea actual del csv
         var edge = edges[pos];
-        if(!isFiltered(edge)) {
-            if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined)) {
-                if (edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] === undefined) {
-                    // Si la línea de origen-destino no existe, la creo.
-                    edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] = {edge: edge, count: 1};
-                } else {
-                    // Si ya existe, le añado una unidad.
-                    edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].count++;
-                }
+
+        if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined)) {
+            if (edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] === undefined) {
+                // Si la línea de origen-destino no existe, la creo.
+                edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] = {edge: edge, count: 1};
+            } else {
+                // Si ya existe, le añado una unidad.
+                edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].count++;
             }
         }
         pos++;
@@ -579,19 +425,8 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
         end = +edges[edges.length - 1][NGLC_TIME_COLUMN_NAME] + (lapseTime / 2);
         paintSlideBar(start, time, end)
     }
-    //console.log(pos)
+    console.log(pos)
     return pos;
-}
-
-var findPreviousEdge = function (edge, pos) {
-    var myPos = pos-1;
-    while(myPos > 0) {
-        if((edges[myPos][NGLC_ID_COLUMN_NAME] == edge[NGLC_ID_COLUMN_NAME]) && (edges[myPos][NGLC_ORIGIN_COLUMN_NAME] != NGLC_START_NODE_NAME)) {
-            return myPos;
-        }
-        myPos--;
-    }
-    return -1;
 }
 
 /**
@@ -603,7 +438,7 @@ var findAndDelete = function(myArrayOrigin, time, direction) {
     var timeSum = 0;
     if (direction == "forward") {
         $.each(myArrayOrigin, function(key, value) {
-            timeSum = parseInt(value['time']) + parseInt(value[NGLC_MEANTIME_COLUMN_NAME]);
+            timeSum = parseInt(value['time']) + parseInt(value['meantime']);
             if(timeSum == time) {
                 myArrayOrigin.splice(key, 1);
                 // Break
@@ -612,9 +447,34 @@ var findAndDelete = function(myArrayOrigin, time, direction) {
         })
     } else if(direction == "backwards") {
         $.each(myArrayOrigin, function(key, value) {
-            timeSum = value['id'];
+            timeSum = parseInt(value['time']) + parseInt(value['meantime']);
             if(timeSum == time) {
                 myArrayOrigin.splice(key, 1);
+                // Break
+                return false;
+            }
+        })
+    }
+}
+
+var findAndDeleteBackwards = function(myArrayOrigin, time, meantime, direction) {
+    var timeSum = 0;
+    var found = false;
+    if (direction == "forward") {
+        $.each(myArrayOrigin, function(key, value) {
+            timeSum = parseInt(value['time']) + parseInt(value['meantime']);
+            if(timeSum == time) {
+                myArrayOrigin.splice(key, 1);
+                // Break
+                return false;
+            }
+        })
+    } else if(direction == "backwards") {
+        $.each(myArrayOrigin, function(key, value) {
+            found = (value['time'] == time) && (meantime == value['meantime']);
+            if(found) {
+                myArrayOrigin.splice(key, 1);
+                // Break
                 return false;
             }
         })
@@ -650,6 +510,7 @@ var paintFooter = function (nodes,activeColumns){
                 // Poner titulo
                 innerColDiv.append(bootstapTableFooter(extraColumnsShown[key2],node));
                 divFooter.append(colDiv);
+
             })
         })
 //        divFooter.text(columnsToShow.length)
@@ -668,22 +529,12 @@ var bootstapTableFooter = function (columnName, node){
         class: "table table-condensed"
     })
     // header
-    table.append('<thead><tr><td>'+columnName+'</td><td>Arrival Time</td><td>Duration (mean)</td><td>#</td></tr></thead>')
+    table.append('<thead><tr><td>'+columnName+'</td><td>Arrival Time</td><td>Duration</td><td>#</td></tr></thead>')
     table.append('<tbody></tbody>');
     $.each(node.extraCols[columnName],function (key,value){
-        table.append("<tr><td>"+key+"</td><td>"+formatTimeMillisToDate(calculateMean(value, 'time'))+"</td><td>"+calculateMean(value, NGLC_MEANTIME_COLUMN_NAME)+"</td><td>"+value.length+"</td></tr>");
+        table.append("<tr><td>"+key+"</td><td>"+calculateMean(value, 'time')+"</td><td>"+calculateMean(value, 'meantime')+"</td><td>"+value.length+"</td></tr>");
     })
     return table;
-}
-
-var formatTimeMillisToDate = function(millis) {
-    function pad(s) { return (s < 10) ? '0' + s : s; }
-    var d = new Date(millis);
-    return [pad(d.getDate()), pad(d.getMonth()+1), d.getFullYear()].join('/') + " "+ [pad(d.getHours()), pad(d.getMinutes()), d.getSeconds()].join(':');
-}
-
-var formatTimeMillisToHours = function(millis) {
-    return [(millis/(1000*60*60))%24, (millis/(1000*60))%60, (millis/1000)%60].join(':');
 }
 
 /**
@@ -694,7 +545,7 @@ var formatTimeMillisToHours = function(millis) {
  */
 var calculateMean = function(myArray, attr) {
     var mean = 0;
-    var count = 0;
+    var count = 0
     $.each(myArray, function(key, value) {
         mean += parseInt(value[attr]);
         count++;
