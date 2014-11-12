@@ -32,13 +32,17 @@ var PV_FOOTER_CHART = PRE + "-footer-chart-stats"
 var PV_FOOTER_TABLE_GRAPH = PRE + "-table-graph-footer"
 var PV_FOOTER_CHART_EVENTS = PRE + "-footer-chart-stats-events"
 var PV_TABLE_EVENTS_OCCURRENCE = PRE + "-table-evens-occurrence"
+var PV_TABLE_EVENTS_PREDICTION = PRE + "-table-evens-prediction"
 var PV_CELL_1 = PRE +"-td-1"
 var PV_CELL_2 = PRE +"-td-2"
 
 
 
 var PV_PREFIX_CLASS_EVENTS = PRE + "-event-class-prefix-"
+var PV_PREFIX_CLASS_PREDICTION = PRE + "-prediction-class-prefix-"
 /*Other constants*/
+var PV_LINE_BOLD = 3;
+var PV_LINE_NORMAL = 1
 var PV_TIMEOUT = 1000
 var PV_MAX_LG_COL = 12;
 var PV_CHARTS_DEFAULT_TIME = 10*60*1000;
@@ -160,8 +164,6 @@ var pvAddGraph = function () {
 
     section.find('.template').removeClass('section')
     section.removeAttr('class').addClass(PV_CHART)//.addClass("col-lg-1");
-    section.attr("id","asdf-"+graph)
-    section.find(".pv-events-legend").text("asdf-"+graph++)
     section.appendTo('#'+PV_CHARTS);
     var smoothie = new SmoothieChart(PV_SMOOTHIE_DEFAULT_OPTIONS);
     smoothie.timelines = {}
@@ -209,12 +211,13 @@ var pvAddEventToSmoothie = function (canvas,eventName){
         smoothie.events[eventName].timeSeries = new TimeSeries();
         smoothie.addTimeSeries(smoothie.events[eventName].timeSeries,{
             strokeStyle: web_colors[color],
-            fillStyle: chroma(web_colors[color]).darken().alpha(0.2).css(),
-            lineWidth: 2
+            lineWidth: PV_LINE_NORMAL,
+            "shape-rendering": "crispEdges",
+            fillStyle: chroma(web_colors[color]).darken().alpha(0).css()
 
         })
+        smoothie.events[eventName].timeSeries.lineOptions = smoothie.seriesSet[smoothie.seriesSet.length-1].options;
     }
-    paintLegendEvents($(canvas))
     return smoothie.events[eventName];
 
 }
@@ -223,17 +226,6 @@ var pvAddEventOccurrenceToCanvas = function (canvas,eventId){
     var event = pvAddEventToSmoothie(canvas,eventId)
     canvas.smoothie.eventsHappend.push({event:event,time: Date.now()})
     paintEvents(jQCanvas)
-
-//    var eventsCount = $(getCharDiv(jQCanvas)).find('.'+PV_EVENTS_COUNT).empty();
-//    $.each(smoothie.eventsHappend,function (key) {
-//        var div = $('<div/>')
-//        var span0 = $('<span>.</span>')
-//        var span1=$('<span title="ID:'+this.event.id+'\nDate:'+(new Date(this.event.time)).toUTCString()+'">'+this.event.id+'</span>').css('color',this.event.color)
-//        var span2=$('<span>'+(key++)+') </span>')
-//        div.append(span2).append(span1)
-//        eventsCount.append(div)
-//    })
-
 }
 
 
@@ -253,8 +245,11 @@ var resizingCanvasChart = function (charts){
         canvas.attr('width', width)
         $.each(canvas,function(){
             if (this.smoothie !== undefined) {
-                var timePerPixel = parseInt(this.smoothie.graphTime / width);
-                this.smoothie.graphTime = timePerPixel * width;
+                var timePerPixel = this.smoothie.graphTime / width;
+//                if (timePerPixel  != this.smoothie.graphTime) {
+//                    timePerPixel++;
+//                    this.smoothie.graphTime = timePerPixel * width;
+//                }
                 this.smoothie.zero = 0.5
                 this.smoothie.options.millisPerPixel = timePerPixel;
                 var svg =  $(this).parent().find('svg.'+PV_SVG_FOOTER_CLASS);
@@ -311,7 +306,7 @@ var drawOnCanvasEvents = function () {
                 fontWeight = 'bold'
                 var content = $('<div/>', {
                     class: PV_TOOLTIP_EVENTS_OCCURRED_INTERNAL
-                }).append('<span>Event ID: '+this.event.id+'<br>Time: '+new Date(this.time)+'</span>');
+                }).append('<div>Event ID: '+this.event.id+'</div><div style="white-space: nowrap">Time: '+printDate(this.time)+'</div>');
                 content.css('border-color',this.event.color)
                 content.css('color',this.event.color)
                 if (this.event.color.charAt(0) == "#"){
@@ -379,33 +374,61 @@ var drawOnCanvasEvents = function () {
             canvas.smoothie.eventsHappend.splice(toDelete[i],1);
         }
         paintEvents(jQCanvas)
-        paintLegendEvents(jQCanvas)
+        paintLegendPredictions(jQCanvas)
 
     }
 
 }
 
-var paintLegendEvents = function (jQCanvas) {
+var paintLegendPredictions = function (jQCanvas) {
     var legend = $(getCharDiv(jQCanvas)).find('.'+PV_EVENTS_LEGEND).empty();
     var first = true;
     // TODO
+
+    var tbody =$("#"+FOOTER_CONTENT_ID).find("."+PV_TABLE_EVENTS_PREDICTION ).find('tbody');
+    var genericLine = tbody.find("tr."+DASHBOARD_TEMPLATES)
+    tbody.empty()
+    tbody.append(genericLine)
     $.each(jQCanvas[0].smoothie.events,function (key) {
         if (this.timeSeries.data.length == 0) {
             return;
         }
-        if (first){
-            first = false
-            legend.append('<span>Predictions: </span>')
-        }else {
-            legend.append("<span> | </span>")
-        }
-        var cad = this.id
-        if (this.timeSeries.data.length > 0) {
-            cad += "="+this.timeSeries.data[this.timeSeries.data.length -1][1];
-        }
-        var span1=$('<span>'+cad+'</span>').css('color',this.color)
-        legend.append(span1)
+        var line = genericLine.clone().removeAttr('class')
+//        line.find('.'+PV_CELL_1).removeAttr('class').text(this.id)
+//        line.find('.'+PV_CELL_2).removeAttr('class').text(this.timeSeries.data[this.timeSeries.data.length-1][1])
+        var className = PV_PREFIX_CLASS_PREDICTION+this.id
+        var spanEvent =$('<span>'+this.id+'</span>').css('color',this.color)
+        var spanPrediction =$('<span>'+this.timeSeries.data[this.timeSeries.data.length-1][1]+'</span>').css('color',this.color)
+        line.find('.'+PV_CELL_1).removeAttr('class').addClass(className).append(spanEvent);
+        line.find('.'+PV_CELL_2).removeAttr('class').addClass(className).append(spanPrediction);
+        tbody.append(line)
+        line.hover(
+            function (){
+                setLineWidth(this,true)
+//                $("."+classId).css('font-weight','bold')
+//                this.timeSeries.lineOptions.lineWidth = PV_LINE_BOLD
+            }.bind(this),
+            function (){
+                setLineWidth(this,this.isClicked)
+            }.bind(this)
+        )
+        line.click(function() {
+            this.isClicked = !this.isClicked;
+            setLineWidth(this,this.isClicked)
+        }.bind(this))
+
     })
+}
+
+var setLineWidth = function(event,bold) {
+    var className = PV_PREFIX_CLASS_PREDICTION+event.id;
+    if (bold) {
+        $("."+className).css('font-weight','bold')
+        event.timeSeries.lineOptions.lineWidth = PV_LINE_BOLD
+    } else {
+        $("."+className).css('font-weight','normal')
+        event.timeSeries.lineOptions.lineWidth = PV_LINE_NORMAL
+    }
 }
 
 var paintEvents = function (jQCanvas){
@@ -427,7 +450,7 @@ var paintEvents = function (jQCanvas){
             var line = genericLine.clone().removeAttr('class')
             var className = PV_PREFIX_CLASS_EVENTS+event.event.id+"-"+event.time
             var spanEvent =$('<span>'+event.event.id+'</span>').css('color',event.event.color)
-            var spanTime =$('<span>'+event.time+'</span>').css('color',event.event.color)
+            var spanTime =$('<span>'+printDate(event.time)+'</span>').css('color',event.event.color)
             line.find('.'+PV_CELL_1).removeAttr('class').addClass(className).append(spanEvent);
             line.find('.'+PV_CELL_2).removeAttr('class').addClass(className).append(spanTime);
             tbody.append(line);
@@ -471,7 +494,7 @@ var paintFooter = function (){
 var paintEventsInADiv = function (container, eventsHappened,prefix) {
     var size = eventsHappened.length
     $.each(eventsHappened,function (key) {
-        var div = $('<div title="ID:'+this.event.id+'\nDate:'+(new Date(this.time)).toUTCString()+'"/>')
+        var div = $('<div title="ID:'+this.event.id+'\nDate:'+printDate(this.time)+'"/>')
         var span1=$('<span>'+this.event.id+'</span>').css('color',this.event.color)//.css('font-weight','bold')
         var className = PV_PREFIX_CLASS_EVENTS+this.event.id+"-"+this.time
         if (prefix !== undefined) {
@@ -766,18 +789,12 @@ var _pvLoadSource = function (url) {
                 break;
             case PV_WS_PREDICTION:
                 if (cadSplit.length == 3 ){
-                    var prediction =  cadSplit[2]
-                    var event = pvAddEventToSmoothie(ws.canvas,cadSplit[1])
+//                    var prediction =  cadSplit[2]
+//                    var event = pvAddEventToSmoothie(ws.canvas,cadSplit[1])
+                    pvAddPrediction(ws.canvas,cadSplit[1],cadSplit[2])
 
-                    /*The step not work corretly in the librery, this code fix it because put 0 if not exist value or put
-                    * the last value*/
-                    if (event.timeSeries.data.length == 0){
-                        event.timeSeries.append(Date.now()-1,0);
 
-                    } else {
-                        event.timeSeries.append(Date.now()-1,event.timeSeries.data[event.timeSeries.data.length-1][1]);
-                    }
-                    event.timeSeries.append(Date.now(),prediction);
+
                 }
                 break;
             default:
@@ -797,6 +814,41 @@ var _pvLoadSource = function (url) {
 
 }
 
+var pvAddPrediction = function (canvas, eventName, prediction) {
+    /*The step not work corretly in the librery, this code fix it because put 0 if not exist value or put
+     * the last value*/
+    var event = pvAddEventToSmoothie(canvas,eventName)
+    var now = Date.now();
+     if (event.timeSeries.data.length == 0) {
+        event.timeSeries.append(now-1,0);
+
+     } else if (event.timeSeries.data[event.timeSeries.data.length-1][0] < (now-canvas.smoothie.graphTime)) {
+         event.timeSeries.append(event.timeSeries.data[event.timeSeries.data.length-1][0]+1,-1);
+         event.timeSeries.append(now-1,0);
+     } else {
+        event.timeSeries.append(now-1,event.timeSeries.data[event.timeSeries.data.length-1][1]);
+    }
+    event.timeSeries.append(now,prediction);
+    paintLegendPredictions($(canvas))
+    setTimeout(refreshPredictions.bind(undefined,canvas),canvas.smoothie.graphTime + PV_TIMEOUT)
+}
+var refreshPredictions = function (canvas) {
+    var now = Date.now()
+    var isDelete = false;
+    $.each(canvas.smoothie.seriesSet,function () {
+        if (this.timeSeries.data.length > 0){
+            if (this.timeSeries.data[this.timeSeries.data.length-1][0] < (now - canvas.smoothie.graphTime - PV_TIMEOUT)){
+                isDelete = true
+                while(this.timeSeries.data.length > 0) {
+                    this.timeSeries.data.pop();
+                }
+            }
+        }
+    })
+    if (isDelete){
+        paintLegendPredictions($(canvas))
+    }
+}
 var getActiveGraph = function (){
     var dom = $("button.active."+PV_SELECT_CHART_BUTTON)
     return getCanvas(dom);
@@ -851,13 +903,13 @@ if (GLOBAL_DEBUG){
 
                 /*The step not work corretly in the librery, this code fix it because put 0 if not exist value or put
                  * the last value*/
-                if (event.timeSeries.data.length == 0) {
-                    event.timeSeries.append(Date.now() - 1, 0);
-
-                } else {
-                    event.timeSeries.append(Date.now() - 1, event.timeSeries.data[event.timeSeries.data.length - 1][1]);
-                }
-                event.timeSeries.append(Date.now(), prediction);
+//                if (event.timeSeries.data.length == 0) {
+//                    event.timeSeries.append(Date.now() - 1, 0);
+//
+//                } else {
+//                    event.timeSeries.append(Date.now() - 1, event.timeSeries.data[event.timeSeries.data.length - 1][1]);
+//                }
+//                event.timeSeries.append(Date.now(), prediction);
             } else {
                 var sEvent = debugEvents[nEvent] + "_" + nChart;
                 pvAddEventOccurrenceToCanvas(canvas, sEvent)
@@ -886,3 +938,4 @@ function pvDecrementChartsHeight(){
     actualHeight -= PV_HEIGHT_STEP;
     pvResizeFunction()
 }
+
