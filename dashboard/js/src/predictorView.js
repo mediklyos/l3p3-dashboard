@@ -37,7 +37,6 @@ var PV_CELL_1 = PRE +"-td-1"
 var PV_CELL_2 = PRE +"-td-2"
 
 
-
 var PV_PREFIX_CLASS_EVENTS = PRE + "-event-class-prefix-"
 var PV_PREFIX_CLASS_PREDICTION = PRE + "-prediction-class-prefix-"
 /*Other constants*/
@@ -52,11 +51,14 @@ var PV_SVG_FOOTER_LINE_SEPARATION = 60000 // in milliseconds
 var PV_SVG_FOOTER_SUB_LINE_HEIGHT = 3
 var PV_SVG_FOOTER_STROKE_VERTICAL_LINE = 1
 var PV_SVG_FOOTER_FONT_FAMILY = "monospace"
+var PV_SVG_FOOTER_MARKS = 6;
 var PV_HEIGHT_STEP = 10;
 var PV_EVENT_CIRCLE_RADIUS = 2;
 var PV_EVENT_CIRCLE_RADIUS_HOVER = 4;
 var PV_EVENT_LINE_WIDTH = 1;
 var PV_EVENT_LINE_WIDTH_HOVER = 2;
+var PV_ZERO_POS = 0.75
+
 if (GLOBAL_DEBUG){
 
 
@@ -65,7 +67,8 @@ if (GLOBAL_DEBUG){
 var PV_WS_SPLIT = "::"
 var PV_WS_EVENT = "event"
 var PV_WS_PREDICTION = "prediction"
-
+var PV_WS_TIME_AFTER = "after"
+var PV_WS_TIME_BEFORE = "before"
 var PV_SECOND = 1000;
 var PV_MINUTE = 60 * PV_SECOND
 var PV_HOUR = 60 * PV_MINUTE ;
@@ -250,11 +253,11 @@ var resizingCanvasChart = function (charts){
 //                    timePerPixel++;
 //                    this.smoothie.graphTime = timePerPixel * width;
 //                }
-                this.smoothie.zero = 0.5
+                this.smoothie.zero = PV_ZERO_POS
                 this.smoothie.options.millisPerPixel = timePerPixel;
                 var svg =  $(this).parent().find('svg.'+PV_SVG_FOOTER_CLASS);
 
-                drawFooter(svg,width,timePerPixel,this.smoothie.footerVerticalLine);
+                drawFooter(svg,width,timePerPixel,this.smoothie.footerVerticalLine,this.smoothie.zero);
                 drawOnCanvasBase(this)
 //            this.
             }
@@ -298,9 +301,6 @@ var drawOnCanvasEvents = function () {
             var fontWeight;
             cx -= pixelDifference;
             if (this.isHover || this.isClicked){
-                if (this.isClicked){
-                    radius = radius
-                }
                 lineWidth = PV_EVENT_LINE_WIDTH_HOVER
                 radius = PV_EVENT_CIRCLE_RADIUS_HOVER
                 fontWeight = 'bold'
@@ -316,13 +316,14 @@ var drawOnCanvasEvents = function () {
 
                 }
 //                content.css()
-                var tooltip = createTooltip(d3Svg,content ,PV_TOOLTIP_EVENTS_OCCURRED,MY_ALIGNMENT_TOP_LEFT,cx,0)
+                tooltip = createTooltip(d3Svg,content ,PV_TOOLTIP_EVENTS_OCCURRED,MY_ALIGNMENT_TOP_LEFT,cx,0)
+
                 // TODO el problma es en el repintado, si esta parado se quita
                 tooltip.style('z-index',"20");
-//                d3plus.color.text,,,
-                tooltip[0][0].onclick = function () {
-                    this.isClicked = false;paint
-                }.bind(this)
+////                d3plus.color.text,,,
+//                tooltip[0][0].onclick = function () {
+//                    this.isClicked = false;
+//                }.bind(this)
 
 
 
@@ -394,24 +395,22 @@ var paintLegendPredictions = function (jQCanvas) {
             return;
         }
         var line = genericLine.clone().removeAttr('class')
-//        line.find('.'+PV_CELL_1).removeAttr('class').text(this.id)
-//        line.find('.'+PV_CELL_2).removeAttr('class').text(this.timeSeries.data[this.timeSeries.data.length-1][1])
+
         var className = PV_PREFIX_CLASS_PREDICTION+this.id
         var spanEvent =$('<span>'+this.id+'</span>').css('color',this.color)
         var spanPrediction =$('<span>'+this.timeSeries.data[this.timeSeries.data.length-1][1]+'</span>').css('color',this.color)
         line.find('.'+PV_CELL_1).removeAttr('class').addClass(className).append(spanEvent);
         line.find('.'+PV_CELL_2).removeAttr('class').addClass(className).append(spanPrediction);
         tbody.append(line)
-        line.hover(
-            function (){
-                setLineWidth(this,true)
-//                $("."+classId).css('font-weight','bold')
-//                this.timeSeries.lineOptions.lineWidth = PV_LINE_BOLD
-            }.bind(this),
-            function (){
-                setLineWidth(this,this.isClicked)
-            }.bind(this)
-        )
+
+        line.mouseenter (function (){
+            setLineWidth(this,true)
+
+        }.bind(this))
+
+        line.mouseleave (function (){
+            setLineWidth(this,this.isClicked)
+        }.bind(this))
         line.click(function() {
             this.isClicked = !this.isClicked;
             setLineWidth(this,this.isClicked)
@@ -432,8 +431,12 @@ var setLineWidth = function(event,bold) {
 }
 
 var paintEvents = function (jQCanvas){
+    /*Removing tooltip para evitar que se queden si se mueve el raton*/
+    $(jQCanvas[0].smoothie.eventsHappend).map (function (){
+        this.isHover = false;
+        return this;
+    })
     var eventsCount = $(getCharDiv(jQCanvas)).find('.'+PV_EVENTS_COUNT).empty();
-    var size = jQCanvas[0].smoothie.eventsHappend.length
     /*Paint in the left*/
     paintEventsInADiv(eventsCount,jQCanvas[0].smoothie.eventsHappend, function (events,pos) {
         return (events.length -1 - pos)+") " ;
@@ -455,20 +458,20 @@ var paintEvents = function (jQCanvas){
             line.find('.'+PV_CELL_2).removeAttr('class').addClass(className).append(spanTime);
             tbody.append(line);
 //            var divs = line.find('td')
-            line.hover(
-                function (classId){
+            line.mouseenter (function (classId){
+                $("."+classId).css('font-weight','bold')
+                this.isHover = true;
+            }.bind(event,className))
+
+            line.mouseleave (function (classId){
+                if (this.isClicked) {
                     $("."+classId).css('font-weight','bold')
-                    this.isHover = true;
-                }.bind(event,className),
-                function (classId){
-                    if (this.isClicked) {
-                        $("."+classId).css('font-weight','bold')
-                    } else {
-                        $("."+classId).css('font-weight','normal')
-                    }
-                    this.isHover = false;
-                }.bind(event,className)
-            )
+                } else {
+                    $("."+classId).css('font-weight','normal')
+                }
+                this.isHover = false;
+            }.bind(event,className))
+
             line.click(function(classId) {
                 this.isClicked = !this.isClicked;
                 if (this.isClicked){
@@ -507,20 +510,19 @@ var paintEventsInADiv = function (container, eventsHappened,prefix) {
             span1.css('font-weight','normal')
         }
         div.append(span1)
-        div.hover(
-            function (classId){
+        div.mouseenter (function (classId){
+            $("."+classId).css('font-weight','bold')
+            this.isHover = true;
+        }.bind(this,className))
+
+        div.mouseleave (function (classId){
+            if (this.isClicked) {
                 $("."+classId).css('font-weight','bold')
-                this.isHover = true;
-            }.bind(this,className),
-            function (classId){
-                if (this.isClicked) {
-                    $("."+classId).css('font-weight','bold')
-                } else {
-                    $("."+classId).css('font-weight','normal')
-                }
-                this.isHover = false;
-            }.bind(this,className)
-        )
+            } else {
+                $("."+classId).css('font-weight','normal')
+            }
+            this.isHover = false;
+        }.bind(this,className))
         div.click(function(classId) {
             this.isClicked = !this.isClicked;
             if (this.isClicked){
@@ -561,7 +563,7 @@ var drawOnCanvasBase = function (canvas){
 var drawFooter = function (svg,width,timePerPixel,lineSeparation,zero){
     var zeroPos;
     if (zero === undefined){
-        zeroPos = width * 0.5;
+        zeroPos = width * PV_ZERO_POS;
     } else {
         zeroPos = width * zero;
     }
@@ -797,6 +799,12 @@ var _pvLoadSource = function (url) {
 
                 }
                 break;
+            case PV_WS_TIME_AFTER:
+                pv_changeGraphRange(ws.canvas,undefined,cadSplit[1])
+                break;
+            case PV_WS_TIME_BEFORE:
+                pv_changeGraphRange(ws.canvas,cadSplit[1],undefined)
+                break;
             default:
                 pv_print("Incorrect message")
 
@@ -810,6 +818,41 @@ var _pvLoadSource = function (url) {
     }
     ws.canvas = canvas;
     canvas.wss.push(ws);
+
+
+}
+
+var pv_changeGraphRange = function (canvas,before,after){
+    var smoothie = canvas.smoothie;
+    var zero = smoothie.zero;
+    if (before === undefined){
+        before = smoothie.graphTime * zero;
+        after = parseInt(after)
+    } else if (after === undefined) {
+        after = smoothie.graphTime * (1-zero);
+        before = parseInt(before)
+    } else {
+        return;
+    }
+    var total = after + before
+
+    zero = (before) / total
+    smoothie.graphTime = total
+    smoothie.zero = zero;
+
+
+    var width = $(canvas).parent().width();
+//    width = canvas.width();
+//    width = canvas.parent().outerWidth()
+    $(canvas).attr('width', width)
+
+    var timePerPixel = smoothie.graphTime / width;
+
+    smoothie.options.millisPerPixel = timePerPixel;
+    var svg =  $(canvas).parent().find('svg.'+PV_SVG_FOOTER_CLASS);
+    drawFooter(svg,width,timePerPixel,smoothie.footerVerticalLine,smoothie.zero);
+    drawOnCanvasBase(canvas)
+
 
 
 }
