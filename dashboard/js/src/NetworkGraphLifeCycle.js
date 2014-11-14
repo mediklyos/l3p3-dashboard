@@ -73,11 +73,12 @@ var extraColumnsActive = {};
 var selectedNodes = {};
 var timerFirst = 1000;
 var timerRest = 200;
-
+var currentEdgePosition = 0;
 var itemsFiltered = {};
 $.each(extraColumnsShown, function(index, value) {
     itemsFiltered[NGLC_FILTER_PREFIX+value] = []
 })
+//itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345")
 
 var nglc_startRoutine = function (){
     nglc_reset();
@@ -367,9 +368,9 @@ var loadFromUrl = function (networkUrl,timeLineUrl){
             if(!filterIsEmpty()) {
                 edges = removeUselessEdges(edges);
             }
-            current = + edges[0][NGLC_TIME_COLUMN_NAME] - (lapseTime / 2);
+            current = + edges[0][NGLC_TIME_COLUMN_NAME]/*- (lapseTime / 2)*/;
             paintGraphOnlyNodes(nodes)
-            updateGraph(edges,current,lapseTime,true)
+            currentEdgePosition = updateGraph(edges,current -1, getNextTime(currentEdgePosition+1, edges, current), true)
         })
 
     })
@@ -420,7 +421,7 @@ var loadTimeLineFromFile = function (file) {
             resetFilterPanel();
 
             paintGraphOnlyNodes(nodes)
-            updateGraph(edges, current, lapseTime, true)
+            currentEdgePosition = updateGraph(edges, current, lapseTime, true)
         }
     }
     reader.readAsText(file);
@@ -493,6 +494,7 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
 
     /*Tiempo hacia atras*/
     if (lastTime > time){
+        console.log("EJECUTO HACIA ATRAS")
         // -- porque la posición donde apunta es el siguiente que hay que mirar en caso de ir a delante
         pos--;
         while (pos >= 0 && (edges[pos][NGLC_TIME_COLUMN_NAME] > time )) {
@@ -534,8 +536,6 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
                         }
                     }
                 })
-
-
             pos--;
         }
         pos++;
@@ -608,7 +608,7 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
         end = +edges[edges.length - 1][NGLC_TIME_COLUMN_NAME] + (lapseTime / 2)
         paintSlideBar(start, time, end)
     }
-    //console.log(pos)
+    console.log("Current pos: "+pos)
     return pos;
 }
 
@@ -790,8 +790,8 @@ var paintSlideBar = function (start,currentTime,end){
         value: parseInt(currentTime),
         slide : function (event,ui){
             current =parseInt(ui.value)
-            updateGraph(edges,current ,lapseTime,false)
-
+            currentEdgePosition = updateGraph(edges,current,lapseTime,false)
+            console.log("EJECUTO SLIDER")
             var div = $(ui.handle).parent().children(".tooltip")[0];
             if (div !== undefined) {
                 var pos = $.extend({}, $(ui.handle).offset(), { width: $(ui.handle).get(0).offsetWidth,
@@ -810,7 +810,7 @@ var paintSlideBar = function (start,currentTime,end){
         stop : function (event,ui){
             var div = $(ui.handle).parent().children(".tooltip")[0];
             current =parseInt(ui.value)
-            updateGraph(edges,current ,lapseTime,false)
+            currentEdgePosition = updateGraph(edges,current ,lapseTime,false)
 
             var currentDate = new Date(current );
             destroyTooltip(slider.find(".ui-slider-handle"));
@@ -1037,18 +1037,38 @@ var botStop = function (event) {
     event.target.isStoped = true;
 }
 
-var up = function (){
-    current = +(current) + lapseTime;
-    //console.log(current)
-    updateGraph(edges,current,lapseTime,false)
+var getNextTime = function(currentPos, myEdges, currTime) {
+    if(currentPos<=0) {
+        return +(myEdges[0][NGLC_TIME_COLUMN_NAME]) - currTime;
+    } else if(currentPos >= myEdges.length) {
+        return lapseTime;
+    } else {
+        //console.log(myEdges[currentPos][NGLC_TIME_COLUMN_NAME]);
+        return +(myEdges[currentPos][NGLC_TIME_COLUMN_NAME]) - currTime;
+    }
+}
+
+var getPreviousTime = function(currentPos, myEdges) {
+    if(currentPos <= 0) {
+        return lapseTime;
+    } else {
+        return +(myEdges[currentPos-1][NGLC_TIME_COLUMN_NAME]);
+    }
+}
+
+var up = function () {
+    var nextTime = getNextTime(currentEdgePosition, edges, current)
+    current = +(current) + nextTime;
+    var lapse = getNextTime(currentEdgePosition+1, edges, current);
+    currentEdgePosition = updateGraph(edges,current -1, lapse, false);
 }
 var bot = function () {
-    current = +(current) - lapseTime;
-   // console.log(current)
-    updateGraph(edges,current,lapseTime,false)
+    currentEdgePosition-=2;
+    current = getPreviousTime(currentEdgePosition, edges);
+    currentEdgePosition = updateGraph(edges,current, getNextTime(currentEdgePosition, edges, current), false);
 }
 
 var re = function () {
     current = +1388655879000-lapseTime/2;
-    updateGraph(edges,current,lapseTime,false)
+    currentEdgePosition = updateGraph(edges,current,lapseTime,false)
 }
