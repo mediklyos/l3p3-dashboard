@@ -576,6 +576,15 @@ div.pv-table-graph-footer>.pv-prediction-table thead tr:not(:first-child) th{
     font-weight: bold;
 }
 
+.pv-pause-graph, .pv-pause-graph.active{
+    height: 32px;
+    width: 32px;
+    background: url('../icons/pause_3.png') no-repeat;
+}
+.pv-pause-graph.active {
+    background-color: #e6e6e6;
+}
+
 
 /*.table>thead>tr.pv-table-chart-id>th, .table>thead>tr.pv-table-info-type>th {*/
     /*border-bottom: 0px;*/
@@ -731,4 +740,7 @@ div.pv-table-graph-footer>.pv-prediction-table thead tr:not(:first-child) th{
 thead {
     font-weight: bold;
 }
-
+/*Amarillo*/
+.nada{background: #ffff33}
+.nada{background: rgb(255, 255, 51)}
+.nada{background: rgb(60, 80, 100)}

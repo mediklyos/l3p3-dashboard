@@ -39,6 +39,7 @@ var PV_CELL_2 = PRE +"-td-2"
 
 var PV_PREFIX_CLASS_EVENTS = PRE + "-event-class-prefix-"
 var PV_PREFIX_CLASS_PREDICTION = PRE + "-prediction-class-prefix-"
+var PV_PREFIX_CLASS_SUMMARY = PRE + "-summary-class-prefix-"
 /*Other constants*/
 var PV_LINE_BOLD = 3;
 var PV_LINE_NORMAL = 1
@@ -127,9 +128,7 @@ var PV_BORDER_SIZE = 20;
 var pvResizeFunction = function (){
     var cssWidth = (100 / PV_COLS) - 2;
     var colNum =Math.floor(PV_MAX_LG_COL / PV_COLS);
-//    $('#'+PV_CHARTS).find('.'+PV_CHART).removeClassPrefix('col-').addClass('col-lg-'+colNum);
     $('#'+PV_CHARTS).find('.'+PV_CHART).css('width',cssWidth+"%")
-//    $("#"+PV_CHARTS).css('max-height','calc(100vh - '+($("#"+PV_CHARTS).offset().top + PV_BORDER_SIZE)+'px');
     resizingCanvasChart();
     resizingCanvasChart();
 }
@@ -212,6 +211,7 @@ var pvAddEventToSmoothie = function (canvas,eventName){
         smoothie.events[eventName].color = web_colors[color];
         smoothie.events[eventName].id = eventName
         smoothie.events[eventName].timeSeries = new TimeSeries();
+        smoothie.events[eventName].occurrences = [];
         smoothie.addTimeSeries(smoothie.events[eventName].timeSeries,{
             strokeStyle: web_colors[color],
             lineWidth: PV_LINE_NORMAL,
@@ -227,7 +227,9 @@ var pvAddEventToSmoothie = function (canvas,eventName){
 var pvAddEventOccurrenceToCanvas = function (canvas,eventId){
     var jQCanvas = $(canvas)
     var event = pvAddEventToSmoothie(canvas,eventId)
-    canvas.smoothie.eventsHappend.push({event:event,time: Date.now()})
+    var occurrenceEvent = {event:event,time: Date.now()}
+    event.occurrences.push(occurrenceEvent)
+    canvas.smoothie.eventsHappend.push(occurrenceEvent )
     paintEvents(jQCanvas)
 }
 
@@ -243,23 +245,17 @@ var resizingCanvasChart = function (charts){
     $(function (){
 
         var width = canvas.parent().width();
-//    width = canvas.width();
-//    width = canvas.parent().outerWidth()
         canvas.attr('width', width)
         $.each(canvas,function(){
             if (this.smoothie !== undefined) {
                 var timePerPixel = this.smoothie.graphTime / width;
-//                if (timePerPixel  != this.smoothie.graphTime) {
-//                    timePerPixel++;
-//                    this.smoothie.graphTime = timePerPixel * width;
-//                }
                 this.smoothie.zero = PV_ZERO_POS
                 this.smoothie.options.millisPerPixel = timePerPixel;
+                drawOnCanvasEvents($(this))
                 var svg =  $(this).parent().find('svg.'+PV_SVG_FOOTER_CLASS);
 
                 drawFooter(svg,width,timePerPixel,this.smoothie.footerVerticalLine,this.smoothie.zero);
                 drawOnCanvasBase(this)
-//            this.
             }
             var divChart = getCharDiv(canvas);
             divChart.find("."+PV_EVENTS_COUNT_PARENT).css('height',canvas.parent().height())
@@ -270,14 +266,13 @@ var resizingCanvasChart = function (charts){
 
 }
 
-var first = true;
-var drawOnCanvasEvents = function () {
-    if (!first || pv_pause ){
+var drawOnCanvasEvents = function (jQCanvas) {
+    var canvas = jQCanvas[0];
+    setTimeout(drawOnCanvasEvents.bind(this,jQCanvas),parseInt(canvas.smoothie.options.millisPerPixel)/4)
+    if (pv_pause ){
         return;
     }
-//    first = false;
-    var canvas = this;
-    var jQCanvas = $(this)
+
     var jQSvg = jQCanvas.parent().find("."+PV_SVG_UP_CANVAS)
     jQSvg.find("."+PV_SVG_EVENTS_IN_UP_CANVAS).remove();
     var d3Svg = d3.select(jQSvg[0]);
@@ -285,22 +280,27 @@ var drawOnCanvasEvents = function () {
     var cy = jQSvg.height()-2
     var toDelete = []
     var count = 1;
-    // TODO particularizar eliminar este tipo de tooltip
     jQSvg.find("."+PV_TOOLTIP_EVENTS_OCCURRED).remove();
-    $.each(this.smoothie.eventsHappend,function (key) {
+    $.each(canvas.smoothie.eventsHappend,function (key) {
+        if (canvas.smoothie.isStoped){
+            if (this.lastPosition === undefined){
+                return;
+            }
+        } else {
+            this.lastPosition = thisDate - this.time;
+        }
+//        var difference = thisDate - this.time;
 
-        var difference = thisDate - this.time;
-
-        if (difference > PV_CHARTS_DEFAULT_TIME *  canvas.smoothie.zero){
+        if (this.lastPosition > PV_CHARTS_DEFAULT_TIME *  canvas.smoothie.zero){
             toDelete.push(key)
         }else {
             var cx = jQSvg.width()*canvas.smoothie.zero;
-            var pixelDifference = parseInt(difference / canvas.smoothie.options.millisPerPixel)
+            var pixelDifference = parseInt(this.lastPosition / canvas.smoothie.options.millisPerPixel)
             var lineWidth;
             var radius;
             var fontWeight;
             cx -= pixelDifference;
-            if (this.isHover || this.isClicked){
+            if (this.isHover || this.isClicked || this.event.isSumaryClicked || this.event.isSumaryHover){
                 lineWidth = PV_EVENT_LINE_WIDTH_HOVER
                 radius = PV_EVENT_CIRCLE_RADIUS_HOVER
                 fontWeight = 'bold'
@@ -309,22 +309,11 @@ var drawOnCanvasEvents = function () {
                 }).append('<div>Event ID: '+this.event.id+'</div><div style="white-space: nowrap">Time: '+printDate(this.time)+'</div>');
                 content.css('border-color',this.event.color)
                 content.css('color',this.event.color)
-                if (this.event.color.charAt(0) == "#"){
-                    content.css('background','rgba('+$c.hex2hsv(this.event.color).a.toString()+', 0.2)')
-                } else {
-                    content.css('background','rgba('+$c.name2rgb(this.event.color).a.toString()+', 0.2)')
-
-                }
-//                content.css()
-                tooltip = createTooltip(d3Svg,content ,PV_TOOLTIP_EVENTS_OCCURRED,MY_ALIGNMENT_TOP_LEFT,cx,0)
+                content.css('background',chroma(this.event.color).darken().alpha(0.2).css())
+                var tooltip = createTooltip(d3Svg,content ,PV_TOOLTIP_EVENTS_OCCURRED,MY_ALIGNMENT_TOP_LEFT,cx,0)
 
                 // TODO el problma es en el repintado, si esta parado se quita
                 tooltip.style('z-index',"20");
-////                d3plus.color.text,,,
-//                tooltip[0][0].onclick = function () {
-//                    this.isClicked = false;
-//                }.bind(this)
-
 
 
             } else {
@@ -341,7 +330,7 @@ var drawOnCanvasEvents = function () {
                 .attr('stroke-width', lineWidth)
                 .attr('stroke', this.event.color)
                 .attr('shape-rendering',"crispEdges")
-                .attr("class", PV_SVG_EVENTS_IN_UP_CANVAS)
+                .attr("class", PV_SVG_EVENTS_IN_UP_CANVAS + " " + PV_PREFIX_CLASS_EVENTS+this.event.id+"-"+this.time)
 
             var circle = d3Svg.append('circle')
                 .attr('cx', cx)
@@ -370,18 +359,22 @@ var drawOnCanvasEvents = function () {
             }
         }
     })
+
     if (toDelete.length > 0){
         for (var i = toDelete.length-1;i >=0;i-- ) {
             canvas.smoothie.eventsHappend.splice(toDelete[i],1);
         }
         paintEvents(jQCanvas)
-        paintLegendPredictions(jQCanvas)
+        paintLegendPredictions(getActiveGraph())
 
     }
 
 }
 
 var paintLegendPredictions = function (jQCanvas) {
+    if (jQCanvas[0].smoothie.isStoped){
+        return;
+    }
     var legend = $(getCharDiv(jQCanvas)).find('.'+PV_EVENTS_LEGEND).empty();
     var first = true;
     // TODO
@@ -404,30 +397,28 @@ var paintLegendPredictions = function (jQCanvas) {
         tbody.append(line)
 
         line.mouseenter (function (){
-            setLineWidth(this,true)
+            this.isPredicitionHover = true;
+            markText(this);
+            if (!this.isPredictionClicked){
+//                setLineWidth(this,true)
+            }
 
         }.bind(this))
 
         line.mouseleave (function (){
-            setLineWidth(this,this.isClicked)
+            this.isPredicitionHover = false;
+            markText(this)
+            if (!this.isPredictionClicked){
+//                setLineWidth(this,this.isPredictionClicked)
+            }
         }.bind(this))
         line.click(function() {
-            this.isClicked = !this.isClicked;
-            setLineWidth(this,this.isClicked)
+            this.isPredictionClicked = !this.isPredictionClicked;
+            markText(this)
+//            setLineWidth(this,this.isPredictionClicked)
         }.bind(this))
 
     })
-}
-
-var setLineWidth = function(event,bold) {
-    var className = PV_PREFIX_CLASS_PREDICTION+event.id;
-    if (bold) {
-        $("."+className).css('font-weight','bold')
-        event.timeSeries.lineOptions.lineWidth = PV_LINE_BOLD
-    } else {
-        $("."+className).css('font-weight','normal')
-        event.timeSeries.lineOptions.lineWidth = PV_LINE_NORMAL
-    }
 }
 
 var paintEvents = function (jQCanvas){
@@ -436,104 +427,179 @@ var paintEvents = function (jQCanvas){
         this.isHover = false;
         return this;
     })
-    var eventsCount = $(getCharDiv(jQCanvas)).find('.'+PV_EVENTS_COUNT).empty();
     /*Paint in the left*/
-    paintEventsInADiv(eventsCount,jQCanvas[0].smoothie.eventsHappend, function (events,pos) {
-        return (events.length -1 - pos)+") " ;
-    })
-    if (isActiveGraph(getCharDiv(jQCanvas))) {
-        // PONER EL TITULO
-
-        var tbody =$("#"+FOOTER_CONTENT_ID).find("."+PV_TABLE_EVENTS_OCCURRENCE ).find('tbody');
-        var genericLine = tbody.find("tr."+DASHBOARD_TEMPLATES)
-        tbody.empty()
-        tbody.append(genericLine)
-        for (var i = jQCanvas[0].smoothie.eventsHappend.length -1; i >= 0;i--){
-            var event = jQCanvas[0].smoothie.eventsHappend[i];
-            var line = genericLine.clone().removeAttr('class')
-            var className = PV_PREFIX_CLASS_EVENTS+event.event.id+"-"+event.time
-            var spanEvent =$('<span>'+event.event.id+'</span>').css('color',event.event.color)
-            var spanTime =$('<span>'+printDate(event.time)+'</span>').css('color',event.event.color)
-            line.find('.'+PV_CELL_1).removeAttr('class').addClass(className).append(spanEvent);
-            line.find('.'+PV_CELL_2).removeAttr('class').addClass(className).append(spanTime);
-            tbody.append(line);
-//            var divs = line.find('td')
-            line.mouseenter (function (classId){
-                $("."+classId).css('font-weight','bold')
-                this.isHover = true;
-            }.bind(event,className))
-
-            line.mouseleave (function (classId){
-                if (this.isClicked) {
-                    $("."+classId).css('font-weight','bold')
-                } else {
-                    $("."+classId).css('font-weight','normal')
-                }
-                this.isHover = false;
-            }.bind(event,className))
-
-            line.click(function(classId) {
-                this.isClicked = !this.isClicked;
-                if (this.isClicked){
-                    $("."+classId).css('font-weight','bolt')
-                } else{
-                    $("."+classId).css('font-weight','normal')
-                }
-            }.bind(event,className))
+    if (!jQCanvas[0].smoothie.isStoped){
+        paintEventsInADiv(jQCanvas);
+        if (isActiveGraph(getCharDiv(jQCanvas))) {
+            paintFooterEvents(jQCanvas)
         }
-//        $.each(jQCanvas[0].smoothie.eventsHappend,function() {
-//
-//        })
-//        paintEventsInADiv($("#"+PV_FOOTER_CHART_EVENTS),jQCanvas[0].smoothie.eventsHappend,function (events,pos) {
-//            return ""
-//        })
-
     }
 }
 
-var paintFooter = function (){
+
+var paintEventsInADiv = function (jQCanvas) {
+    var container = getCharDiv(jQCanvas).find('.'+PV_EVENTS_COUNT).empty();
+    var smoothie = jQCanvas[0].smoothie;
+    var events = {}
+    $.each(smoothie.eventsHappend,function () {
+        if (events[this.event.id] === undefined){
+            events[this.event.id] = {};
+            events[this.event.id].count = 1;
+            events[this.event.id].event = this.event;
+        }else {
+            events[this.event.id].count++;
+        }
+    })
+    $.each(smoothie.events,function (){
+        /*Cuidado con los timeSeries con un valor que no esta en la ventana*/
+        if ((this.timeSeries.data.length !== 0) && (events[this.id] === undefined)) {
+            events[this.id] = {}
+            events[this.id].count = 0;
+            events[this.id].event = this;
+        }
+    })
+
+    var shortedKeys = $.map(events,function (value) {return [value.event.id]})
+    shortedKeys.sort(function (a,b){
+        return a.localeCompare(b);
+    })
+    $.each(shortedKeys, function () {
+        var event = pvAddEventToSmoothie(jQCanvas[0],this);
+        var div = $('<div/>',{
+            title: this,
+            text: this
+        })
+        div.addClass(PV_PREFIX_CLASS_SUMMARY+this)
+        div.mouseenter(function (){
+            this.isSumaryHover = true;
+            markText(this);
+        }.bind(event))
+        div.mouseleave(function (){
+            this.isSumaryHover = false;
+            markText(this);
+        }.bind(event))
+        div.click(function (event) {
+            this.isSumaryClicked = !this.isSumaryClicked;
+            markText(this);
+        }.bind(event))
+        div.css('color',event.color)
+        container.append(div)
+    })
 
 }
-var paintEventsInADiv = function (container, eventsHappened,prefix) {
-    var size = eventsHappened.length
-    $.each(eventsHappened,function (key) {
-        var div = $('<div title="ID:'+this.event.id+'\nDate:'+printDate(this.time)+'"/>')
-        var span1=$('<span>'+this.event.id+'</span>').css('color',this.event.color)//.css('font-weight','bold')
-        var className = PV_PREFIX_CLASS_EVENTS+this.event.id+"-"+this.time
-        if (prefix !== undefined) {
-            var span0=$('<span>'+prefix(eventsHappened,key)+'</span>').appendTo(div)
-        }
-        span1.addClass(className);
-        if (this.isClicked || this.isHover){
-            span1.css('font-weight','bold')
-        } else{
-            span1.css('font-weight','normal')
-        }
-        div.append(span1)
-        div.mouseenter (function (classId){
-            $("."+classId).css('font-weight','bold')
-            this.isHover = true;
-        }.bind(this,className))
 
-        div.mouseleave (function (classId){
-            if (this.isClicked) {
-                $("."+classId).css('font-weight','bold')
-            } else {
-                $("."+classId).css('font-weight','normal')
-            }
-            this.isHover = false;
-        }.bind(this,className))
-        div.click(function(classId) {
-            this.isClicked = !this.isClicked;
-            if (this.isClicked){
-                $("."+classId).css('font-weight','bolt')
-            } else{
-                $("."+classId).css('font-weight','normal')
-            }
-        }.bind(this,className))
-        container.prepend(div)
+
+
+var markText = function(event) {
+    var stringPrefixEvent = PV_PREFIX_CLASS_EVENTS+event.id+"-";
+    var stringClassPrefixFinder = "[class*='"+stringPrefixEvent+"']";
+    var stringAllEvents = "*"+stringClassPrefixFinder;
+    var stringPrediction = "."+PV_PREFIX_CLASS_PREDICTION+event.id
+    var stringSummary = "."+PV_PREFIX_CLASS_SUMMARY+event.id
+    /* If summary selected-> all marked */
+    if (event.isSumaryHover || event.isSumaryClicked) {
+        $(stringAllEvents+", "+stringPrediction+", "+stringSummary).css('font-weight', 'bold')
+//        $("line"+stringClassPrefixFinder).attr('stroke-width', PV_EVENT_LINE_WIDTH_HOVER)
+//        d3.selectAll($("line"+stringClassPrefixFinder)[0]).attr('stroke-width', PV_EVENT_LINE_WIDTH_HOVER)
+        event.timeSeries.lineOptions.lineWidth = PV_LINE_BOLD;
+    } else {
+        $(stringAllEvents+", "+stringPrediction+", "+stringSummary).css('font-weight', 'normal')
+        $("line[class^='"+stringPrefixEvent+"']").attr('stroke-width', PV_EVENT_LINE_WIDTH)
+        event.timeSeries.lineOptions.lineWidth = PV_LINE_NORMAL
+    }
+
+    if (event.isPredicitionHover || event.isPredictionClicked) {
+        $(stringPrediction+", "+stringSummary).css('font-weight', 'bold')
+    }
+    if (event.isPredicitionHover || event.isPredictionClicked){
+        $("."+PV_PREFIX_CLASS_PREDICTION+event.id).css('font-weight', 'bold')
+        $("."+PV_PREFIX_CLASS_SUMMARY+event.id).css('font-weight', 'bold')
+        event.timeSeries.lineOptions.lineWidth = PV_LINE_BOLD;
+    }
+
+    $.each(event.occurrences,function () {
+        if (this.isHover || this.isClicked){
+            var className = stringPrefixEvent+this.time;
+            $("."+className).css('font-weight', 'bold')
+//            $("line"+stringClassPrefixFinder).attr('stroke-width', PV_EVENT_LINE_WIDTH_HOVER)
+        }
     })
 }
+
+
+
+var paintFooterEvents = function (jQCanvas){
+    var tbody = $("#" + FOOTER_CONTENT_ID).find("." + PV_TABLE_EVENTS_OCCURRENCE).find('tbody');
+    var genericLine = tbody.find("tr." + DASHBOARD_TEMPLATES)
+    tbody.empty()
+    tbody.append(genericLine)
+    for (var i = jQCanvas[0].smoothie.eventsHappend.length - 1; i >= 0; i--) {
+        var eventOccurrence = jQCanvas[0].smoothie.eventsHappend[i];
+        var event = eventOccurrence.event;
+        var line = genericLine.clone().removeAttr('class')
+        var className = PV_PREFIX_CLASS_EVENTS + eventOccurrence.event.id + "-" + eventOccurrence.time
+        var spanEvent = $('<span>' + eventOccurrence.event.id + '</span>').css('color', eventOccurrence.event.color)
+        var spanTime = $('<span>' + printDate(eventOccurrence.time) + '</span>').css('color', eventOccurrence.event.color)
+        line.find('.' + PV_CELL_1).removeAttr('class').addClass(className).append(spanEvent);
+        line.find('.' + PV_CELL_2).removeAttr('class').addClass(className).append(spanTime);
+        tbody.append(line);
+        //            var divs = line.find('td')
+        line.mouseenter(function (eventOccurrence) {
+            eventOccurrence.isHover = true;
+            markText(this)
+        }.bind(event,eventOccurrence))
+
+        line.mouseleave(function (eventOccurrence) {
+            eventOccurrence.isHover = false;
+            markText(this)
+        }.bind(event,eventOccurrence))
+
+        line.click(function (eventOccurrence) {
+            eventOccurrence.isClicked = !eventOccurrence.isClicked;
+            markText(this)
+        }.bind(event,eventOccurrence))
+    }
+}
+/*Old method paint events happend*/
+//var paintEventsInADiv = function (container, eventsHappened,prefix) {
+//    $.each(eventsHappened,function (key) {
+//        var div = $('<div title="ID:'+this.event.id+'\nDate:'+printDate(this.time)+'"/>')
+//        var span1=$('<span>'+this.event.id+'</span>').css('color',this.event.color)//.css('font-weight','bold')
+//        var className = PV_PREFIX_CLASS_EVENTS+this.event.id+"-"+this.time
+//        if (prefix !== undefined) {
+//            var span0=$('<span>'+prefix(eventsHappened,key)+'</span>').appendTo(div)
+//        }
+//        span1.addClass(className);
+//        if (this.isClicked || this.isHover){
+//            span1.css('font-weight','bold')
+//        } else{
+//            span1.css('font-weight','normal')
+//        }
+//        div.append(span1)
+//        div.mouseenter (function (classId){
+//            $("."+classId).css('font-weight','bold')
+//            this.isHover = true;
+//        }.bind(this,className))
+//
+//        div.mouseleave (function (classId){
+//            if (this.isClicked) {
+//                $("."+classId).css('font-weight','bold')
+//            } else {
+//                $("."+classId).css('font-weight','normal')
+//            }
+//            this.isHover = false;
+//        }.bind(this,className))
+//        div.click(function(classId) {
+//            this.isClicked = !this.isClicked;
+//            if (this.isClicked){
+//                $("."+classId).css('font-weight','bolt')
+//            } else{
+//                $("."+classId).css('font-weight','normal')
+//            }
+//        }.bind(this,className))
+//        container.prepend(div)
+//    })
+//}
 
 var drawOnCanvasBase = function (canvas){
     var jQCanvas = $(canvas)
@@ -700,7 +766,11 @@ var PVSelectChart = function (event) {
 //    $(event.target).removeClass('btn-default').addClass('btn-primary')
     $(event.target).addClass('active')
     $("#"+PV_FOOTER_CHART_EVENTS).empty()
-    paintEvents(getCanvas(event.target))
+    var activeCanvas = getActiveGraph();
+//    paintEventsInADiv(activeCanvas);
+    paintEvents(activeCanvas)
+//    paintFooterEvents(activeCanvas)
+    paintLegendPredictions(activeCanvas)
 //    paintEventsInADiv($("#"+PV_FOOTER_CHART_EVENTS),getActiveGraph()[0].smoothie.eventsHappend,function (events,pos) {
 //        return "Fecha: "
 //    })
@@ -872,7 +942,9 @@ var pvAddPrediction = function (canvas, eventName, prediction) {
         event.timeSeries.append(now-1,event.timeSeries.data[event.timeSeries.data.length-1][1]);
     }
     event.timeSeries.append(now,prediction);
-    paintLegendPredictions($(canvas))
+//    paintLegendPredictions($(canvas));
+    paintEventsInADiv($(canvas));
+    paintLegendPredictions(getActiveGraph());
     setTimeout(refreshPredictions.bind(undefined,canvas),canvas.smoothie.graphTime + PV_TIMEOUT)
 }
 var refreshPredictions = function (canvas) {
@@ -889,9 +961,12 @@ var refreshPredictions = function (canvas) {
         }
     })
     if (isDelete){
-        paintLegendPredictions($(canvas))
+        paintLegendPredictions(getActiveGraph())
     }
 }
+/**
+ * Return a canvas of a selected grapth
+ */
 var getActiveGraph = function (){
     var dom = $("button.active."+PV_SELECT_CHART_BUTTON)
     return getCanvas(dom);
@@ -939,20 +1014,13 @@ if (GLOBAL_DEBUG){
         if (!pv_pause) {
             var nChart = parseInt(Math.random() * ($("canvas").length - 1)) + 1
             var canvas = $("canvas")[nChart];
-            var nEvent = parseInt((Math.random() * (debugEvents.length + 2))) - 2
+            var eventsPredicted = 3;
+            var nEvent = parseInt((Math.random() * (debugEvents.length + eventsPredicted))) - eventsPredicted
             if (nEvent < 0) {
+                nEvent = -(nEvent) -1
                 var prediction = parseInt(Math.random() * 100)
-                var event = pvAddEventToSmoothie(canvas, debugEvents[0] + "_" + nChart)
-
-                /*The step not work corretly in the librery, this code fix it because put 0 if not exist value or put
-                 * the last value*/
-//                if (event.timeSeries.data.length == 0) {
-//                    event.timeSeries.append(Date.now() - 1, 0);
-//
-//                } else {
-//                    event.timeSeries.append(Date.now() - 1, event.timeSeries.data[event.timeSeries.data.length - 1][1]);
-//                }
-//                event.timeSeries.append(Date.now(), prediction);
+                var event = debugEvents[nEvent ] + "_" + nChart
+                pvAddPrediction(canvas, event,prediction)
             } else {
                 var sEvent = debugEvents[nEvent] + "_" + nChart;
                 pvAddEventOccurrenceToCanvas(canvas, sEvent)
@@ -982,3 +1050,22 @@ function pvDecrementChartsHeight(){
     pvResizeFunction()
 }
 
+function pvPause(event){
+    var canvas = getCanvas(event.target);
+    if (canvas[0].smoothie.isStoped){
+        canvas[0].smoothie.start();
+        paintEvents(getActiveGraph());
+        paintLegendPredictions(getActiveGraph());
+    } else {
+        canvas[0].smoothie.stop();
+    }
+    $(event.target).toggleClass("active",canvas[0].smoothie.isStoped)
+}
+
+var stroke = 2;
+var mS = function (){
+    var stringPrefixEvent = PV_PREFIX_CLASS_EVENTS;
+    var stringClassPrefixFinder = "[class*='"+stringPrefixEvent+"']";
+    var lines = d3.selectAll($("line"+stringClassPrefixFinder)).attr('stroke-width',stroke++);
+    return $("line"+stringClassPrefixFinder);
+}

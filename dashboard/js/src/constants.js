@@ -47,10 +47,10 @@ var MAXIMIZE_FOOTER_CLASS = "maximize-footer"
 
 var RESET = false
 var GLOBAL_DEBUG = false;
-var ORIGINAL_COLORS = chroma.brewer['Dark2'];
-ORIGINAL_COLORS[0] = 'blue'
-ORIGINAL_COLORS[1] = 'green'
-ORIGINAL_COLORS[2] = 'orange'
+var ORIGINAL_COLORS = chroma.brewer['Set1'];
+//ORIGINAL_COLORS[0] = 'blue'
+//ORIGINAL_COLORS[1] = 'green'
+//ORIGINAL_COLORS[2] = 'orange'
 
 var web_colors
 //var web_colors = []chroma.brewer['Dark2'];

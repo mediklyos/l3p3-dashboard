@@ -54,6 +54,7 @@ var paintColors = function () {
         var colorBox = spanColorBase.clone().removeClass(DASHBOARD_TEMPLATES)
 
         colorBox.attr(COLOR_ATTR ,this)
+        colorBox.attr("title" ,this)
         colorBox.css("background",this);
         spanColors.append(colorBox)
     })
