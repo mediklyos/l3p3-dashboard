@@ -165,7 +165,6 @@ var loadTimeLineClick = function () {
         add: function (event,data){
             var file = data.files[0];
             loadTimeLineFromFile(file);
-
         }
     })
 
@@ -562,7 +561,6 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
                             objeto[NGLC_TIME_COLUMN_NAME] = edge[NGLC_TIME_COLUMN_NAME];
                             objeto[NGLC_MEANTIME_COLUMN_NAME] = edge[NGLC_MEANTIME_COLUMN_NAME];
                                 nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]].push(objeto);
-
                         } else {
                             var objeto = {};
                             objeto[NGLC_ID_COLUMN_NAME] = edge[NGLC_ID_COLUMN_NAME];
@@ -590,7 +588,18 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
     // Dibujo la líneas entre nodos.
     while (pos < edges.length && (edges[pos][NGLC_TIME_COLUMN_NAME] <= time + lapseTime)){
         // Cojo la línea actual del csv
+        if(itemsFiltered[NGLC_FILTER_PREFIX+NGLC_ID_COLUMN_NAME].length == 1) {
+            var newPos = 0;
+            while (newPos < pos) {
+                // Cojo la línea actual del csv
+                var edge = edges[newPos];
+                edge["color"] = "red";
+                edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] = {edge: edge};
+                newPos++;
+            }
+        }
         var edge = edges[pos];
+        edge["color"] = "black";
             if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined)) {
                 if (edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] === undefined) {
                     // Si la línea de origen-destino no existe, la creo.
@@ -951,6 +960,7 @@ var paintGraphUpdateEdges = function (nodes,edges){
         edge.to = value.edge[NGLC_DESTINATION_COLUMN_NAME];
         edge.label = value.count;
         edge.style = "arrow"
+        edge.color = value.edge["color"];
         return [edge]
     })
 
