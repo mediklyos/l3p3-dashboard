@@ -73,11 +73,12 @@ var extraColumnsActive = {};
 var selectedNodes = {};
 var timerFirst = 1000;
 var timerRest = 200;
-
+var currentEdgePosition = 0;
 var itemsFiltered = {};
 $.each(extraColumnsShown, function(index, value) {
     itemsFiltered[NGLC_FILTER_PREFIX+value] = []
 })
+//itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345")
 
 var nglc_startRoutine = function (){
     nglc_reset();
@@ -89,7 +90,7 @@ var nglc_startRoutine = function (){
 //        setNetworkFile("data/nglc-demo/nodes.json")
 //        setNetworkFile("data/nglc-demo/nodes2.json")
 //        setNetworkFile("data/nglc-demo/nodes4.json")
-        setNetworkFile("data/nglc-demo/nodes2.json")
+        setNetworkFile("data/nglc-demo/nodesexp.json")
         setTimeLineFile("data/nglc-demo/outputvisual.csv")
         loadFromUrl(networkUrl,timeLineUrl)
     }
@@ -164,7 +165,6 @@ var loadTimeLineClick = function () {
         add: function (event,data){
             var file = data.files[0];
             loadTimeLineFromFile(file);
-
         }
     })
 
@@ -364,12 +364,30 @@ var loadFromUrl = function (networkUrl,timeLineUrl){
         d3.csv(timeLineUrl,function(csv){
             edges = csv;
             nodes = json;
-            current = + edges[0][NGLC_TIME_COLUMN_NAME] - (lapseTime / 2);
+            if(!filterIsEmpty()) {
+                edges = removeUselessEdges(edges);
+            }
+            current = + edges[0][NGLC_TIME_COLUMN_NAME]/*- (lapseTime / 2)*/;
             paintGraphOnlyNodes(nodes)
-            updateGraph(edges,current,lapseTime,true)
+            currentEdgePosition = updateGraph(edges,current -1, getNextTime(currentEdgePosition+1, edges, current), true)
         })
 
     })
+}
+
+/**
+ * This method removes the edges that are filtered (the ones that the user doesn't want to check).
+ * @param myEdges
+ * @returns {*}
+ */
+var removeUselessEdges = function (myEdges) {
+    for(var i = 0; i < myEdges.length; i++) {
+        if(isFiltered(myEdges[i])) {
+            myEdges.splice(i, 1);
+            i--;
+        }
+    }
+    return myEdges;
 }
 
 var loadNodesFromFile = function (file){
@@ -402,7 +420,7 @@ var loadTimeLineFromFile = function (file) {
             resetFilterPanel();
 
             paintGraphOnlyNodes(nodes)
-            updateGraph(edges, current, lapseTime, true)
+            currentEdgePosition = updateGraph(edges, current, lapseTime, true)
         }
     }
     reader.readAsText(file);
@@ -412,34 +430,41 @@ var parseEdges = function(stringEdges){
     return d3.csv(stringEdges)
 }
 
-/* Devuelve la primera posicion de edge no cargada*/
-
+/**
+ * Check if an edge has been filtered by user.
+ * @param someEdge
+ * @returns {boolean}
+ */
 var isFiltered = function (someEdge) {
     var isFiltered = true;
-    var emptyFilter = true;
     var filterByCol = [];
-            $.each(extraColumnsShown, function () {
-                if(itemsFiltered[NGLC_FILTER_PREFIX + this].length >0) {
-                    var found = $.inArray(someEdge[this], itemsFiltered[NGLC_FILTER_PREFIX + this]);
-                    //console.log(itemsFiltered[filterId])
-                    //console.log(someEdge[this])
-                    if (found >= 0) {
-                        //
-                        //console.log("found")
-                        filterByCol.push(true)
-                    } else {
-                        filterByCol.push(false)
-                    }
-                } else {
-                    filterByCol.push(true)
-                }
-
-            })
-
-    for(var i = 0; i < filterByCol.length; i++) {
+    $.each(extraColumnsShown, function () {
+        if (itemsFiltered[NGLC_FILTER_PREFIX + this].length > 0) {
+            var found = $.inArray(someEdge[this], itemsFiltered[NGLC_FILTER_PREFIX + this]);
+            if (found >= 0) {
+                filterByCol.push(true)
+            } else {
+                filterByCol.push(false)
+            }
+        } else {
+            filterByCol.push(true)
+        }
+    })
+    for (var i = 0; i < filterByCol.length; i++) {
         isFiltered = isFiltered && filterByCol[i];
     }
     return !isFiltered;
+}
+
+var filterIsEmpty = function() {
+    var isEmpty = true;
+    $.each(extraColumnsShown, function () {
+        if(itemsFiltered[NGLC_FILTER_PREFIX + this].length >0) {
+            isEmpty = false;
+            return 0;
+        }
+    })
+    return isEmpty;
 }
 
 /**
@@ -468,12 +493,12 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
 
     /*Tiempo hacia atras*/
     if (lastTime > time){
+        console.log("EJECUTO HACIA ATRAS")
         // -- porque la posición donde apunta es el siguiente que hay que mirar en caso de ir a delante
         pos--;
         while (pos >= 0 && (edges[pos][NGLC_TIME_COLUMN_NAME] > time )) {
             // Creo una variable edge en la que guardo la línea actual del csv.
             var edge = edges[pos];
-            if(!isFiltered(edge)) {
                 /*Nodes update*/
                 if ((nodes[edge[NGLC_ORIGIN_COLUMN_NAME]] !== undefined)) {
                     nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements++;
@@ -510,8 +535,6 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
                         }
                     }
                 })
-
-            }
             pos--;
         }
         pos++;
@@ -521,9 +544,6 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
         while (pos < edges.length && (edges[pos][NGLC_TIME_COLUMN_NAME] <= time )) {
             var edge = edges[pos];
             /*Nodes update*/
-            if(!isFiltered(edge)) {
-
-
                 // Si el nodo actual es uno de los que puedo usar (por ejemplo no puedo usar Start) y tiene > 0 elementos, resto un elemento
                 if ((nodes[edge[NGLC_ORIGIN_COLUMN_NAME]] !== undefined) && nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements) {
                     nodes[edge[NGLC_ORIGIN_COLUMN_NAME]].elements--;
@@ -541,7 +561,6 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
                             objeto[NGLC_TIME_COLUMN_NAME] = edge[NGLC_TIME_COLUMN_NAME];
                             objeto[NGLC_MEANTIME_COLUMN_NAME] = edge[NGLC_MEANTIME_COLUMN_NAME];
                                 nodes[edge[NGLC_DESTINATION_COLUMN_NAME]].extraCols[this][edge[this]].push(objeto);
-
                         } else {
                             var objeto = {};
                             objeto[NGLC_ID_COLUMN_NAME] = edge[NGLC_ID_COLUMN_NAME];
@@ -560,9 +579,7 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
                         }
 
                 })
-
-                /*El delta negativo se tiene que calcular dentro de este while*/
-            } pos++;
+                pos++;
         }
         lastLoaded = pos;
         lastTime = time;
@@ -571,8 +588,18 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
     // Dibujo la líneas entre nodos.
     while (pos < edges.length && (edges[pos][NGLC_TIME_COLUMN_NAME] <= time + lapseTime)){
         // Cojo la línea actual del csv
+        if(itemsFiltered[NGLC_FILTER_PREFIX+NGLC_ID_COLUMN_NAME].length == 1) {
+            var newPos = 0;
+            while (newPos < pos) {
+                // Cojo la línea actual del csv
+                var edge = edges[newPos];
+                edge["color"] = "red";
+                edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] = {edge: edge};
+                newPos++;
+            }
+        }
         var edge = edges[pos];
-        if(!isFiltered(edge)) {
+        edge["color"] = "black";
             if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined)) {
                 if (edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] === undefined) {
                     // Si la línea de origen-destino no existe, la creo.
@@ -582,17 +609,26 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
                     edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].count++;
                 }
             }
-        }
         pos++;
     }
     paintGraphUpdateEdges(nodes,edgesToPaint)
     paintFooter(selectedNodes, extraColumnsActive);
     if (repaint) {
-        end = +edges[edges.length - 1][NGLC_TIME_COLUMN_NAME] + (lapseTime / 2);
+        end = +edges[edges.length - 1][NGLC_TIME_COLUMN_NAME] + (lapseTime / 2)
         paintSlideBar(start, time, end)
     }
-    //console.log(pos)
+    console.log("Current pos: "+pos)
     return pos;
+}
+
+var searchForLastEdgeTimeByFilter = function (myEdges) {
+    var lastPos = 0;
+    for(var i = 0; i < myEdges.length; i++) {
+        if(!isFiltered(myEdges[i])) {
+            lastPos = i;
+        }
+    }
+    return myEdges[lastPos][NGLC_TIME_COLUMN_NAME]/* + (lapseTime / 2)*/;
 }
 
 var findPreviousEdge = function (edge, pos) {
@@ -708,16 +744,15 @@ function msToTime(duration) {
     var milliseconds = parseInt((duration%1000)/100)
         , seconds = parseInt((duration/1000)%60)
         , minutes = parseInt((duration/(1000*60))%60)
-        , hours = parseInt((duration/(1000*60*60))%24);
+        , hours = parseInt((duration/(1000*60*60))%24),
+        days = duration / 8.64e7 | 0;
 
     hours = (hours < 10) ? "0" + hours : hours;
     minutes = (minutes < 10) ? "0" + minutes : minutes;
     seconds = (seconds < 10) ? "0" + seconds : seconds;
 
-    return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
+    return days+" days, "+hours + ":" + minutes + ":" + seconds + "." + milliseconds;
 }
-
-
 /**
  * This method calculates the mean value of a certain attribute of an array.
  * @param myArray
@@ -764,8 +799,8 @@ var paintSlideBar = function (start,currentTime,end){
         value: parseInt(currentTime),
         slide : function (event,ui){
             current =parseInt(ui.value)
-            updateGraph(edges,current ,lapseTime,false)
-
+            currentEdgePosition = updateGraph(edges,current,lapseTime,false)
+            console.log("EJECUTO SLIDER")
             var div = $(ui.handle).parent().children(".tooltip")[0];
             if (div !== undefined) {
                 var pos = $.extend({}, $(ui.handle).offset(), { width: $(ui.handle).get(0).offsetWidth,
@@ -784,7 +819,7 @@ var paintSlideBar = function (start,currentTime,end){
         stop : function (event,ui){
             var div = $(ui.handle).parent().children(".tooltip")[0];
             current =parseInt(ui.value)
-            updateGraph(edges,current ,lapseTime,false)
+            currentEdgePosition = updateGraph(edges,current ,lapseTime,false)
 
             var currentDate = new Date(current );
             destroyTooltip(slider.find(".ui-slider-handle"));
@@ -925,6 +960,7 @@ var paintGraphUpdateEdges = function (nodes,edges){
         edge.to = value.edge[NGLC_DESTINATION_COLUMN_NAME];
         edge.label = value.count;
         edge.style = "arrow"
+        edge.color = value.edge["color"];
         return [edge]
     })
 
@@ -1011,18 +1047,38 @@ var botStop = function (event) {
     event.target.isStoped = true;
 }
 
-var up = function (){
-    current = +(current) + lapseTime;
-    //console.log(current)
-    updateGraph(edges,current,lapseTime,false)
+var getNextTime = function(currentPos, myEdges, currTime) {
+    if(currentPos<=0) {
+        return +(myEdges[0][NGLC_TIME_COLUMN_NAME]) - currTime;
+    } else if(currentPos >= myEdges.length) {
+        return lapseTime;
+    } else {
+        //console.log(myEdges[currentPos][NGLC_TIME_COLUMN_NAME]);
+        return +(myEdges[currentPos][NGLC_TIME_COLUMN_NAME]) - currTime;
+    }
+}
+
+var getPreviousTime = function(currentPos, myEdges) {
+    if(currentPos <= 0) {
+        return lapseTime;
+    } else {
+        return +(myEdges[currentPos-1][NGLC_TIME_COLUMN_NAME]);
+    }
+}
+
+var up = function () {
+    var nextTime = getNextTime(currentEdgePosition, edges, current)
+    current = +(current) + nextTime;
+    var lapse = getNextTime(currentEdgePosition+1, edges, current);
+    currentEdgePosition = updateGraph(edges,current -1, lapse, false);
 }
 var bot = function () {
-    current = +(current) - lapseTime;
-   // console.log(current)
-    updateGraph(edges,current,lapseTime,false)
+    currentEdgePosition-=2;
+    current = getPreviousTime(currentEdgePosition, edges);
+    currentEdgePosition = updateGraph(edges,current, getNextTime(currentEdgePosition, edges, current), false);
 }
 
 var re = function () {
     current = +1388655879000-lapseTime/2;
-    updateGraph(edges,current,lapseTime,false)
+    currentEdgePosition = updateGraph(edges,current,lapseTime,false)
 }
