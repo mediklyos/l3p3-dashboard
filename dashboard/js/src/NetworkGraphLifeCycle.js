@@ -49,6 +49,7 @@ var NGLC_START_NODE_NAME = "Start"
 
 var NGLC_FILTER_PREFIX = "filter-";
 
+var NGLC_STATS_GLOBAL_COLUMN_NAME = "global";
 var NGLC_BUTTON_APPLY_FILTERS_VALUE = "Apply filters";
 
 /*View attributes*/
@@ -367,9 +368,6 @@ var removeUselessEdges = function (myEdges) {
 var loadStatsFromFile = function (file) {
     $.getJSON(file  , function (json) {
         stats = json;
-        /*if(!filterIsEmpty()) {
-            edges = removeUselessEdges(edges);
-        }*/
     })
 }
 
@@ -656,7 +654,6 @@ var paintFooter = function (nodes,activeColumns){
     var columnsToShow = Object.getOwnPropertyNames(activeColumns);
     var divFooter = $("#"+NGLC_FOOTER_ID);
     divFooter.empty();
-    // TODO Alert this to the user
     if (columnsToShow.length > 4) {
         return;
     }else {
@@ -669,7 +666,7 @@ var paintFooter = function (nodes,activeColumns){
             } else {
                 divFooter.append('<div class="hr"/>')
             }
-            divFooter.append('<h5>Node: '+node.id+'</h5>')
+            divFooter.append("<h5><strong>Node:</strong> "+node.id+"  -  <strong>Duration (mean)</strong>: "+msToTime(stats[NGLC_STATS_GLOBAL_COLUMN_NAME][node.id])+"</h5>")
             $.each(activeColumns,function(key2){
 
                 var colDiv = $('<div/>',{
@@ -678,7 +675,6 @@ var paintFooter = function (nodes,activeColumns){
                 var innerColDiv = $('<div/>',{
                     class: NGLC_FOOTER_NODE_TABLE
                 }).appendTo(colDiv);
-                // Poner titulo
                 innerColDiv.append(bootstapTableFooter(extraColumnsShown[key2],node));
                 divFooter.append(colDiv);
             })
@@ -694,17 +690,30 @@ var paintFooter = function (nodes,activeColumns){
  * @param node
  * @returns {*|jQuery|HTMLElement}
  */
+var NGLC_FILTER_TABLE_COLUMN_NAME = "Filter";
+var NGLC_DURATION_MEAN_TABLE_COLUMN_NAME = "Mean #";
+var NGLC_ARRIVAL_TIME_TABLE_COLUMN_NAME = "Arrival Time";
+var NGLC_TOTAL_DURATION_TIME_TABLE_COLUMN_NAME = "Total duration";
+
 var bootstapTableFooter = function (columnName, node){
     var table = $('<table/>',{
         class: "table table-condensed"
     })
     var columnToFilterCheckbox = columnName;
-    // header
-    table.append('<thead><tr><td>'+columnName+'</td><td>Filter</td><td>Arrival Time</td><td>Duration (mean)</td><td>#</td></tr></thead>')
-    table.append('<tbody></tbody>');
-    $.each(node.extraCols[columnName],function (key,value){
-        table.append("<tr><td>"+key+"</td><td><label><input type='checkbox' value = '"+key+"' onclick=\"handleClickToFilter(this, '"+columnToFilterCheckbox+"');\" "+checkActiveByDefault(key, columnToFilterCheckbox.toString())+"></label></td><td>"+formatTimeMillisToDate(calculateMean(value, 'time'))+"</td><td>"+msToTime(calculateMean(value, NGLC_MEANTIME_COLUMN_NAME))+"</td><td>"+value.length+"</td></tr>");
-    })
+    // Añado columnas en todos para Stats excepto para el ID.
+    if(columnName == NGLC_ID_COLUMN_NAME) {
+        table.append('<thead><tr><td>'+columnName+'</td><td>'+NGLC_FILTER_TABLE_COLUMN_NAME+'</td><td>'+NGLC_ARRIVAL_TIME_TABLE_COLUMN_NAME+'</td><td>'+NGLC_DURATION_MEAN_TABLE_COLUMN_NAME+'</td><td>#</td></tr></thead>')
+        table.append('<tbody></tbody>');
+        $.each(node.extraCols[columnName],function (key,value){
+            table.append("<tr><td>"+key+"</td><td><label><input type='checkbox' value = '"+key+"' onclick=\"handleClickToFilter(this, '"+columnToFilterCheckbox+"');\" "+checkActiveByDefault(key, columnToFilterCheckbox.toString())+"></label></td><td>"+formatTimeMillisToDate(calculateMean(value, 'time'))+"</td><td>"+msToTime(calculateMean(value, NGLC_MEANTIME_COLUMN_NAME))+"</td><td>"+value.length+"</td></tr>");
+        })
+    } else {
+        table.append('<thead><tr><td>'+columnName+'</td><td>'+NGLC_FILTER_TABLE_COLUMN_NAME+'</td><td>'+NGLC_ARRIVAL_TIME_TABLE_COLUMN_NAME+'</td><td>'+NGLC_DURATION_MEAN_TABLE_COLUMN_NAME+'</td><td>#</td><td>'+NGLC_TOTAL_DURATION_TIME_TABLE_COLUMN_NAME+'</td></tr></thead>')
+        table.append('<tbody></tbody>');
+        $.each(node.extraCols[columnName],function (key,value){
+            table.append("<tr><td>"+key+"</td><td><label><input type='checkbox' value = '"+key+"' onclick=\"handleClickToFilter(this, '"+columnToFilterCheckbox+"');\" "+checkActiveByDefault(key, columnToFilterCheckbox.toString())+"></label></td><td>"+formatTimeMillisToDate(calculateMean(value, 'time'))+"</td><td>"+msToTime(calculateMean(value, NGLC_MEANTIME_COLUMN_NAME))+"</td><td>"+value.length+"</td><td>"+msToTime(stats[columnToFilterCheckbox][key][node.id])+"</td></tr>");
+        })
+    }
     return table;
 }
 
@@ -954,6 +963,7 @@ var paintGraphOnlyNodes = function (nodes) {
         selectedNodes = {};
         $.each (properties.nodes, function (){
             selectedNodes[this] = networkGraph.nodes[this];
+            //console.log(this)
         })
         paintFooter(selectedNodes, extraColumnsActive);
         //console.debug(properties.nodes)
