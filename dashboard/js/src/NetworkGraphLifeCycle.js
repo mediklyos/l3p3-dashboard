@@ -53,6 +53,7 @@ var NGLC_BUTTON_APPLY_FILTERS_VALUE = "Apply filters";
 
 /*View attributes*/
 var nodes;
+var stats;
 var edges;
 var elements;
 var networkGraph = undefined;
@@ -92,6 +93,9 @@ var nglc_startRoutine = function (){
 //        setNetworkFile("data/nglc-demo/nodes4.json")
         setNetworkFile("data/nglc-demo/nodesexp.json")
         setTimeLineFile("data/nglc-demo/outputvisual.csv")
+
+        loadStatsFromFile("data/nglc-demo/stats.json")
+
         loadFromUrl(networkUrl,timeLineUrl)
     }
 }
@@ -121,7 +125,6 @@ var dateFormats = [
     {id: "second", value: "2-digit"}
 ]
 
-
 var nglcResizeFunction = function (){
     $("#"+NGLC_GRAPH_CONTAINER).css('height',$("#content").outerHeight() + $("#content").offset().top - $("#"+NGLC_GRAPH_CONTAINER).offset().top)
     resizingSlider();
@@ -133,6 +136,7 @@ var nglcResizeFunction = function (){
 var nglcCleanFunction  = function (){
     $(window).unbind('resize', nglcResizeFunction)
 }
+
 var loadNodesClick = function() {
     $("#"+NGLC_ID_FILE_INPUT_NODES).click();
     $("#"+NGLC_ID_FILE_INPUT_NODES).fileupload({
@@ -298,43 +302,10 @@ var resetFilterPanel = function (){
     })
     myPanels.addClass("nglc-box-margins-vertical");
 }
-/*
- <div class="panel panel-default">
- <div class="panel-heading">Filter by ID</div>
- <div class="panel-body">
- <div class="row">
- <div class="col-lg-12">
- <form method="POST" action="">
- <div class="form-group">
-
- <input name="hastags" class="form-control">
-
- </div>
-
- <button type="submit" class="btn btn-default">Update</button>
- <button type="reset" class="btn btn-default">Reset</button>
- </form>
- </div>
- </div>
- <div class="row">
- <!-- /.col-lg-6 (nested) -->
- <div class="col-lg-12">
- <div class="btn-group" id="button107" style="margin: 5px"><a class="btn btn-success disabled" href="#"><i class="icon-user icon-white"></i>RFC01234</a><a class="btn btn-success dropdown-toggle" data-toggle="dropdown" href="#" style="padding-bottom: 14;padding-top: 14"><span class="caret"></span></a><ul class="dropdown-menu"><li><a onclick="deleteHastag(107);" href="#"><i class="icon-trash"></i> Delete</a></li> </ul> </div><div class="btn-group" id="button117" style="margin: 5px"><a class="btn btn-success disabled" href="#"><i class="icon-user icon-white"></i>RFC789456</a><a class="btn btn-success dropdown-toggle" data-toggle="dropdown" href="#" style="padding-bottom: 14;padding-top: 14"><span class="caret"></span></a><ul class="dropdown-menu"><li><a onclick="deleteHastag(117);" href="#"><i class="icon-trash"></i> Delete</a></li> </ul> </div>
-
- </div>
- <!-- /.col-lg-6 (nested) -->
-
-
- </div>
- <!-- /.row (nested) -->
- </div>
- <!-- /.panel-body -->
- </div>
- */
-
 
 var nglc_reset = function () {
     nodes = [];
+    stats = [];
     edges = [];
     elements = {};
     start = 0;
@@ -387,6 +358,19 @@ var removeUselessEdges = function (myEdges) {
         }
     }
     return myEdges;
+}
+
+/**
+ * This method loads the stats of each node from JSON and parses it to an object.
+ * @param file
+ */
+var loadStatsFromFile = function (file) {
+    $.getJSON(file  , function (json) {
+        stats = json;
+        /*if(!filterIsEmpty()) {
+            edges = removeUselessEdges(edges);
+        }*/
+    })
 }
 
 var loadNodesFromFile = function (file){
