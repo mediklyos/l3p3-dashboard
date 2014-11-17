@@ -42,8 +42,8 @@ var NGLC_TIME_COLUMN_NAME = "time"
 var NGLC_MEANTIME_COLUMN_NAME = "meantime";
 var NGLC_ID_COLUMN_NAME = "id"
 var NGLC_PRIORITY_COLUMN_NAME = "priority"
-var NGLC_ZONE_COLUMN_NAME = "zone"
-var NGLC_CAUSE_COLUMN_NAME = "cause"
+var NGLC_ZONE_COLUMN_NAME = "bank"
+var NGLC_CAUSE_COLUMN_NAME = "type"
 
 var NGLC_START_NODE_NAME = "Start"
 
@@ -340,6 +340,7 @@ var nglc_reset = function () {
     start = 0;
     end = 0;
     current = 0;
+    currentEdgePosition = 0;
     resetEdges();
     lastLoaded = 0;
     lastTime = 0;
@@ -348,8 +349,6 @@ var nglc_reset = function () {
     $("#"+NGLC_SLIDER_PANEL).empty();
     selectedNodes = {};
 }
-
-
 
 var setNetworkFile = function (url){
     networkUrl = url;
@@ -715,13 +714,42 @@ var bootstapTableFooter = function (columnName, node){
     var table = $('<table/>',{
         class: "table table-condensed"
     })
+    var columnToFilterCheckbox = columnName;
     // header
-    table.append('<thead><tr><td>'+columnName+'</td><td>Arrival Time</td><td>Duration (mean)</td><td>#</td></tr></thead>')
+    table.append('<thead><tr><td>'+columnName+'</td><td>Filter</td><td>Arrival Time</td><td>Duration (mean)</td><td>#</td></tr></thead>')
     table.append('<tbody></tbody>');
     $.each(node.extraCols[columnName],function (key,value){
-        table.append("<tr><td>"+key+"</td><td>"+formatTimeMillisToDate(calculateMean(value, 'time'))+"</td><td>"+msToTime(calculateMean(value, NGLC_MEANTIME_COLUMN_NAME))+"</td><td>"+value.length+"</td></tr>");
+        table.append("<tr><td>"+key+"</td><td><label><input type='checkbox' value = '"+key+"' onclick=\"handleClickToFilter(this, '"+columnToFilterCheckbox+"');\" "+checkActiveByDefault(key, columnToFilterCheckbox.toString())+"></label></td><td>"+formatTimeMillisToDate(calculateMean(value, 'time'))+"</td><td>"+msToTime(calculateMean(value, NGLC_MEANTIME_COLUMN_NAME))+"</td><td>"+value.length+"</td></tr>");
     })
     return table;
+}
+
+/**
+ * This method handles the checkbox of every item in order to add or remove it from the filter.
+ * @param cb
+ * @param filter
+ */
+var handleClickToFilter = function (cb, filter) {
+    if(cb.checked) {
+        updateFilterContent(cb.value, NGLC_FILTER_PREFIX+filter)
+    } else {
+        deleteItem(cb.value, NGLC_FILTER_PREFIX+filter);
+    }
+
+}
+
+/**
+ * This method actives a checkbox if its value is filtered.
+ * @param cb
+ * @param filter
+ * @returns {string}
+ */
+var checkActiveByDefault = function (item, filter) {
+    if($.inArray(item, itemsFiltered[NGLC_FILTER_PREFIX+filter])<0) {
+        return "";
+    } else {
+        return "checked";
+    }
 }
 
 /**
