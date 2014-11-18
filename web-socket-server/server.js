@@ -1,6 +1,7 @@
 #!/usr/bin/nodejs
+var fs = require ('fs')
 
-var DEBUG = false;
+var DEBUG = true;
 var port = 10082
 process.argv.forEach(function (val, index) {
     if (val == "debug") {
@@ -27,6 +28,9 @@ var COMMAND_EXIT = "exit";
 var COMMAND_WS = "ws";
 var COMMAND_BACK = "b";
 var COMMAND_ECHO = "e";
+var COMMAND_SIM = "sim";
+var COMMAND_DEBUG = "d"
+var DEBUG_COMMAND = "/sim demo1.sim"
 var callbackMessage = undefined;
 
 /* options*/
@@ -137,6 +141,10 @@ var executeCommand = function (input,callback){
     /*Commands*/
     if ((input.charAt(0) == "/") && (input.charAt(1)) != "/") {
         var command = input.slice(1).split(" ");
+        if (command[0] ==COMMAND_DEBUG){
+            print ("Debug command="+DEBUG_COMMAND);
+            return executeCommand(DEBUG_COMMAND,callback)
+        }
         switch (mode) {
             default :
             case NORMAL_MODE:
@@ -167,6 +175,10 @@ var executeCommand = function (input,callback){
                         } else {
                             print("Unknown option")
                         }
+                        break;
+                    case COMMAND_SIM:
+                        print("OK")
+                        runSimulation(command)
                         break;
                     default :
                         print("Unknown command")
@@ -261,10 +273,29 @@ var endRoutine = function (){
     wss.close();
     rl.close();
 }
+
+
+var START_SIM_COMMAND = "/start";
+var END_SIM_COMMAND = "/end";
+var runSimulation = function (command) {
+    fs.readFile(command[1], function (err, data) {
+        if (err) throw err;
+        var string = data.toString();
+        var dataArray = string.split("\n");
+        var line =0;
+        while (dataArray[line].indexOf(START_SIM_COMMAND)!=0){
+            print("config line ="+dataArray[line])
+            line++
+        }
+        line++;
+
+        print("Start Simulation, simulation lines="+dataArray.lengt-line-1);
+    });}
 start();
 if (DEBUG){
-    executeCommand("/ws");
-    executeCommand("/e");
+//    executeCommand("/ws");
+//    executeCommand("/e");
+    executeCommand("/sim demo1.sim");
     readCommand();
     return;
     /*Client*/

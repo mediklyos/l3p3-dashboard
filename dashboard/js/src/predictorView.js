@@ -79,7 +79,7 @@ var PV_HOUR = 60 * PV_MINUTE ;
 /*DEBUG vars*/
 if (GLOBAL_DEBUG){
     PV_CHARTS_DEFAULT_TIME = 120*1000;
-    PV_SVG_FOOTER_LINE_SEPARATION = 20000
+    PV_SVG_FOOTER_LINE_SEPARATION = 60000
     var TEST_EVENT_NAME = "ev_"
     var debugWSS = []
     var debugEvents =  []
@@ -90,7 +90,7 @@ if (GLOBAL_DEBUG){
     debugEvents.push(TEST_EVENT_NAME+num++)
     debugEvents.push(TEST_EVENT_NAME+num++)
     debugEvents.push(TEST_EVENT_NAME+num++)
-    var timeRange = [1500,5000]
+    var timeRange = [2500,10000]
     var PV_STOP = false
     var pv_pause = false;
 }
@@ -160,7 +160,7 @@ var pvStartRoutines = function (){
 
 
 var graph = 0;
-var pvAddGraph = function () {
+var pvAddGraph= function () {
 //    var colClass = "col-lg-"+parseInt(12/PV_COLS);
     var section = $('.'+DASHBOARD_TEMPLATES).find('.'+PV_CHART).clone()
 
@@ -249,7 +249,9 @@ var resizingCanvasChart = function (charts){
         $.each(canvas,function(){
             if (this.smoothie !== undefined) {
                 var timePerPixel = this.smoothie.graphTime / width;
-                this.smoothie.zero = PV_ZERO_POS
+                if (this.smoothie === undefined) {
+                    this.smoothie.zero = PV_ZERO_POS
+                }
                 this.smoothie.options.millisPerPixel = timePerPixel;
                 drawOnCanvasEvents($(this))
                 var svg =  $(this).parent().find('svg.'+PV_SVG_FOOTER_CLASS);
@@ -290,8 +292,8 @@ var drawOnCanvasEvents = function (jQCanvas) {
             this.lastPosition = thisDate - this.time;
         }
 //        var difference = thisDate - this.time;
-
-        if (this.lastPosition > PV_CHARTS_DEFAULT_TIME *  canvas.smoothie.zero){
+//PV_CHARTS_DEFAULT_TIME
+        if (this.lastPosition > canvas.smoothie.graphTime *  canvas.smoothie.zero){
             toDelete.push(key)
         }else {
             var cx = jQSvg.width()*canvas.smoothie.zero;
@@ -608,20 +610,22 @@ var drawOnCanvasBase = function (canvas){
     var width = parseInt(jQCanvas.width());
     var height = parseInt(jQCanvas.height());
     var d3Canvas = d3.selectAll(jQCanvas.parent());
-    var svg = d3Canvas.append('svg')
-        .attr('class', PV_SVG_UP_CANVAS)
-        .style('width',width +"px")
-        .style('height',(height+2)+"px")
-        .style('left',jQCanvas.position().left)
-        .style('top',jQCanvas.position().top)
-        .append('line')
-        .attr('x1',jQCanvas.width()*canvas.smoothie.zero)
-        .attr('x2',jQCanvas.width()*canvas.smoothie.zero)
-        .attr('y1',0)
-        .attr('y2',jQCanvas.height())
-        .attr('stroke-width', PV_SVG_FOOTER_STROKE_VERTICAL_LINE)
-        .attr('stroke', 'black')
-        .attr('shape-rendering',"crispEdges")
+    if (canvas.smoothie.zero !== undefined) {
+        var svg = d3Canvas.append('svg')
+            .attr('class', PV_SVG_UP_CANVAS)
+            .style('width', width + "px")
+            .style('height', (height + 2) + "px")
+            .style('left', jQCanvas.position().left)
+            .style('top', jQCanvas.position().top)
+            .append('line')
+            .attr('x1', jQCanvas.width() * canvas.smoothie.zero)
+            .attr('x2', jQCanvas.width() * canvas.smoothie.zero)
+            .attr('y1', 0)
+            .attr('y2', jQCanvas.height())
+            .attr('stroke-width', PV_SVG_FOOTER_STROKE_VERTICAL_LINE)
+            .attr('stroke', 'black')
+            .attr('shape-rendering', "crispEdges")
+    }
 
 
 }
@@ -728,8 +732,9 @@ var footerTextCalculator = function (pos, lineSeparation,precission){
 
 
     var cad = "";
+    var thisTime;
     if (actualTime >= PV_HOUR){
-        var thisTime = parseInt(actualTime/PV_HOUR)
+        thisTime = parseInt(actualTime/PV_HOUR)
         actualTime -= thisTime * PV_HOUR;
         cad += thisTime+"h";
         actualPrecision++;
@@ -738,7 +743,7 @@ var footerTextCalculator = function (pos, lineSeparation,precission){
             return cad;
     }
     if (actualTime >= PV_MINUTE){
-        var thisTime = parseInt(actualTime/PV_MINUTE)
+        thisTime = parseInt(actualTime/PV_MINUTE)
         actualTime -= thisTime * PV_MINUTE;
         cad += thisTime+"m";
         actualPrecision++;
@@ -747,7 +752,7 @@ var footerTextCalculator = function (pos, lineSeparation,precission){
             return cad;
     }
     if (actualTime >= PV_SECOND){
-        var thisTime = parseInt(actualTime/PV_SECOND)
+        thisTime = parseInt(actualTime/PV_SECOND)
         actualTime -= thisTime * PV_SECOND;
         cad += thisTime+"s";
         actualPrecision++;
@@ -895,14 +900,17 @@ var _pvLoadSource = function (url) {
 var pv_changeGraphRange = function (canvas,before,after){
     var smoothie = canvas.smoothie;
     var zero = smoothie.zero;
-    if (before === undefined){
+    if (before === undefined && after === undefined){
+        return;
+    } else if (before === undefined){
         before = smoothie.graphTime * zero;
         after = parseInt(after)
     } else if (after === undefined) {
         after = smoothie.graphTime * (1-zero);
         before = parseInt(before)
     } else {
-        return;
+        after = parseInt(after)
+        before = parseInt(before)
     }
     var total = after + before
 
@@ -1001,41 +1009,6 @@ var pv_print = function (string){
     }
 }
 
-if (GLOBAL_DEBUG){
-    setTimeout(function() {
-        $($("."+PV_SELECT_CHART_BUTTON)[1]).trigger("click")
-        _pvLoadSource("localhost:10082")
-    },100);
-//    $()
-    var generateEvent = function (){
-        if (PV_STOP){
-            return;
-        }
-        if (!pv_pause) {
-            var nChart = parseInt(Math.random() * ($("canvas").length - 1)) + 1
-            var canvas = $("canvas")[nChart];
-            var eventsPredicted = 3;
-            var nEvent = parseInt((Math.random() * (debugEvents.length + eventsPredicted))) - eventsPredicted
-            if (nEvent < 0) {
-                nEvent = -(nEvent) -1
-                var prediction = parseInt(Math.random() * 100)
-                var event = debugEvents[nEvent ] + "_" + nChart
-                pvAddPrediction(canvas, event,prediction)
-            } else {
-                var sEvent = debugEvents[nEvent] + "_" + nChart;
-                pvAddEventOccurrenceToCanvas(canvas, sEvent)
-
-            }
-        }
-
-
-        var next = parseInt(Math.random() * timeRange[1] + timeRange[0])
-        setTimeout(generateEvent,next )
-    }
-    var next = parseInt(Math.random() * timeRange[1] + timeRange[0])
-    setTimeout(generateEvent,next )
-
-}
 
 
 function pvIncrementChartsHeight(){
@@ -1068,4 +1041,88 @@ var mS = function (){
     var stringClassPrefixFinder = "[class*='"+stringPrefixEvent+"']";
     var lines = d3.selectAll($("line"+stringClassPrefixFinder)).attr('stroke-width',stroke++);
     return $("line"+stringClassPrefixFinder);
+}
+
+
+if (GLOBAL_DEBUG){
+    setTimeout(function() {
+        $($("."+PV_SELECT_CHART_BUTTON)[1]).trigger("click")
+        _pvLoadSource("localhost:10082")
+    },100);
+//    $()
+    var generateEvent = function (){
+        if (PV_STOP){
+            return;
+        }
+        if (!pv_pause) {
+            var nChart = parseInt(Math.random() * ($("canvas").length - 1)) + 1
+            var canvas = $("canvas")[nChart];
+            var eventsPredicted = 3;
+            var nEvent = parseInt((Math.random() * (debugEvents.length + eventsPredicted))) - eventsPredicted
+            if (nEvent < 0) {
+                nEvent = -(nEvent) -1
+                var prediction = parseInt(Math.random() * 100)
+                var event = debugEvents[nEvent ] + "_" + nChart
+                pvAddPrediction(canvas, event,prediction)
+            } else {
+                var sEvent = debugEvents[nEvent] + "_" + nChart;
+                pvAddEventOccurrenceToCanvas(canvas, sEvent)
+
+            }
+        }
+
+
+        var next = parseInt(Math.random() * timeRange[1] + timeRange[0])
+        setTimeout(generateEvent,next )
+    }
+    var next = parseInt(Math.random() * timeRange[1] + timeRange[0])
+//    setTimeout(generateEvent,next )
+    /*Scenario*/
+    $(function () {
+        setTimeout(function () {
+        pvAddGraph();
+            var eventBase = "event_";
+            var event0_1 = eventBase + "0_1";
+            var event0_2 = eventBase + "0_2";
+            var event0_3 = eventBase + "0_3";
+            var event0_4 = eventBase + "0_4";
+            var event1_1 = eventBase + "1_1";
+            var event1_2 = eventBase + "1_2";
+            var event1_3 = eventBase + "1_3";
+            var event1_4 = eventBase + "1_4";
+            var event1_5 = eventBase + "1_5";
+            var canvas1 = $("canvas")[1];
+            var canvas2 = $("canvas")[2];
+            pv_changeGraphRange(canvas1,300000,120000);
+            pv_changeGraphRange(canvas2,600000,180000);
+//            setTimeout(pvAddPrediction.bind(this,canvas1, event0_4,33),150)
+//            setTimeout(pvAddPrediction.bind(this,canvas1, event0_3,22),0);
+            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_1),1000);
+//            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_3),5000);
+//            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_4),7500);
+            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_2),10000);
+            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_3),40000);
+            setTimeout(pvAddPrediction.bind(this,canvas1, event0_4,22),40000);
+            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_2),120000);
+            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_2),120000);
+            setTimeout(pvAddPrediction.bind(this,canvas1, event0_4,88),120000);
+            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_4),245000);
+
+//            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_2),1000)
+//            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_3),1000)
+//            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_1),1000)
+//            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_1),1000)
+            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_1),1000);
+            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_2),15000);
+            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_5),55000);
+            setTimeout(pvAddPrediction.bind(this,canvas2, event1_4,22),30000);
+            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_1),30000);
+            setTimeout(pvAddPrediction.bind(this,canvas2, event1_3,33),60000);
+            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_3),250000);
+
+        },500)
+        setTimeout(generateEvent,300000)
+//        setTimeout()
+    })
+
 }
