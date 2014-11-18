@@ -42,17 +42,19 @@ var NGLC_TIME_COLUMN_NAME = "time"
 var NGLC_MEANTIME_COLUMN_NAME = "meantime";
 var NGLC_ID_COLUMN_NAME = "id"
 var NGLC_PRIORITY_COLUMN_NAME = "priority"
-var NGLC_ZONE_COLUMN_NAME = "zone"
-var NGLC_CAUSE_COLUMN_NAME = "cause"
+var NGLC_ZONE_COLUMN_NAME = "bank"
+var NGLC_CAUSE_COLUMN_NAME = "type"
 
 var NGLC_START_NODE_NAME = "Start"
 
 var NGLC_FILTER_PREFIX = "filter-";
 
+var NGLC_STATS_GLOBAL_COLUMN_NAME = "global";
 var NGLC_BUTTON_APPLY_FILTERS_VALUE = "Apply filters";
 
 /*View attributes*/
 var nodes;
+var stats;
 var edges;
 var elements;
 var networkGraph = undefined;
@@ -92,6 +94,9 @@ var nglc_startRoutine = function (){
 //        setNetworkFile("data/nglc-demo/nodes4.json")
         setNetworkFile("data/nglc-demo/nodesexp.json")
         setTimeLineFile("data/nglc-demo/outputvisual.csv")
+
+        loadStatsFromFile("data/nglc-demo/stats.json")
+
         loadFromUrl(networkUrl,timeLineUrl)
     }
 }
@@ -121,7 +126,6 @@ var dateFormats = [
     {id: "second", value: "2-digit"}
 ]
 
-
 var nglcResizeFunction = function (){
     $("#"+NGLC_GRAPH_CONTAINER).css('height',$("#content").outerHeight() + $("#content").offset().top - $("#"+NGLC_GRAPH_CONTAINER).offset().top)
     resizingSlider();
@@ -133,6 +137,7 @@ var nglcResizeFunction = function (){
 var nglcCleanFunction  = function (){
     $(window).unbind('resize', nglcResizeFunction)
 }
+
 var loadNodesClick = function() {
     $("#"+NGLC_ID_FILE_INPUT_NODES).click();
     $("#"+NGLC_ID_FILE_INPUT_NODES).fileupload({
@@ -298,48 +303,16 @@ var resetFilterPanel = function (){
     })
     myPanels.addClass("nglc-box-margins-vertical");
 }
-/*
- <div class="panel panel-default">
- <div class="panel-heading">Filter by ID</div>
- <div class="panel-body">
- <div class="row">
- <div class="col-lg-12">
- <form method="POST" action="">
- <div class="form-group">
-
- <input name="hastags" class="form-control">
-
- </div>
-
- <button type="submit" class="btn btn-default">Update</button>
- <button type="reset" class="btn btn-default">Reset</button>
- </form>
- </div>
- </div>
- <div class="row">
- <!-- /.col-lg-6 (nested) -->
- <div class="col-lg-12">
- <div class="btn-group" id="button107" style="margin: 5px"><a class="btn btn-success disabled" href="#"><i class="icon-user icon-white"></i>RFC01234</a><a class="btn btn-success dropdown-toggle" data-toggle="dropdown" href="#" style="padding-bottom: 14;padding-top: 14"><span class="caret"></span></a><ul class="dropdown-menu"><li><a onclick="deleteHastag(107);" href="#"><i class="icon-trash"></i> Delete</a></li> </ul> </div><div class="btn-group" id="button117" style="margin: 5px"><a class="btn btn-success disabled" href="#"><i class="icon-user icon-white"></i>RFC789456</a><a class="btn btn-success dropdown-toggle" data-toggle="dropdown" href="#" style="padding-bottom: 14;padding-top: 14"><span class="caret"></span></a><ul class="dropdown-menu"><li><a onclick="deleteHastag(117);" href="#"><i class="icon-trash"></i> Delete</a></li> </ul> </div>
-
- </div>
- <!-- /.col-lg-6 (nested) -->
-
-
- </div>
- <!-- /.row (nested) -->
- </div>
- <!-- /.panel-body -->
- </div>
- */
-
 
 var nglc_reset = function () {
     nodes = [];
+    stats = [];
     edges = [];
     elements = {};
     start = 0;
     end = 0;
     current = 0;
+    currentEdgePosition = 0;
     resetEdges();
     lastLoaded = 0;
     lastTime = 0;
@@ -348,8 +321,6 @@ var nglc_reset = function () {
     $("#"+NGLC_SLIDER_PANEL).empty();
     selectedNodes = {};
 }
-
-
 
 var setNetworkFile = function (url){
     networkUrl = url;
@@ -388,6 +359,16 @@ var removeUselessEdges = function (myEdges) {
         }
     }
     return myEdges;
+}
+
+/**
+ * This method loads the stats of each node from JSON and parses it to an object.
+ * @param file
+ */
+var loadStatsFromFile = function (file) {
+    $.getJSON(file  , function (json) {
+        stats = json;
+    })
 }
 
 var loadNodesFromFile = function (file){
@@ -593,8 +574,13 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
             while (newPos < pos) {
                 // Cojo la línea actual del csv
                 var edge = edges[newPos];
-                edge["color"] = "red";
-                edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] = {edge: edge};
+                if (edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] === undefined) {
+                    edge["color"] = "red";
+                    edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] = {edge: edge, count: 1};
+                } else {
+                    edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].edge["color"] = "blue";
+                    edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].count++;
+                }
                 newPos++;
             }
         }
@@ -606,6 +592,7 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
                     edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] = {edge: edge, count: 1};
                 } else {
                     // Si ya existe, le añado una unidad.
+                    edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].edge["color"] = "blue";
                     edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].count++;
                 }
             }
@@ -673,7 +660,6 @@ var paintFooter = function (nodes,activeColumns){
     var columnsToShow = Object.getOwnPropertyNames(activeColumns);
     var divFooter = $("#"+NGLC_FOOTER_ID);
     divFooter.empty();
-    // TODO Alert this to the user
     if (columnsToShow.length > 4) {
         return;
     }else {
@@ -686,7 +672,7 @@ var paintFooter = function (nodes,activeColumns){
             } else {
                 divFooter.append('<div class="hr"/>')
             }
-            divFooter.append('<h5>Node: '+node.id+'</h5>')
+            divFooter.append("<h5><strong>Node:</strong> "+node.id+"  -  <strong>Duration (mean)</strong>: "+msToTime(stats[NGLC_STATS_GLOBAL_COLUMN_NAME][node.id])+"</h5>")
             $.each(activeColumns,function(key2){
 
                 var colDiv = $('<div/>',{
@@ -695,7 +681,6 @@ var paintFooter = function (nodes,activeColumns){
                 var innerColDiv = $('<div/>',{
                     class: NGLC_FOOTER_NODE_TABLE
                 }).appendTo(colDiv);
-                // Poner titulo
                 innerColDiv.append(bootstapTableFooter(extraColumnsShown[key2],node));
                 divFooter.append(colDiv);
             })
@@ -711,17 +696,59 @@ var paintFooter = function (nodes,activeColumns){
  * @param node
  * @returns {*|jQuery|HTMLElement}
  */
+var NGLC_FILTER_TABLE_COLUMN_NAME = "Filter";
+var NGLC_DURATION_MEAN_TABLE_COLUMN_NAME = "Mean #";
+var NGLC_ARRIVAL_TIME_TABLE_COLUMN_NAME = "Arrival Time";
+var NGLC_TOTAL_DURATION_TIME_TABLE_COLUMN_NAME = "Total duration";
+
 var bootstapTableFooter = function (columnName, node){
     var table = $('<table/>',{
         class: "table table-condensed"
     })
-    // header
-    table.append('<thead><tr><td>'+columnName+'</td><td>Arrival Time</td><td>Duration (mean)</td><td>#</td></tr></thead>')
-    table.append('<tbody></tbody>');
-    $.each(node.extraCols[columnName],function (key,value){
-        table.append("<tr><td>"+key+"</td><td>"+formatTimeMillisToDate(calculateMean(value, 'time'))+"</td><td>"+msToTime(calculateMean(value, NGLC_MEANTIME_COLUMN_NAME))+"</td><td>"+value.length+"</td></tr>");
-    })
+    var columnToFilterCheckbox = columnName;
+    // Añado columnas en todos para Stats excepto para el ID.
+    if(columnName == NGLC_ID_COLUMN_NAME) {
+        table.append('<thead><tr><td>'+columnName+'</td><td>'+NGLC_FILTER_TABLE_COLUMN_NAME+'</td><td>'+NGLC_ARRIVAL_TIME_TABLE_COLUMN_NAME+'</td><td>'+NGLC_DURATION_MEAN_TABLE_COLUMN_NAME+'</td><td>#</td></tr></thead>')
+        table.append('<tbody></tbody>');
+        $.each(node.extraCols[columnName],function (key,value){
+            table.append("<tr><td>"+key+"</td><td><label><input type='checkbox' value = '"+key+"' onclick=\"handleClickToFilter(this, '"+columnToFilterCheckbox+"');\" "+checkActiveByDefault(key, columnToFilterCheckbox.toString())+"></label></td><td>"+formatTimeMillisToDate(calculateMean(value, 'time'))+"</td><td>"+msToTime(calculateMean(value, NGLC_MEANTIME_COLUMN_NAME))+"</td><td>"+value.length+"</td></tr>");
+        })
+    } else {
+        table.append('<thead><tr><td>'+columnName+'</td><td>'+NGLC_FILTER_TABLE_COLUMN_NAME+'</td><td>'+NGLC_ARRIVAL_TIME_TABLE_COLUMN_NAME+'</td><td>'+NGLC_DURATION_MEAN_TABLE_COLUMN_NAME+'</td><td>#</td><td>'+NGLC_TOTAL_DURATION_TIME_TABLE_COLUMN_NAME+'</td></tr></thead>')
+        table.append('<tbody></tbody>');
+        $.each(node.extraCols[columnName],function (key,value){
+            table.append("<tr><td>"+key+"</td><td><label><input type='checkbox' value = '"+key+"' onclick=\"handleClickToFilter(this, '"+columnToFilterCheckbox+"');\" "+checkActiveByDefault(key, columnToFilterCheckbox.toString())+"></label></td><td>"+formatTimeMillisToDate(calculateMean(value, 'time'))+"</td><td>"+msToTime(calculateMean(value, NGLC_MEANTIME_COLUMN_NAME))+"</td><td>"+value.length+"</td><td>"+msToTime(stats[columnToFilterCheckbox][key][node.id])+"</td></tr>");
+        })
+    }
     return table;
+}
+
+/**
+ * This method handles the checkbox of every item in order to add or remove it from the filter.
+ * @param cb
+ * @param filter
+ */
+var handleClickToFilter = function (cb, filter) {
+    if(cb.checked) {
+        updateFilterContent(cb.value, NGLC_FILTER_PREFIX+filter)
+    } else {
+        deleteItem(cb.value, NGLC_FILTER_PREFIX+filter);
+    }
+
+}
+
+/**
+ * This method actives a checkbox if its value is filtered.
+ * @param cb
+ * @param filter
+ * @returns {string}
+ */
+var checkActiveByDefault = function (item, filter) {
+    if($.inArray(item, itemsFiltered[NGLC_FILTER_PREFIX+filter])<0) {
+        return "";
+    } else {
+        return "checked";
+    }
 }
 
 /**
@@ -942,6 +969,7 @@ var paintGraphOnlyNodes = function (nodes) {
         selectedNodes = {};
         $.each (properties.nodes, function (){
             selectedNodes[this] = networkGraph.nodes[this];
+            //console.log(this)
         })
         paintFooter(selectedNodes, extraColumnsActive);
         //console.debug(properties.nodes)
