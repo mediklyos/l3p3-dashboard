@@ -4,7 +4,7 @@
 
 var PRE = views[0][5].constantsPrefix;
 /* HTML ID's and classes*/
-var PV_COLS = 2;
+var PV_COLS = 1;
 
 var PV_THRESHOLD_SLIDER_PANEL = PRE + "-threshold-slider-panel";
 var PV_SPAN_THRESHOLD_VALUE = PRE + "-threshold-value";
@@ -1082,15 +1082,23 @@ if (GLOBAL_DEBUG){
         setTimeout(function () {
         pvAddGraph();
             var eventBase = "event_";
-            var event0_1 = eventBase + "0_1";
-            var event0_2 = eventBase + "0_2";
-            var event0_3 = eventBase + "0_3";
-            var event0_4 = eventBase + "0_4";
-            var event1_1 = eventBase + "1_1";
-            var event1_2 = eventBase + "1_2";
-            var event1_3 = eventBase + "1_3";
-            var event1_4 = eventBase + "1_4";
-            var event1_5 = eventBase + "1_5";
+            var event0_1 = "NodeId01_CPU_75"//eventBase + "0_1";
+            var event0_2 = "NodeId01_CPU_90"//eventBase + "0_2";
+            var event0_3 = "NodeId01_Mem_75"//eventBase + "0_3";
+            var event0_4 = "NodeId01_Mem_90"//eventBase + "0_4";
+            var event0_5 = "NodeId01_HD_75"//eventBase + "0_4";
+            var event0_6 = "NodeId01_HD_90"//eventBase + "0_4";
+            var event1_1 = "NodeId02_CPU_75"//eventBase + "0_1";
+            var event1_2 = "NodeId02_CPU_90"//eventBase + "0_2";
+            var event1_3 = "NodeId02_Mem_75"//eventBase + "0_3";
+            var event1_4 = "NodeId02_Mem_90"//eventBase + "0_4";
+            var event1_5 = "NodeId02_HD_75"//eventBase + "0_4";
+            var event1_6 = "NodeId02_HD_90"//eventBase + "0_4";
+//            var event_1 = eventBase + "1_1";
+//            var event1_2 = eventBase + "1_2";
+//            var event1_3 = eventBase + "1_3";
+//            var event1_4 = eventBase + "1_4";
+//            var event1_5 = eventBase + "1_5";
             var canvas1 = $("canvas")[1];
             var canvas2 = $("canvas")[2];
             pv_changeGraphRange(canvas1,300000,120000);
