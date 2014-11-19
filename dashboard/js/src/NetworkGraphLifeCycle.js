@@ -1101,12 +1101,20 @@ var getPreviousTime = function(currentPos, myEdges) {
 
 var up = function () {
     var nextTime = getNextTime(currentEdgePosition, edges, current)
+    var i = 0;
+    while(+(current) + nextTime <= +(current)) {
+        nextTime = getNextTime(currentEdgePosition++, edges, current)
+        i++;
+    }
     current = +(current) + nextTime;
     var lapse = getNextTime(currentEdgePosition+1, edges, current);
     currentEdgePosition = updateGraph(edges,current -1, lapse, false);
 }
 var bot = function () {
     currentEdgePosition-=2;
+    while(getPreviousTime(currentEdgePosition, edges) > current) {
+        currentEdgePosition--;
+    }
     current = getPreviousTime(currentEdgePosition, edges);
     currentEdgePosition = updateGraph(edges,current, getNextTime(currentEdgePosition, edges, current), false);
 }
