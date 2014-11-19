@@ -76,6 +76,16 @@ var selectedNodes = {};
 var timerFirst = 1000;
 var timerRest = 200;
 var currentEdgePosition = 0;
+
+/*Footer table titles*/
+var NGLC_FILTER_TABLE_COLUMN_NAME = "Filter";
+var NGLC_DURATION_MEAN_TABLE_COLUMN_NAME = "Duration #";
+var NGLC_ARRIVAL_TIME_TABLE_COLUMN_NAME = "Arrival Time";
+var NGLC_TOTAL_DURATION_TIME_TABLE_COLUMN_NAME = "Total duration";
+
+/*
+itemsFiltered is an object of arrays that contains the items which have been filtered by the user.
+ */
 var itemsFiltered = {};
 $.each(extraColumnsShown, function(index, value) {
     itemsFiltered[NGLC_FILTER_PREFIX+value] = []
@@ -696,11 +706,6 @@ var paintFooter = function (nodes,activeColumns){
  * @param node
  * @returns {*|jQuery|HTMLElement}
  */
-var NGLC_FILTER_TABLE_COLUMN_NAME = "Filter";
-var NGLC_DURATION_MEAN_TABLE_COLUMN_NAME = "Mean #";
-var NGLC_ARRIVAL_TIME_TABLE_COLUMN_NAME = "Arrival Time";
-var NGLC_TOTAL_DURATION_TIME_TABLE_COLUMN_NAME = "Total duration";
-
 var bootstapTableFooter = function (columnName, node){
     var table = $('<table/>',{
         class: "table table-condensed"
