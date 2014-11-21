@@ -92,6 +92,13 @@ $.each(extraColumnsShown, function(index, value) {
 })
 //itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345")
 
+/*
+    Slider styles. There's no need to modify the jQuery CSS file, so I create it here.
+ */
+var styleEl = document.createElement('style');
+styleEl.innerHTML = '.ui-widget-header {border: 1px solid #aaaaaa;background: #97C2FC; color: #222222}';
+document.head.appendChild(styleEl);
+
 var nglc_startRoutine = function (){
     nglc_reset();
     lapseTime = 4000000;
@@ -814,9 +821,6 @@ var paintSlideBar = function (start,currentTime,end){
 
     var formatOptions = getFormatOptions(startDate,endDate,displayTimePrecision);
     var myLocale = dashboard_locale;
-
-
-
     internalDiv.append($('<div id="nglc-prev-step-img" class="nglc-box-margins-horizontal"/>').mousedown(botStart).mouseup(botStop))
     internalDiv.append($('<div id="nglc-next-step-img" class="nglc-box-margins-horizontal"/>').mousedown(upStart).mouseup(upStop))
     var divStartDate = $('<div/>',{
@@ -825,6 +829,7 @@ var paintSlideBar = function (start,currentTime,end){
     }).appendTo(internalDiv)
     var tooltip = undefined;
     var slider = jQuery('<div/>').slider({
+        range: "min",
         min: parseInt(start),
         max: parseInt(end),
         step: velocity,
@@ -832,7 +837,6 @@ var paintSlideBar = function (start,currentTime,end){
         slide : function (event,ui){
             current =parseInt(ui.value)
             currentEdgePosition = updateGraph(edges,current,lapseTime,false)
-            console.log("EJECUTO SLIDER")
             var div = $(ui.handle).parent().children(".tooltip")[0];
             if (div !== undefined) {
                 var pos = $.extend({}, $(ui.handle).offset(), { width: $(ui.handle).get(0).offsetWidth,
@@ -841,7 +845,6 @@ var paintSlideBar = function (start,currentTime,end){
                 var actualWidth = div.offsetWidth;
                 var tp = {left: pos.left + pos.width / 2 - actualWidth / 2}
                 $(div).offset(tp);
-//
                 var currentDate = new Date(parseInt(ui.value));
                 $(div).find(".tooltip-inner").text(new Intl.DateTimeFormat(myLocale, formatOptions).format(currentDate))
 
@@ -858,7 +861,7 @@ var paintSlideBar = function (start,currentTime,end){
             createToolTip(slider.find(".ui-slider-handle"),new Intl.DateTimeFormat(myLocale, formatOptions).format(currentDate),'bottom')
 
         }
-    });
+    }).css("background","#e0e0e0");
     tooltip = createToolTip(slider.find(".ui-slider-handle"),new Intl.DateTimeFormat(myLocale, formatOptions).format(currentDate),'bottom')
     slider.appendTo(internalDiv);
     slider.attr('id',NGLC_INTERNAL_SLIDER);
@@ -947,8 +950,8 @@ var paintGraphOnlyNodes = function (nodes) {
         node.label = key+": " +value.elements;
         node.x = value.x;
         node.y = value.y;
-        node.allowedToMoveX = true
-        node.allowedToMoveY = true
+        node.allowedToMoveX = true;
+        node.allowedToMoveY = true;
         node.elements = value.elements;
         return node;
     })
