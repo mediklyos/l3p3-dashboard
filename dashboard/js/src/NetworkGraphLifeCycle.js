@@ -89,8 +89,8 @@ itemsFiltered is an object of arrays that contains the items which have been fil
 var itemsFiltered = {};
 $.each(extraColumnsShown, function(index, value) {
     itemsFiltered[NGLC_FILTER_PREFIX+value] = []
-})
-//itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345")
+});
+//itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345");
 
 /*
     Slider styles. There's no need to modify the jQuery CSS file, so I create it here.
@@ -807,7 +807,7 @@ var calculateMean = function(myArray, attr) {
     });
     return Math.round(mean/count);
 }
-
+var slider;
 var paintSlideBar = function (start,currentTime,end){
     var sliderPanel = $("#"+NGLC_SLIDER_PANEL);
     sliderPanel.empty();
@@ -828,14 +828,14 @@ var paintSlideBar = function (start,currentTime,end){
         text: new Intl.DateTimeFormat(myLocale, formatOptions).format(startDate)
     }).appendTo(internalDiv)
     var tooltip = undefined;
-    var slider = jQuery('<div/>').slider({
+    slider = jQuery('<div/>').slider({
         range: "min",
         min: parseInt(start),
         max: parseInt(end),
-        step: velocity,
-        value: parseInt(currentTime),
+        //step: (parseInt(end)-parseInt(start))/edges.length,
+        value: parseInt(current),
         slide : function (event,ui){
-            current =parseInt(ui.value)
+            current = parseInt(ui.value)
             currentEdgePosition = updateGraph(edges,current,lapseTime,false)
             var div = $(ui.handle).parent().children(".tooltip")[0];
             if (div !== undefined) {
@@ -847,7 +847,6 @@ var paintSlideBar = function (start,currentTime,end){
                 $(div).offset(tp);
                 var currentDate = new Date(parseInt(ui.value));
                 $(div).find(".tooltip-inner").text(new Intl.DateTimeFormat(myLocale, formatOptions).format(currentDate))
-
             }
 
         },
@@ -885,7 +884,7 @@ var resizingSlider = function (){
 //        width = $('#'+NGLC_SLIDER_PANEL).width() - $('#'+NGLC_DIV_START_DATE).position().left - $('#'+NGLC_DIV_START_DATE).outerWidth() - $('#'+NGLC_DIV_END_DATE).outerWidth() -100 // Margin
         $('#'+NGLC_INTERNAL_SLIDER).width($('#'+NGLC_SLIDER_PANEL).outerWidth() - restWith);
     }
-//    var width = 0;
+
 }
 var getFormatOptions = function (start,end,precision){
     /*More efficiency*/
@@ -936,8 +935,6 @@ var paintGraphOnlyNodes = function (nodes) {
     lastLoaded = 0;
     $.each(nodes,function(key){
         var node = {
-//            x: this.x,
-//            y: this.y,
             id: key,
             label: key
         }
@@ -981,13 +978,12 @@ var paintGraphOnlyNodes = function (nodes) {
         })
         paintFooter(selectedNodes, extraColumnsActive);
         //console.debug(properties.nodes)
-    })
+    });
     return;
 
 }
 
 var paintGraphUpdateEdges = function (nodes,edges){
-
 
     /* Set up the edges for vis library*/
     var paintEdges = $.map (edges, function (value){
@@ -995,7 +991,7 @@ var paintGraphUpdateEdges = function (nodes,edges){
         edge.from = value.edge[NGLC_ORIGIN_COLUMN_NAME]
         edge.to = value.edge[NGLC_DESTINATION_COLUMN_NAME];
         edge.label = value.count;
-        edge.style = "arrow"
+        edge.style = "arrow";
         edge.color = value.edge["color"];
         return [edge]
     })
@@ -1065,8 +1061,6 @@ var upStop = function (event) {
     event.target.isStoped = true;
 }
 
-
-
 /*DEBUG*/
 var botStart = function (event){
     event.target.isStoped = false;
@@ -1109,6 +1103,7 @@ var up = function () {
         nextTime = getNextTime(currentEdgePosition++, edges, current)
         i++;
     }
+    $("#nglc-internal-slider").slider('value', current);
     current = +(current) + nextTime;
     var lapse = getNextTime(currentEdgePosition+1, edges, current);
     currentEdgePosition = updateGraph(edges,current -1, lapse, false);
@@ -1119,6 +1114,7 @@ var bot = function () {
         currentEdgePosition--;
     }
     current = getPreviousTime(currentEdgePosition, edges);
+    $("#nglc-internal-slider").slider('value', current);
     currentEdgePosition = updateGraph(edges,current, getNextTime(currentEdgePosition, edges, current), false);
 }
 
