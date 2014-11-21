@@ -43,7 +43,7 @@ var NGLC_MEANTIME_COLUMN_NAME = "meantime";
 var NGLC_ID_COLUMN_NAME = "id"
 var NGLC_PRIORITY_COLUMN_NAME = "priority"
 var NGLC_ZONE_COLUMN_NAME = "bank"
-var NGLC_CAUSE_COLUMN_NAME = "type"
+var NGLC_CAUSE_COLUMN_NAME = "type";
 
 var NGLC_START_NODE_NAME = "Start"
 
