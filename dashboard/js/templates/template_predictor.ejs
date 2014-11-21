@@ -41,6 +41,25 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="pv-table-evens-prediction-result pv-prediction-table">
+                    <table class="table table-condensed">
+                        <thead>
+                        <tr>
+                            <th colspan="2">Predictions result</th>
+                        </tr>
+                        <tr>
+                            <th>Event</th>
+                            <th>Timestamp</th>
+                            <th>Prediction result</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="dashboard-templates">
+                            <td class="pv-td-1"></td><td class="pv-td-2"></td><td class="pv-td-3"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
                 <div class="hr"></div>
             </div>
             <!--<div id="pv-footer-chart-stats-events">-->
@@ -75,9 +94,9 @@
             <div class="form-group">
                 <button class="btn btn-default" id="pv-add-graph" onclick="pvAddGraph()">Add Graph</button>
                 <div class="btn-group btn-toggle" data-toggle="buttons" id="pv-columns-click" onclick="pvColumnsClick(event)">
-                    <label class="btn btn-default">
-                        <input name="pv-columns" value="1" type="radio">1</label>
                     <label class="btn btn-primary active">
+                        <input name="pv-columns" value="1" type="radio">1</label>
+                    <label class="btn btn-default ">
                         <input name="pv-columns" value="2" type="radio">2</label>
                     <label class="btn btn-default">
                         <input name="pv-columns" value="3" type="radio">3</label>
@@ -168,12 +187,7 @@
         pvStartRoutines();
 
         if (GLOBAL_DEBUG){
-            pvAddGraph();
-            activeSmoothie = 0;
-            $($("canvas")[1]).parent().find("."+PV_SELECT_CHART_BUTTON).addClass('active')
-            _pvLoadSource("localhost:10082")
-            toggleFooter(true);
-
+            debugRoutines ();
         }
     </script>
 </div>

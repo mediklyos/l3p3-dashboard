@@ -43,7 +43,6 @@ var PV_PREFIX_CLASS_SUMMARY = PRE + "-summary-class-prefix-"
 /*Other constants*/
 var PV_LINE_BOLD = 3;
 var PV_LINE_NORMAL = 1
-var PV_TIMEOUT = 1000
 var PV_MAX_LG_COL = 12;
 var PV_CHARTS_DEFAULT_TIME = 10*60*1000;
 var PV_SVG_FOOTER_LINE_FONT_SIZE = 10;
@@ -60,6 +59,8 @@ var PV_EVENT_CIRCLE_RADIUS_HOVER = 4;
 var PV_EVENT_LINE_WIDTH = 1;
 var PV_EVENT_LINE_WIDTH_HOVER = 2;
 var PV_ZERO_POS = 0.75
+//var PV_TIMEOUT = -( PV_CHARTS_DEFAULT_TIME * PV_ZERO_POS)
+var PV_TIMEOUT = -30000
 
 if (GLOBAL_DEBUG){
 
@@ -69,8 +70,7 @@ if (GLOBAL_DEBUG){
 var PV_WS_SPLIT = "::"
 var PV_WS_EVENT = "event"
 var PV_WS_PREDICTION = "prediction"
-var PV_WS_TIME_AFTER = "after"
-var PV_WS_TIME_BEFORE = "before"
+var PV_WS_TIME = "time"
 var PV_SECOND = 1000;
 var PV_MINUTE = 60 * PV_SECOND
 var PV_HOUR = 60 * PV_MINUTE ;
@@ -92,12 +92,12 @@ if (GLOBAL_DEBUG){
 //    debugEvents.push(TEST_EVENT_NAME+num++)
 //    debugEvents.push(TEST_EVENT_NAME+num++)
 //    debugEvents.push(TEST_EVENT_NAME+num++)
-    debugEvents.push("NodeId0#_CPU_75")//eventBase + "0_1";
     debugEvents.push("NodeId0#_CPU_90")//eventBase + "0_2";
-    debugEvents.push("NodeId0#_Mem_75")//eventBase + "0_3";
     debugEvents.push("NodeId0#_Mem_90")//eventBase + "0_4";
-    debugEvents.push("NodeId0#_HD_75")//eventBase + "0_4";
     debugEvents.push("NodeId0#_HD_90")//eventBase + "0_4";
+    debugEvents.push("NodeId0#_CPU_75")//eventBase + "0_1";
+    debugEvents.push("NodeId0#_Mem_75")//eventBase + "0_3";
+    debugEvents.push("NodeId0#_HD_75")//eventBase + "0_4";
     var timeRange = [7500,10000]
     var PV_STOP = false
     var pv_pause = false;
@@ -163,7 +163,11 @@ var pvInitLeftColumnAndFooter = function (){
 //    $(LEFT_COLUMN_CONTENT).append
 }
 var pvStartRoutines = function (){
+    var bundle = {}
     pvInitLeftColumnAndFooter();
+    bundle.target = $("#"+PV_COLUMNS_CLICK).find("input[value="+PV_COLS+"]")[0]
+    bundle.target
+    pvColumnsClick(bundle)
 }
 
 
@@ -178,6 +182,8 @@ var pvAddGraph= function () {
     var smoothie = new SmoothieChart(PV_SMOOTHIE_DEFAULT_OPTIONS);
     smoothie.timelines = {}
     smoothie.graphTime = PV_CHARTS_DEFAULT_TIME;
+    smoothie.zero = PV_ZERO_POS
+
     smoothie.verticalLineTime =PV_SVG_FOOTER_LINE_SEPARATION;
     smoothie.footerVerticalLine = PV_SVG_FOOTER_LINE_SEPARATION;
     smoothie.eventsHappend = [];
@@ -188,17 +194,9 @@ var pvAddGraph= function () {
     canvas[0].smoothie.paintName = true;
 
     pvCharts.push(smoothie)
-    smoothie.streamTo(section.find('canvas').get(0), PV_TIMEOUT);
+    var delay = PV_CHARTS_DEFAULT_TIME*(PV_ZERO_POS-1);
+    smoothie.streamTo(section.find('canvas').get(0), delay);
     smoothie.extraActionsInAnimation = drawOnCanvasEvents.bind(canvas[0])//.bind(this.smoothie);
-    if (GLOBAL_DEBUG){
-//        pvAddEventToSmoothie(smoothie,TEST_EVENT_NAME);
-        var ev = 0;
-//        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas[0],TEST_EVENT_NAME+ev++),0)
-//        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas[0],TEST_EVENT_NAME+ev++),1000);
-//        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas[0],TEST_EVENT_NAME+ev++),10000);
-//        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas[0],TEST_EVENT_NAME+ev++),15000);
-//        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas[0],TEST_EVENT_NAME+ev++),23100);
-    }
     pvResizeFunction()
 }
 
@@ -206,6 +204,7 @@ var pvActiveNames = function (event) {
     var canvas = getCanvas(event.target)
     canvas[0].smoothie.paintName = !(canvas[0].smoothie.paintName);
 }
+
 
 var pvAddEventToSmoothie = function (canvas,eventName){
     var smoothie = canvas.smoothie
@@ -232,12 +231,13 @@ var pvAddEventToSmoothie = function (canvas,eventName){
     return smoothie.events[eventName];
 
 }
-var pvAddEventOccurrenceToCanvas = function (canvas,eventId){
+var pvAddEventOccurrenceToCanvas = function (canvas,eventId,predictionStatus){
     var jQCanvas = $(canvas)
     var event = pvAddEventToSmoothie(canvas,eventId)
     var occurrenceEvent = {event:event,time: Date.now()}
     event.occurrences.push(occurrenceEvent)
     canvas.smoothie.eventsHappend.push(occurrenceEvent )
+
     paintEvents(jQCanvas)
 }
 
@@ -827,7 +827,8 @@ function pvColumnsClick(event){
 var pvLoadSource = function (event) {
     if (event.keyCode == 13){
         console.log("Changing the source");
-        onlineResourceView_postLoad_click();
+//        onlineResourceView_postLoad_click();
+        pvLoadSource_click();
 
 
     }
@@ -866,30 +867,37 @@ var _pvLoadSource = function (url) {
     };
     ws.onmessage = function(e) {
         var cadSplit = e.data.split(PV_WS_SPLIT)
-        switch (cadSplit[0]) {
+        var message;
+        try {
+            message = eval('('+ e.data+')');
+        } catch (e) {
+            pv_print("Incorrect message format, Use JSON format.",false)
+            ws.send("Incorrect message format, Use JSON format.")
+            return;
+        }
+        switch (message.command) {
             case PV_WS_EVENT:
-                if (cadSplit.length == 2 ){
-                    pvAddEventOccurrenceToCanvas(ws.canvas,cadSplit[1])
+                if (message.event === undefined){
+                    pv_print("Incorrect format of "+PV_WS_EVENT+" command. Please check the documentation");
+                    ws.send("Incorrect format of "+PV_WS_EVENT+" command. Please check the documentation");
+                } else {
+                    pvAddEventOccurrenceToCanvas(ws.canvas,message.event)
                 }
                 break;
             case PV_WS_PREDICTION:
-                if (cadSplit.length == 3 ){
-//                    var prediction =  cadSplit[2]
-//                    var event = pvAddEventToSmoothie(ws.canvas,cadSplit[1])
-                    pvAddPrediction(ws.canvas,cadSplit[1],cadSplit[2])
-
-
-
+                if (message.event === undefined || message.prediction === undefined){
+                    pv_print("Incorrect format of "+PV_WS_PREDICTION+" command. Please check the documentation");
+                    ws.send("Incorrect format of "+PV_WS_PREDICTION+" command. Please check the documentation");
+                } else {
+                    pvAddPrediction(ws.canvas,message.event,message.prediction)
                 }
                 break;
-            case PV_WS_TIME_AFTER:
-                pv_changeGraphRange(ws.canvas,undefined,cadSplit[1])
-                break;
-            case PV_WS_TIME_BEFORE:
-                pv_changeGraphRange(ws.canvas,cadSplit[1],undefined)
+            case PV_WS_TIME:
+                pv_changeGraphRange(ws.canvas,message.after,message.before)
                 break;
             default:
                 pv_print("Incorrect message")
+                ws.send("Incorrect message. Consult documentation")
 
         }
 //        console.log(e)
@@ -925,6 +933,7 @@ var pv_changeGraphRange = function (canvas,before,after){
     zero = (before) / total
     smoothie.graphTime = total
     smoothie.zero = zero;
+    smoothie.delay = -after
 
 
     var width = $(canvas).parent().width();
@@ -941,6 +950,13 @@ var pv_changeGraphRange = function (canvas,before,after){
 
 
 
+}
+
+var pvAddPredictionResult = function (canvas,event,timestapm){
+    var jQCanvas = $(canvas)
+    if (canvas.smoothie.isStoped){
+        return;
+    }
 }
 
 var pvAddPrediction = function (canvas, eventName, prediction) {
@@ -1011,8 +1027,8 @@ var getCharDiv = function (actualDom) {
 
 }
 
-var pv_print = function (string){
-    if (GLOBAL_DEBUG){
+var pv_print = function (string,debug){
+    if (GLOBAL_DEBUG || !debug){
         console.log(string)
     }
 }
@@ -1051,8 +1067,12 @@ var mS = function (){
     return $("line"+stringClassPrefixFinder);
 }
 
-
-if (GLOBAL_DEBUG){
+var debugRoutines = function (){
+    toggleFooter(true);
+    pvAddGraph();
+    activeSmoothie = 0;
+    $($("canvas")[1]).parent().find("."+PV_SELECT_CHART_BUTTON).addClass('active')
+    _pvLoadSource("localhost:10082")
     setTimeout(function() {
         $($("."+PV_SELECT_CHART_BUTTON)[1]).trigger("click")
         _pvLoadSource("localhost:10082")
@@ -1063,21 +1083,46 @@ if (GLOBAL_DEBUG){
             return;
         }
         if (!pv_pause) {
+            var nEvent;
+            var sEvent
             var nChart = parseInt(Math.random() * ($("canvas").length - 1)) + 1
             var canvas = $("canvas")[nChart];
             var eventsPredicted = 3;
-            var nEvent = parseInt((Math.random() * (debugEvents.length + eventsPredicted))) - eventsPredicted
-            if (nEvent < 0) {
-                nEvent = -(nEvent) -1
-                var prediction = parseInt(Math.random() * 100)
-                var event = debugEvents[nEvent ].replace("#",nChart)// + "_" + nChart
-                pvAddPrediction(canvas, event,prediction)
-            } else {
-//                var event = debugEvents[nEvent ].replace("#",nChart)
-                var sEvent = debugEvents[nEvent ].replace("#",nChart)
+            var maxTime = 600000
+            var minTime = 30000
+            var provEvent = 0.7;
+            var provPrediction = 0.28;
+            var provChangeTime = 0.2;
+            var totalProv = provChangeTime + provPrediction + provEvent;
+            var action = Math.random() *totalProv;
+            if (action < provEvent){
+                /*Nuevo evento*/
+                nEvent = parseInt((Math.random() * (debugEvents.length)))
+                sEvent = debugEvents[nEvent ].replace("#",nChart)
                 pvAddEventOccurrenceToCanvas(canvas, sEvent)
-
+            } else if  (action< (provEvent+provPrediction)){
+                /*Predicition*/
+                nEvent = parseInt((Math.random() * (eventsPredicted)))
+                sEvent = debugEvents[nEvent ].replace("#",nChart)
+                var prediction = parseInt(Math.random() * 100)
+                pvAddPrediction(canvas, sEvent,prediction)
+            }else if  (action < (provEvent+provPrediction+provChangeTime)){
+                var after = parseInt(Math.random() * (maxTime - minTime))
+                var before = parseInt(Math.random() * (maxTime - minTime))
+                pv_changeGraphRange(canvas,before,after);
             }
+//            var nEvent = parseInt((Math.random() * (debugEvents.length + eventsPredicted))) - eventsPredicted
+//            if (nEvent < 0) {
+//                nEvent = -(nEvent) -1
+//                var prediction = parseInt(Math.random() * 100)
+//                var event = debugEvents[nEvent ].replace("#",nChart)// + "_" + nChart
+//                pvAddPrediction(canvas, event,prediction)
+//            } else {
+////                var event = debugEvents[nEvent ].replace("#",nChart)
+//                var sEvent = debugEvents[nEvent ].replace("#",nChart)
+//                pvAddEventOccurrenceToCanvas(canvas, sEvent)
+//
+//            }
         }
 
 
@@ -1087,59 +1132,50 @@ if (GLOBAL_DEBUG){
     var next = parseInt(Math.random() * timeRange[1] + timeRange[0])
 //    setTimeout(generateEvent,next )
     /*Scenario*/
-    $(function () {
-        setTimeout(function () {
+    var demoEvents = function () {
         pvAddGraph();
-            var eventBase = "event_";
-            var event0_1 = "NodeId01_CPU_75"//eventBase + "0_1";
-            var event0_2 = "NodeId01_CPU_90"//eventBase + "0_2";
-            var event0_3 = "NodeId01_Mem_75"//eventBase + "0_3";
-            var event0_4 = "NodeId01_Mem_90"//eventBase + "0_4";
-            var event0_5 = "NodeId01_HD_75"//eventBase + "0_4";
-            var event0_6 = "NodeId01_HD_90"//eventBase + "0_4";
-            var event1_1 = "NodeId02_CPU_75"//eventBase + "0_1";
-            var event1_2 = "NodeId02_CPU_90"//eventBase + "0_2";
-            var event1_3 = "NodeId02_Mem_75"//eventBase + "0_3";
-            var event1_4 = "NodeId02_Mem_90"//eventBase + "0_4";
-            var event1_5 = "NodeId02_HD_75"//eventBase + "0_4";
-            var event1_6 = "NodeId02_HD_90"//eventBase + "0_4";
-//            var event_1 = eventBase + "1_1";
-//            var event1_2 = eventBase + "1_2";
-//            var event1_3 = eventBase + "1_3";
-//            var event1_4 = eventBase + "1_4";
-//            var event1_5 = eventBase + "1_5";
-            var canvas1 = $("canvas")[1];
-            var canvas2 = $("canvas")[2];
-            pv_changeGraphRange(canvas1,300000,120000);
-            pv_changeGraphRange(canvas2,600000,180000);
-//            setTimeout(pvAddPrediction.bind(this,canvas1, event0_4,33),150)
-//            setTimeout(pvAddPrediction.bind(this,canvas1, event0_3,22),0);
-            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_1),1000);
-//            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_3),5000);
-//            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_4),7500);
-            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_2),10000);
-            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_3),20000);
-            setTimeout(pvAddPrediction.bind(this,canvas1, event0_4,22),20000);
-            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_2),40000);
-//            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_2),120000);
-            setTimeout(pvAddPrediction.bind(this,canvas1, event0_4,88),40000);
-            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_4),165000);
+        pvAddGraph();
+        var eventBase = "event_";
+        var event0_1 = "NodeId01_CPU_75"//eventBase + "0_1";
+        var event0_2 = "NodeId01_CPU_90"//eventBase + "0_2";
+        var event0_3 = "NodeId01_Mem_75"//eventBase + "0_3";
+        var event0_4 = "NodeId01_Mem_90"//eventBase + "0_4";
+        var event0_5 = "NodeId01_HD_75"//eventBase + "0_4";
+        var event0_6 = "NodeId01_HD_90"//eventBase + "0_4";
+        var event1_1 = "NodeId02_CPU_75"//eventBase + "0_1";
+        var event1_2 = "NodeId02_CPU_90"//eventBase + "0_2";
+        var event1_3 = "NodeId02_Mem_75"//eventBase + "0_3";
+        var event1_4 = "NodeId02_Mem_90"//eventBase + "0_4";
+        var event1_5 = "NodeId02_HD_75"//eventBase + "0_4";
+        var event1_6 = "NodeId02_HD_90"//eventBase + "0_4";
 
-//            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_2),1000)
-//            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_3),1000)
-//            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_1),1000)
-//            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_1),1000)
-            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_1),1000);
-            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_2),15000);
-            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_5),55000);
-            setTimeout(pvAddPrediction.bind(this,canvas2, event1_3,22),30000);
-            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_1),30000);
-            setTimeout(pvAddPrediction.bind(this,canvas2, event1_4,33),60000);
-            setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_3),215000);
+        var canvas1 = $("canvas")[1];
+        var canvas2 = $("canvas")[2];
+        pv_changeGraphRange(canvas1,300000,120000);
+        pv_changeGraphRange(canvas2,600000,180000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_1),1000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_2),10000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_3),20000);
+        setTimeout(pvAddPrediction.bind(this,canvas1, event0_4,22),20000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_2),40000);
+        setTimeout(pvAddPrediction.bind(this,canvas1, event0_4,88),40000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_4),165000);
 
-        },500)
-        setTimeout(generateEvent,250000)
-//        setTimeout()
-    })
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_1),1000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_2),15000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_5),55000);
+        setTimeout(pvAddPrediction.bind(this,canvas2, event1_3,22),30000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_1),30000);
+        setTimeout(pvAddPrediction.bind(this,canvas2, event1_4,33),60000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_3),215000);
+
+    }
+
+
+
+
+
+      setTimeout(generateEvent,150)
+//    setTimeout(demoEvents,500)
 
 }
