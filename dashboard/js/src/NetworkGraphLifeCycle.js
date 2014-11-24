@@ -584,8 +584,41 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
     }
     /*Edges de delta positivo se calcula aqui*/
     // Dibujo la líneas entre nodos.
-    while (pos < edges.length && (edges[pos][NGLC_TIME_COLUMN_NAME] <= time + lapseTime)){
-        // Cojo la línea actual del csv
+
+    if(pos < edges.length && (edges[pos][NGLC_TIME_COLUMN_NAME] <= time + lapseTime)) {
+        while (pos < edges.length && (edges[pos][NGLC_TIME_COLUMN_NAME] <= time + lapseTime)){
+            console.log("ENTRA PARA PINTAR")
+            // Cojo la línea actual del csv
+            if(itemsFiltered[NGLC_FILTER_PREFIX+NGLC_ID_COLUMN_NAME].length == 1) {
+                var newPos = 0;
+                while (newPos < pos) {
+                    // Cojo la línea actual del csv
+                    var edge = edges[newPos];
+                    if (edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] === undefined) {
+                        edge["color"] = "red";
+                        edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] = {edge: edge, count: 1};
+                    } else {
+                        edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].edge["color"] = "blue";
+                        edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].count++;
+                    }
+                    newPos++;
+                }
+            }
+            var edge = edges[pos];
+            edge["color"] = "black";
+            if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined)) {
+                if (edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] === undefined) {
+                    // Si la línea de origen-destino no existe, la creo.
+                    edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] = {edge: edge, count: 1};
+                } else {
+                    // Si ya existe, le añado una unidad.
+                    edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].edge["color"] = "blue";
+                    edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].count++;
+                }
+            }
+            pos++;
+        }
+    } else {
         if(itemsFiltered[NGLC_FILTER_PREFIX+NGLC_ID_COLUMN_NAME].length == 1) {
             var newPos = 0;
             while (newPos < pos) {
@@ -601,26 +634,16 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
                 newPos++;
             }
         }
-        var edge = edges[pos];
-        edge["color"] = "black";
-            if ((nodes[edge[NGLC_DESTINATION_COLUMN_NAME]] !== undefined)) {
-                if (edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] === undefined) {
-                    // Si la línea de origen-destino no existe, la creo.
-                    edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]] = {edge: edge, count: 1};
-                } else {
-                    // Si ya existe, le añado una unidad.
-                    edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].edge["color"] = "blue";
-                    edgesToPaint[edge[NGLC_ORIGIN_COLUMN_NAME] + "-" + edge[NGLC_DESTINATION_COLUMN_NAME]].count++;
-                }
-            }
-        pos++;
     }
+
+
     paintGraphUpdateEdges(nodes,edgesToPaint)
     paintFooter(selectedNodes, extraColumnsActive);
     if (repaint) {
         end = +edges[edges.length - 1][NGLC_TIME_COLUMN_NAME] + (lapseTime / 2)
         paintSlideBar(start, time, end)
     }
+    //pos--;
     console.log("Current pos: "+pos)
     return pos;
 }
@@ -955,7 +978,7 @@ var paintGraphOnlyNodes = function (nodes) {
 
     var data = {
         nodes: paintNodes
-    }
+    };
     dataPainted = data;
     var container = document.getElementById(NGLC_GRAPH_CONTAINER);
     resetEdges();
