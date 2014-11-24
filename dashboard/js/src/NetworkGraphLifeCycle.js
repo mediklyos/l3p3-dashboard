@@ -83,6 +83,8 @@ var NGLC_DURATION_MEAN_TABLE_COLUMN_NAME = "Duration #";
 var NGLC_ARRIVAL_TIME_TABLE_COLUMN_NAME = "Arrival Time";
 var NGLC_TOTAL_DURATION_TIME_TABLE_COLUMN_NAME = "Total duration";
 
+/* Control variable that is used to know when all the items are closed */
+var reachedEnd = false;
 /*
 itemsFiltered is an object of arrays that contains the items which have been filtered by the user.
  */
@@ -618,6 +620,7 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
             }
             pos++;
         }
+        reachedEnd = false;
     } else {
         if(itemsFiltered[NGLC_FILTER_PREFIX+NGLC_ID_COLUMN_NAME].length == 1) {
             var newPos = 0;
@@ -633,6 +636,7 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
                 }
                 newPos++;
             }
+            reachedEnd = true;
         }
     }
 
@@ -1120,18 +1124,23 @@ var getPreviousTime = function(currentPos, myEdges) {
 }
 
 var up = function () {
-    var nextTime = getNextTime(currentEdgePosition, edges, current)
-    var i = 0;
-    while(+(current) + nextTime <= +(current)) {
-        nextTime = getNextTime(currentEdgePosition++, edges, current)
-        i++;
+    if(!reachedEnd) {
+        var nextTime = getNextTime(currentEdgePosition, edges, current)
+        var i = 0;
+        while (+(current) + nextTime <= +(current)) {
+            nextTime = getNextTime(currentEdgePosition++, edges, current)
+            i++;
+        }
+        $("#nglc-internal-slider").slider('value', current);
+        current = +(current) + nextTime;
+        var lapse = getNextTime(currentEdgePosition + 1, edges, current);
+        currentEdgePosition = updateGraph(edges, current - 1, lapse, false);
     }
-    $("#nglc-internal-slider").slider('value', current);
-    current = +(current) + nextTime;
-    var lapse = getNextTime(currentEdgePosition+1, edges, current);
-    currentEdgePosition = updateGraph(edges,current -1, lapse, false);
 }
 var bot = function () {
+    if(reachedEnd) {
+        currentEdgePosition++;
+    }
     currentEdgePosition-=2;
     while(getPreviousTime(currentEdgePosition, edges) > current) {
         currentEdgePosition--;
