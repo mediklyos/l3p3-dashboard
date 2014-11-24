@@ -33,8 +33,11 @@ var PV_FOOTER_TABLE_GRAPH = PRE + "-table-graph-footer"
 var PV_FOOTER_CHART_EVENTS = PRE + "-footer-chart-stats-events"
 var PV_TABLE_EVENTS_OCCURRENCE = PRE + "-table-evens-occurrence"
 var PV_TABLE_EVENTS_PREDICTION = PRE + "-table-evens-prediction"
+var PV_TABLE_EVENTS_PREDICTION_RESULT = PRE + "-table-evens-prediction-result"
 var PV_CELL_1 = PRE +"-td-1"
 var PV_CELL_2 = PRE +"-td-2"
+var PV_CELL_3 = PRE +"-td-3"
+var PV_FOOTER_TABLE_PREFIX_ID = PRE + "-footer-table-"
 
 
 var PV_PREFIX_CLASS_EVENTS = PRE + "-event-class-prefix-"
@@ -67,10 +70,12 @@ if (GLOBAL_DEBUG){
 
 }
 /*WS constant messages*/
-var PV_WS_SPLIT = "::"
 var PV_WS_EVENT = "event"
 var PV_WS_PREDICTION = "prediction"
 var PV_WS_TIME = "time"
+var PV_WS_RESULT = "result"
+var PV_WS_RESULT_HIT = "hit"
+var PV_WS_RESULT_MISS = "miss"
 var PV_SECOND = 1000;
 var PV_MINUTE = 60 * PV_SECOND
 var PV_HOUR = 60 * PV_MINUTE ;
@@ -192,6 +197,7 @@ var pvAddGraph= function () {
     var canvas = $(section.find('canvas')[0])
     canvas[0].smoothie = smoothie;
     canvas[0].smoothie.paintName = true;
+    canvas[0].predictionResults = []
 
     pvCharts.push(smoothie)
     var delay = PV_CHARTS_DEFAULT_TIME*(PV_ZERO_POS-1);
@@ -381,12 +387,12 @@ var drawOnCanvasEvents = function (jQCanvas) {
 
 }
 
+
 var paintLegendPredictions = function (jQCanvas) {
     if (jQCanvas[0].smoothie.isStoped){
         return;
     }
-    var legend = $(getCharDiv(jQCanvas)).find('.'+PV_EVENTS_LEGEND).empty();
-    var first = true;
+    $(getCharDiv(jQCanvas)).find('.'+PV_EVENTS_LEGEND).empty();
     // TODO
 
     var tbody =$("#"+FOOTER_CONTENT_ID).find("."+PV_TABLE_EVENTS_PREDICTION ).find('tbody');
@@ -498,6 +504,25 @@ var paintEventsInADiv = function (jQCanvas) {
 
 }
 
+var paintLegendPredictionResult = function (jQCanvas){
+    if (jQCanvas[0].smoothie.isStoped){
+        return true;
+    }
+    var tbody =$("#"+FOOTER_CONTENT_ID).find("."+PV_TABLE_EVENTS_PREDICTION_RESULT).find('tbody');
+    var genericLine = tbody.find("tr."+DASHBOARD_TEMPLATES)
+    tbody.empty().append(genericLine)
+    $.each(jQCanvas[0].predictionResults, function () {
+        var newLine = genericLine.clone().removeClass(DASHBOARD_TEMPLATES);
+        newLine.find("."+PV_CELL_1).text(this.event)
+        newLine.find("."+PV_CELL_2).text(printDate(this.time))
+        newLine.find("."+PV_CELL_3).text(this.result)
+        tbody.append(newLine);
+
+    })
+
+
+
+}
 
 
 var markText = function(event) {
@@ -570,46 +595,6 @@ var paintFooterEvents = function (jQCanvas){
         }.bind(event,eventOccurrence))
     }
 }
-/*Old method paint events happend*/
-//var paintEventsInADiv = function (container, eventsHappened,prefix) {
-//    $.each(eventsHappened,function (key) {
-//        var div = $('<div title="ID:'+this.event.id+'\nDate:'+printDate(this.time)+'"/>')
-//        var span1=$('<span>'+this.event.id+'</span>').css('color',this.event.color)//.css('font-weight','bold')
-//        var className = PV_PREFIX_CLASS_EVENTS+this.event.id+"-"+this.time
-//        if (prefix !== undefined) {
-//            var span0=$('<span>'+prefix(eventsHappened,key)+'</span>').appendTo(div)
-//        }
-//        span1.addClass(className);
-//        if (this.isClicked || this.isHover){
-//            span1.css('font-weight','bold')
-//        } else{
-//            span1.css('font-weight','normal')
-//        }
-//        div.append(span1)
-//        div.mouseenter (function (classId){
-//            $("."+classId).css('font-weight','bold')
-//            this.isHover = true;
-//        }.bind(this,className))
-//
-//        div.mouseleave (function (classId){
-//            if (this.isClicked) {
-//                $("."+classId).css('font-weight','bold')
-//            } else {
-//                $("."+classId).css('font-weight','normal')
-//            }
-//            this.isHover = false;
-//        }.bind(this,className))
-//        div.click(function(classId) {
-//            this.isClicked = !this.isClicked;
-//            if (this.isClicked){
-//                $("."+classId).css('font-weight','bolt')
-//            } else{
-//                $("."+classId).css('font-weight','normal')
-//            }
-//        }.bind(this,className))
-//        container.prepend(div)
-//    })
-//}
 
 var drawOnCanvasBase = function (canvas){
     var jQCanvas = $(canvas)
@@ -780,6 +765,7 @@ var PVSelectChart = function (event) {
     $(event.target).addClass('active')
     $("#"+PV_FOOTER_CHART_EVENTS).empty()
     var activeCanvas = getActiveGraph();
+//    $("."+PV_FOOTER_TABLE_GRAPH).attr("id",PV_FOOTER_TABLE_PREFIX_ID+activeSmoothie)
 //    paintEventsInADiv(activeCanvas);
     paintEvents(activeCanvas)
 //    paintFooterEvents(activeCanvas)
@@ -866,7 +852,17 @@ var _pvLoadSource = function (url) {
         console.log('Connection closed.');
     };
     ws.onmessage = function(e) {
-        var cadSplit = e.data.split(PV_WS_SPLIT)
+        /*
+         * Messages format
+         * {
+         *    command: <["event"|"prediction"|"time"|"result"]>,
+         *    event : <EventName>, // Commands: event, prediction, result
+         *    prediction: <predictionValue>, // Commands: prediction
+         *    before: <before time value in ms>, // Commands: prediction
+         *    after: <after time value in ms>, // Commands: prediction
+         *    result: <[hit|miss]> // Commands: result
+         * }
+         */
         var message;
         try {
             message = eval('('+ e.data+')');
@@ -893,7 +889,17 @@ var _pvLoadSource = function (url) {
                 }
                 break;
             case PV_WS_TIME:
-                pv_changeGraphRange(ws.canvas,message.after,message.before)
+                pv_changeGraphRange(ws.canvas,message.before,message.after)
+                break;
+            case PV_WS_RESULT:
+                if (message.event === undefined || message.result === undefined){
+                    pv_print("Incorrect format of "+PV_WS_RESULT+" command. Please check the documentation");
+                    ws.send("Incorrect format of "+PV_WS_RESULT+" command. Please check the documentation");
+                } else if (!pvAddPredictionResult(ws.canvas,message.event,Date.now(),message.result)){
+                    pv_print("The prediction result cannot be registered");
+                    ws.send("The prediction result cannot be registered");
+                }
+
                 break;
             default:
                 pv_print("Incorrect message")
@@ -952,11 +958,21 @@ var pv_changeGraphRange = function (canvas,before,after){
 
 }
 
-var pvAddPredictionResult = function (canvas,event,timestapm){
+var pvAddPredictionResult = function (canvas,event,timestapm,result){
+    pv_print(event+":"+timestapm+":"+result)
+
     var jQCanvas = $(canvas)
     if (canvas.smoothie.isStoped){
-        return;
+        return true;
     }
+    if (!(result === PV_WS_RESULT_HIT || result === PV_WS_RESULT_MISS)) {
+        return false;
+    }
+    var predictionResult = {event:event,time:timestapm,result:result}
+    canvas.predictionResults.push(predictionResult)
+    paintLegendPredictionResult(jQCanvas)
+
+    return true;
 }
 
 var pvAddPrediction = function (canvas, eventName, prediction) {
@@ -1074,6 +1090,7 @@ var debugRoutines = function (){
     $($("canvas")[1]).parent().find("."+PV_SELECT_CHART_BUTTON).addClass('active')
     _pvLoadSource("localhost:10082")
     setTimeout(function() {
+        activeSmoothie = 1;
         $($("."+PV_SELECT_CHART_BUTTON)[1]).trigger("click")
         _pvLoadSource("localhost:10082")
     },100);
