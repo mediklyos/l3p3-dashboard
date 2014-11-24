@@ -135,7 +135,7 @@ function createPanelButtons(title, id, parentId , keys, buttonsClass,buttons_id_
     return panel;
 }
 
-function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_prefix,callbac){
+function createSliderPanel(title, id, parentId , keys, buttonsClass,buttons_id_prefix,callback){
     var leftValue
     var rightValue
     var step = (keys[1] - keys[0]) / 100;
