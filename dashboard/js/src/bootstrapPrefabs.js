@@ -1,3 +1,20 @@
+jQuery(function ($) {
+    $('.panel-heading span.clickable').on("click", function (e) {
+        if ($(this).hasClass('panel-collapsed')) {
+            // expand the panel
+            $(this).parents('.panel').find('.panel-body').slideDown();
+            $(this).removeClass('panel-collapsed');
+            $(this).find('i').removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+        }
+        else {
+            // collapse the panel
+            $(this).parents('.panel').find('.panel-body').slideUp();
+            $(this).addClass('panel-collapsed');
+            $(this).find('i').removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+        }
+    });
+});
+
 function createSetFilterPanelsByAttributeValue(id,parent,panelList,panel_id_prefix,panels_class,callback,inline){
     if (inline === undefined){
         inline = true;
@@ -15,12 +32,6 @@ function createSetFilterPanelsByAttributeValue(id,parent,panelList,panel_id_pref
         id: id
     }).appendTo(parentPanel)
 
-//    var buttonsSet = $('<div class="btn-group btn-toggle" data-toggle="buttons"/>').appendTo(buttonsPanel);
-//    buttonsSet.attr('id',DYNAMIC_DISTRIBUTION_BUTTONS_ATTR_TYPE_PREFIX+cols[key]);
-//    buttonsSet.click(toggleButtonsFunction.bind(undefined,DYNAMIC_DISTRIBUTION_BUTTONS_ATTR_TYPE_PREFIX+cols[key],function(attribute,value){
-//        colTypes[attribute] = value;
-//    }));
-//    buttonsList = ["uno","dos","tres","cuatro","cinco","seis"]
     $.each(panelList, function (key,value){
         var panel = $('<div/>',{
             class: "panel panel-default "+panels_class,
@@ -29,8 +40,30 @@ function createSetFilterPanelsByAttributeValue(id,parent,panelList,panel_id_pref
             id: panel_id_prefix + key
         })
         // Panel title
-        jQuery('<div />',{class:'panel-heading', text: 'Filter by '+value}).appendTo(panel);
-
+        var heading = jQuery('<div />',{class:'panel-heading'}).appendTo(panel);
+        var panelTitle = $('<h4/>', {
+            class: 'panel-title',
+            text: 'Filter by '+value
+        }).appendTo(heading);
+        var arrowSpanContainer = $('<span/>', {
+            class: 'pull-right clickable'
+        }).on("click", function (e) {
+            if ($(this).hasClass('panel-collapsed')) {
+                // expand the panel
+                $(this).parents('.panel').find('.panel-body').slideDown();
+                $(this).removeClass('panel-collapsed');
+                $(this).find('i').removeClass('glyphicon-chevron-down').addClass('glyphicon-chevron-up');
+            }
+            else {
+                // collapse the panel
+                $(this).parents('.panel').find('.panel-body').slideUp();
+                $(this).addClass('panel-collapsed');
+                $(this).find('i').removeClass('glyphicon-chevron-up').addClass('glyphicon-chevron-down');
+            }
+        }).appendTo(panelTitle);
+        $('<i/>', {
+            class: 'glyphicon glyphicon-chevron-up'
+        }).appendTo(arrowSpanContainer);
         var panelBody = jQuery('<div />',{class:'panel-body'})
 
         var panelBodyRow1 = jQuery('<div />',{class:'row'})
@@ -39,7 +72,6 @@ function createSetFilterPanelsByAttributeValue(id,parent,panelList,panel_id_pref
         var inputfilter = jQuery('<input />',{class:"form-control", name: "filter-"+value, id: "filter-"+value})
         var buttonUpdate = jQuery('<button />', {class: "btn btn-default", name: "updatebutton-"+value, text: "Update", style: "margin-right: 5px;"}).click(function(){
             var inputContent = $('#filter-'+value).val();
-            //updateFilterContent("RFC1234, RFC1111,    RFC000, RFCa sd", 'filter-'+value)
             updateFilterContent(inputContent, 'filter-'+value)
             $('#filter-'+value).val('');
         });
