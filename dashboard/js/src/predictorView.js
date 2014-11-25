@@ -40,9 +40,10 @@ var PV_CELL_3 = PRE +"-td-3"
 var PV_FOOTER_TABLE_PREFIX_ID = PRE + "-footer-table-"
 
 
-var PV_PREFIX_CLASS_EVENTS = PRE + "-event-class-prefix-"
-var PV_PREFIX_CLASS_PREDICTION = PRE + "-prediction-class-prefix-"
-var PV_PREFIX_CLASS_SUMMARY = PRE + "-summary-class-prefix-"
+var PV_EVENT_CLASS_OCCURRENCE_PREFIX = PRE + "-event-class-occurrence-"
+var PV_EVENT_CLASS_PREDICTION = PRE + "-prediction-class-prefix-"
+var PV_EVENT_CLASS_SUMMARY = PRE + "-event-class-summary"
+var PV_EVENT_TYPE_CLASS = PRE + "-event-type-class-"
 /*Other constants*/
 var PV_LINE_BOLD = 3;
 var PV_LINE_NORMAL = 1
@@ -76,6 +77,8 @@ var PV_WS_TIME = "time"
 var PV_WS_RESULT = "result"
 var PV_WS_RESULT_HIT = "hit"
 var PV_WS_RESULT_MISS = "miss"
+var PV_WS_RESULT_HIT_CLASS = PRE + "-hit"
+var PV_WS_RESULT_MISS_CLASS = PRE + "-miss"
 var PV_SECOND = 1000;
 var PV_MINUTE = 60 * PV_SECOND
 var PV_HOUR = 60 * PV_MINUTE ;
@@ -282,8 +285,13 @@ var resizingCanvasChart = function (charts){
 
 }
 
+var getIndexOfCanvas = function (canvas) {
+    return $('canvas').index(canvas)
+}
+
 var drawOnCanvasEvents = function (jQCanvas) {
     var canvas = jQCanvas[0];
+    var canvasIndex = getIndexOfCanvas(canvas);
     setTimeout(drawOnCanvasEvents.bind(this,jQCanvas),parseInt(canvas.smoothie.options.millisPerPixel)/4)
     if (pv_pause ){
         return;
@@ -346,7 +354,9 @@ var drawOnCanvasEvents = function (jQCanvas) {
                 .attr('stroke-width', lineWidth)
                 .attr('stroke', this.event.color)
                 .attr('shape-rendering',"crispEdges")
-                .attr("class", PV_SVG_EVENTS_IN_UP_CANVAS + " " + PV_PREFIX_CLASS_EVENTS+this.event.id+"-"+this.time)
+//                .attr("class", PV_SVG_EVENTS_IN_UP_CANVAS + " " + PV_EVENT_CLASS_OCCURRENCE_PREFIX+this.event.id+"-"+this.time)
+//                .attr("class", PV_SVG_EVENTS_IN_UP_CANVAS + " " + PV_EVENT_TYPE_CLASS+"-"+canvasIndex+"-"+this.event.id+"-"+this.time)
+                .attr("class", PV_SVG_EVENTS_IN_UP_CANVAS)
 
             var circle = d3Svg.append('circle')
                 .attr('cx', cx)
@@ -389,7 +399,9 @@ var drawOnCanvasEvents = function (jQCanvas) {
 
 
 var paintLegendPredictions = function (jQCanvas) {
-    if (jQCanvas[0].smoothie.isStoped){
+    var canvas = jQCanvas[0]
+    var canvasIndex = getIndexOfCanvas(canvas)
+    if (canvas.smoothie.isStoped){
         return;
     }
     $(getCharDiv(jQCanvas)).find('.'+PV_EVENTS_LEGEND).empty();
@@ -399,40 +411,40 @@ var paintLegendPredictions = function (jQCanvas) {
     var genericLine = tbody.find("tr."+DASHBOARD_TEMPLATES)
     tbody.empty()
     tbody.append(genericLine)
-    $.each(jQCanvas[0].smoothie.events,function (key) {
+    $.each(canvas.smoothie.events,function (key) {
         if (this.timeSeries.data.length == 0) {
             return;
         }
         var line = genericLine.clone().removeAttr('class')
 
-        var className = PV_PREFIX_CLASS_PREDICTION+this.id
+        var className = PV_EVENT_TYPE_CLASS+canvasIndex+"-"+this.id
         var spanEvent =$('<span>'+this.id+'</span>').css('color',this.color)
         var spanPrediction =$('<span>'+this.timeSeries.data[this.timeSeries.data.length-1][1]+'</span>').css('color',this.color)
-        line.find('.'+PV_CELL_1).removeAttr('class').addClass(className).append(spanEvent);
-        line.find('.'+PV_CELL_2).removeAttr('class').addClass(className).append(spanPrediction);
+        line.find('.'+PV_CELL_1).removeAttr('class').addClass(className).addClass(PV_EVENT_CLASS_PREDICTION).append(spanEvent);
+        line.find('.'+PV_CELL_2).removeAttr('class').addClass(className).addClass(PV_EVENT_CLASS_PREDICTION).append(spanPrediction);
         tbody.append(line)
 
-        line.mouseenter (function (){
+        line.mouseenter (function (canvas){
             this.isPredicitionHover = true;
-            markText(this);
+            markText(canvas, this);
             if (!this.isPredictionClicked){
 //                setLineWidth(this,true)
             }
 
-        }.bind(this))
+        }.bind(this,canvas))
 
-        line.mouseleave (function (){
+        line.mouseleave (function (canvas){
             this.isPredicitionHover = false;
-            markText(this)
+            markText(canvas, this)
             if (!this.isPredictionClicked){
 //                setLineWidth(this,this.isPredictionClicked)
             }
-        }.bind(this))
-        line.click(function() {
+        }.bind(this,canvas))
+        line.click(function(canvas) {
             this.isPredictionClicked = !this.isPredictionClicked;
-            markText(this)
+            markText(canvas, this)
 //            setLineWidth(this,this.isPredictionClicked)
-        }.bind(this))
+        }.bind(this,canvas))
 
     })
 }
@@ -455,7 +467,8 @@ var paintEvents = function (jQCanvas){
 
 var paintEventsInADiv = function (jQCanvas) {
     var container = getCharDiv(jQCanvas).find('.'+PV_EVENTS_COUNT).empty();
-    var smoothie = jQCanvas[0].smoothie;
+    var canvas = jQCanvas[0];
+    var smoothie = canvas.smoothie;
     var events = {}
     $.each(smoothie.eventsHappend,function () {
         if (events[this.event.id] === undefined){
@@ -480,24 +493,24 @@ var paintEventsInADiv = function (jQCanvas) {
         return a.localeCompare(b);
     })
     $.each(shortedKeys, function () {
-        var event = pvAddEventToSmoothie(jQCanvas[0],this);
+        var event = pvAddEventToSmoothie(canvas,this);
         var div = $('<div/>',{
             title: this,
-            text: this
+            text: this + " (#"+events[this].count+")"
         })
-        div.addClass(PV_PREFIX_CLASS_SUMMARY+this)
-        div.mouseenter(function (){
+        div.addClass(PV_EVENT_TYPE_CLASS+getIndexOfCanvas(canvas)+"-"+this).addClass(PV_EVENT_CLASS_SUMMARY)
+        div.mouseenter(function (canvas){
             this.isSumaryHover = true;
-            markText(this);
-        }.bind(event))
-        div.mouseleave(function (){
+            markText(canvas, this);
+        }.bind(event,canvas))
+        div.mouseleave(function (canvas){
             this.isSumaryHover = false;
-            markText(this);
-        }.bind(event))
-        div.click(function (event) {
+            markText(canvas, this);
+        }.bind(event,canvas))
+        div.click(function (canvas,event) {
             this.isSumaryClicked = !this.isSumaryClicked;
-            markText(this);
-        }.bind(event))
+            markText(canvas, this);
+        }.bind(event,canvas))
         div.css('color',event.color)
         container.append(div)
     })
@@ -512,10 +525,18 @@ var paintLegendPredictionResult = function (jQCanvas){
     var genericLine = tbody.find("tr."+DASHBOARD_TEMPLATES)
     tbody.empty().append(genericLine)
     $.each(jQCanvas[0].predictionResults, function () {
+        var event = pvAddEventToSmoothie(jQCanvas[0],this.event);
         var newLine = genericLine.clone().removeClass(DASHBOARD_TEMPLATES);
-        newLine.find("."+PV_CELL_1).text(this.event)
-        newLine.find("."+PV_CELL_2).text(printDate(this.time))
-        newLine.find("."+PV_CELL_3).text(this.result)
+        newLine.find("."+PV_CELL_1).text(this.event).css('color',event.color)
+        newLine.find("."+PV_CELL_2).text(printDate(this.time)).css('color',event.color)
+        var img;
+        if (this.result === PV_WS_RESULT_MISS){
+            img = $('<div/>').addClass(PV_WS_RESULT_MISS_CLASS).addClass(PV_EVENT_TYPE_CLASS+this.event)
+        }else {
+            img = $('<div/>').addClass(PV_WS_RESULT_HIT_CLASS)
+
+        }
+        newLine.find("."+PV_CELL_3).append(img)
         tbody.append(newLine);
 
     })
@@ -524,47 +545,55 @@ var paintLegendPredictionResult = function (jQCanvas){
 
 }
 
+var cleanPredictionResults = function () {
+    var tbody =$("#"+FOOTER_CONTENT_ID).find("."+PV_TABLE_EVENTS_PREDICTION_RESULT).find('tbody');
+    var genericLine = tbody.find("tr."+DASHBOARD_TEMPLATES)
+    tbody.empty().append(genericLine)
+    var activeCanvas = getActiveGraph();
+    activeCanvas[0].predictionResults = [];
 
-var markText = function(event) {
-    var stringPrefixEvent = PV_PREFIX_CLASS_EVENTS+event.id+"-";
+}
+
+
+var markText = function (canvas, event,eventOccurrence) {
+    var canvasIndex = getIndexOfCanvas(canvas)
+    var eventClass = PV_EVENT_TYPE_CLASS + canvasIndex +"-" + event.id;
+    var stringPrefixEvent = PV_EVENT_CLASS_OCCURRENCE_PREFIX+event.id+"-";
     var stringClassPrefixFinder = "[class*='"+stringPrefixEvent+"']";
-    var stringAllEvents = "*"+stringClassPrefixFinder;
-    var stringPrediction = "."+PV_PREFIX_CLASS_PREDICTION+event.id
-    var stringSummary = "."+PV_PREFIX_CLASS_SUMMARY+event.id
     /* If summary selected-> all marked */
     if (event.isSumaryHover || event.isSumaryClicked) {
-        $(stringAllEvents+", "+stringPrediction+", "+stringSummary).css('font-weight', 'bold')
-//        $("line"+stringClassPrefixFinder).attr('stroke-width', PV_EVENT_LINE_WIDTH_HOVER)
-//        d3.selectAll($("line"+stringClassPrefixFinder)[0]).attr('stroke-width', PV_EVENT_LINE_WIDTH_HOVER)
+        $("."+eventClass).css('font-weight', 'bold');
         event.timeSeries.lineOptions.lineWidth = PV_LINE_BOLD;
     } else {
-        $(stringAllEvents+", "+stringPrediction+", "+stringSummary).css('font-weight', 'normal')
+        $("."+eventClass).css('font-weight', 'normal');
+
+//        $(stringAllEvents+", "+stringPrediction+", "+stringSummary).css('font-weight', 'normal')
         $("line[class^='"+stringPrefixEvent+"']").attr('stroke-width', PV_EVENT_LINE_WIDTH)
         event.timeSeries.lineOptions.lineWidth = PV_LINE_NORMAL
     }
 
-    if (event.isPredicitionHover || event.isPredictionClicked) {
-        $(stringPrediction+", "+stringSummary).css('font-weight', 'bold')
-    }
     if (event.isPredicitionHover || event.isPredictionClicked){
-        $("."+PV_PREFIX_CLASS_PREDICTION+event.id).css('font-weight', 'bold')
-        $("."+PV_PREFIX_CLASS_SUMMARY+event.id).css('font-weight', 'bold')
+        $("."+eventClass+"."+PV_EVENT_CLASS_SUMMARY).css('font-weight', 'bold')
+        $("."+eventClass+"."+PV_EVENT_CLASS_PREDICTION).css('font-weight', 'bold')
         event.timeSeries.lineOptions.lineWidth = PV_LINE_BOLD;
     }
 
-    $.each(event.occurrences,function () {
-        if (this.isHover || this.isClicked){
-            var className = stringPrefixEvent+this.time;
-            $("."+className).css('font-weight', 'bold')
-//            $("line"+stringClassPrefixFinder).attr('stroke-width', PV_EVENT_LINE_WIDTH_HOVER)
+    if (eventOccurrence !== undefined){
+        if (eventOccurrence.isHover || eventOccurrence.isClicked){
+            var stringOccurrenceClass = PV_EVENT_CLASS_OCCURRENCE_PREFIX + canvasIndex + "-" + event.id + "-" + eventOccurrence.time
+            $("."+stringOccurrenceClass).css('font-weight', 'bold')
+            $("."+eventClass+"."+PV_EVENT_CLASS_SUMMARY).css('font-weight', 'bold')
         }
-    })
+    }
+
 }
 
 
 
 var paintFooterEvents = function (jQCanvas){
     var tbody = $("#" + FOOTER_CONTENT_ID).find("." + PV_TABLE_EVENTS_OCCURRENCE).find('tbody');
+    var canvas = jQCanvas[0];
+    var canvasIndex = getIndexOfCanvas(canvas)
     var genericLine = tbody.find("tr." + DASHBOARD_TEMPLATES)
     tbody.empty()
     tbody.append(genericLine)
@@ -572,27 +601,27 @@ var paintFooterEvents = function (jQCanvas){
         var eventOccurrence = jQCanvas[0].smoothie.eventsHappend[i];
         var event = eventOccurrence.event;
         var line = genericLine.clone().removeAttr('class')
-        var className = PV_PREFIX_CLASS_EVENTS + eventOccurrence.event.id + "-" + eventOccurrence.time
+        var className1 = PV_EVENT_CLASS_OCCURRENCE_PREFIX + canvasIndex + "-" + eventOccurrence.event.id + "-" + eventOccurrence.time
+        var className2 = PV_EVENT_TYPE_CLASS +canvasIndex+"-"+ eventOccurrence.event.id;
         var spanEvent = $('<span>' + eventOccurrence.event.id + '</span>').css('color', eventOccurrence.event.color)
         var spanTime = $('<span>' + printDate(eventOccurrence.time) + '</span>').css('color', eventOccurrence.event.color)
-        line.find('.' + PV_CELL_1).removeAttr('class').addClass(className).append(spanEvent);
-        line.find('.' + PV_CELL_2).removeAttr('class').addClass(className).append(spanTime);
+        line.find('.' + PV_CELL_1).removeAttr('class').addClass(className1).addClass(className2).append(spanEvent);
+        line.find('.' + PV_CELL_2).removeAttr('class').addClass(className1).addClass(className2).append(spanTime);
         tbody.append(line);
-        //            var divs = line.find('td')
-        line.mouseenter(function (eventOccurrence) {
+        line.mouseenter(function (eventOccurrence,canvas) {
             eventOccurrence.isHover = true;
-            markText(this)
-        }.bind(event,eventOccurrence))
+            markText(canvas, this,eventOccurrence)
+        }.bind(event,eventOccurrence,canvas))
 
-        line.mouseleave(function (eventOccurrence) {
+        line.mouseleave(function (eventOccurrence,canvas) {
             eventOccurrence.isHover = false;
-            markText(this)
-        }.bind(event,eventOccurrence))
+            markText(canvas, this,eventOccurrence)
+        }.bind(event,eventOccurrence,canvas))
 
-        line.click(function (eventOccurrence) {
+        line.click(function (eventOccurrence,canvas) {
             eventOccurrence.isClicked = !eventOccurrence.isClicked;
-            markText(this)
-        }.bind(event,eventOccurrence))
+            markText(canvas, this,eventOccurrence)
+        }.bind(event,eventOccurrence,canvas))
     }
 }
 
@@ -1075,13 +1104,6 @@ function pvPause(event){
     $(event.target).toggleClass("active",canvas[0].smoothie.isStoped)
 }
 
-var stroke = 2;
-var mS = function (){
-    var stringPrefixEvent = PV_PREFIX_CLASS_EVENTS;
-    var stringClassPrefixFinder = "[class*='"+stringPrefixEvent+"']";
-    var lines = d3.selectAll($("line"+stringClassPrefixFinder)).attr('stroke-width',stroke++);
-    return $("line"+stringClassPrefixFinder);
-}
 
 var debugRoutines = function (){
     toggleFooter(true);

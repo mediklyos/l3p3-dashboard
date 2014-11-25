@@ -279,6 +279,10 @@ body {
 }
 
 
+.footer-button {
+    background-color: #f0f0f0;
+}
+
 .left-main {
     padding: 5px;
 }
@@ -587,6 +591,23 @@ div.pv-table-graph-footer>.pv-prediction-table thead tr:not(:first-child) th{
 }
 .pv-pause-graph.active {
     background-color: #e6e6e6;
+}
+
+.pv-miss {
+
+}
+.pv-hit, .pv-miss{
+    height: 20px;
+    width: 20px;
+    margin: auto
+
+}
+
+.pv-miss {
+    background-image: url('../icons/red_cross.png');
+}
+.pv-hit {
+    background-image: url('../icons/green_check.png');
 }
 
 #dd-filters-row {
