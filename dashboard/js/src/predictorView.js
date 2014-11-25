@@ -39,6 +39,9 @@ var PV_CELL_2 = PRE +"-td-2"
 var PV_CELL_3 = PRE +"-td-3"
 var PV_FOOTER_TABLE_PREFIX_ID = PRE + "-footer-table-"
 
+var PV_Z_INDEX_LVL_1 = 20;
+var PV_Z_INDEX_LVL_2 = 30;
+var PV_Z_INDEX_LVL_3 = 40;
 
 var PV_EVENT_CLASS_OCCURRENCE_PREFIX = PRE + "-event-class-occurrence-"
 var PV_EVENT_CLASS_PREDICTION = PRE + "-prediction-class"
@@ -93,7 +96,7 @@ var PV_HOUR = 60 * PV_MINUTE ;
 
 /*DEBUG vars*/
 if (GLOBAL_DEBUG){
-    PV_CHARTS_DEFAULT_TIME = 25*1000;
+    PV_CHARTS_DEFAULT_TIME = 150*1000;
     PV_SVG_FOOTER_LINE_SEPARATION = 60000
     var TEST_EVENT_NAME = "ev_"
     var debugWSS = []
@@ -311,6 +314,40 @@ var drawOnCanvasEvents = function (jQCanvas) {
     var toDelete = []
     var count = 1;
     jQSvg.find("."+PV_TOOLTIP_EVENTS_OCCURRED).remove();
+    $.each(canvas.predictionResults, function () {
+        /*Eliminar cuando se sale*/
+        if (canvas.smoothie.isStoped){
+            if (this.lastPosition === undefined){
+                return;
+            }
+        } else {
+            this.lastPosition = thisDate - this.time;
+        }
+        var content = $('<div/>', {
+            class: PV_TOOLTIP_EVENTS_OCCURRED_INTERNAL
+        })
+        if (this.result === PV_WS_RESULT_MISS){
+            content.append('<img src="icons/red_cross.png">')
+        } else {
+            content.append('<img src="icons/green_check.png">')
+        }
+        content.css('background', chroma(this.event.color).darken().alpha(0.2).css())
+        if (this.isHover || this.isClicked || this.event.isSumaryClicked || this.event.isSumaryHover) {
+            content.css('border','2px solid '+this.event.color)
+        } else {
+            content.css('border','1px solid '+this.event.color)
+        }
+//        if (this.isHover || this.isClicked){
+//            content.css('z-index',-PV_Z_INDEX_LVL_3);
+//        } else {
+//            content.css('z-index',PV_Z_INDEX_LVL_2);
+//        }
+        var cx = jQSvg.width()*canvas.smoothie.zero;
+        var pixelDifference = parseInt(this.lastPosition / canvas.smoothie.options.millisPerPixel)
+        cx -= pixelDifference;
+        var tooltip = createTooltip(d3Svg,content ,PV_TOOLTIP_EVENTS_OCCURRED,MY_ALIGNMENT_TOP,cx,0)
+
+    })
     $.each(canvas.smoothie.eventsHappend,function (key) {
         if (canvas.smoothie.isStoped){
             if (this.lastPosition === undefined){
@@ -334,14 +371,14 @@ var drawOnCanvasEvents = function (jQCanvas) {
                 fontWeight = 'bold'
                 var content = $('<div/>', {
                     class: PV_TOOLTIP_EVENTS_OCCURRED_INTERNAL
-                }).append('<div>Event ID: '+this.event.id+'</div><div style="white-space: nowrap">Time: '+printDate(this.time)+'</div>');
+                }).append('<div style="white-space: nowrap">Event ID: '+this.event.id+'</div><div style="white-space: nowrap">Time: '+printDate(this.time)+'</div>');
                 content.css('border-color',this.event.color)
                 content.css('color',this.event.color)
                 content.css('background',chroma(this.event.color).darken().alpha(0.2).css())
                 var tooltip = createTooltip(d3Svg,content ,PV_TOOLTIP_EVENTS_OCCURRED,MY_ALIGNMENT_TOP_LEFT,cx,0)
 
                 // TODO el problma es en el repintado, si esta parado se quita
-                tooltip.style('z-index',"20");
+                tooltip.style('z-index',PV_Z_INDEX_LVL_1);
 
 
             } else {
@@ -1273,7 +1310,7 @@ var debugRoutines = function (){
 
 
 
-//      setTimeout(generateEvent,150)
+      setTimeout(generateEvent,150)
 //    setTimeout(demoEvents,500)
 
 }

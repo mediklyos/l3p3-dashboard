@@ -53,41 +53,41 @@ var createTooltip = function (svgParent,content,tooltipClasses,alignment,x,y,hei
         }
         switch (alignment) {
             case MY_ALIGNMENT_TOP_LEFT:
-                x += 0
-                y += 0
+                x -= 0
+                y -= 0
                 // SVG DEFAULT POSITION
                 break;
             case MY_ALIGNMENT_TOP:
-                x += width / 2
-                y += 0
+                x -= width / 2
+                y -= 0
                 break;
             case MY_ALIGNMENT_TOP_RIGHT:
-                x += width
-                y += 0
+                x -= width
+                y -= 0
                 break;
             case MY_ALIGNMENT_LEFT:
-                x += 0
-                y += height /2
+                x -= 0
+                y -= height /2
                 break;
             case MY_ALIGNMENT_MIDDLE:
-                x += width / 2
-                y += height / 2
+                x -= width / 2
+                y -= height / 2
                 break;
             case MY_ALIGNMENT_RIGHT:
-                x += width
-                y += height / 2
+                x -= width
+                y -= height / 2
                 break;
             case MY_ALIGNMENT_BOTTOM_RIGHT:
-                x += 0
-                y += height
+                x -= 0
+                y -= height
                 break;
             case MY_ALIGNMENT_BOTTOM:
-                x += width / 2
-                y += height
+                x -= width / 2
+                y -= height
                 break;
             case MY_ALIGNMENT_BOTTOM_LEFT:
-                x += width
-                y += height
+                x -= width
+                y -= height
                 break;
         }
 
