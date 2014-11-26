@@ -1,3 +1,6 @@
 /wss 0=ws0 1=ws1
 /start
+100 send ws0 {command:"event",event:"evento1"}
+200 send ws1 {command:"prediction",event:"evento1",prediction:"22"}
+800 send ws0 Enviando caca
 /end

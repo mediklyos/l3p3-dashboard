@@ -1,27 +1,16 @@
 #!/usr/bin/nodejs
 var fs = require ('fs')
-
-var DEBUG = true;
-var port = 10082
-process.argv.forEach(function (val, index) {
-    if (val == "debug") {
-        DEBUG = true;
-    } else {
-        var values = val.split("=")
-        if (values.length  == 2){
-            if (values[0] == "port"){
-                port = parseInt(values[1])
-            }
-        }
-    }
-
+var WebSocketServer = require('ws').Server;
+var readline = require('readline');
+var rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
 });
-var print = function (string,prompt){
-    console.log("\n"+string);
-    if (prompt) {
-        rl.prompt();
-    }
-}
+
+/*PARAMETERS name*/
+var PARAM_PORT = "port";
+var PARAM_FILE_OUTPUT = "out"
+var PARAM_OUTPUT_CONSOLE = "console"
 
 /*Commands*/
 var COMMAND_EXIT = "exit";
@@ -31,22 +20,87 @@ var COMMAND_ECHO = "e";
 var COMMAND_SIM = "sim";
 var COMMAND_DEBUG = "d"
 var DEBUG_COMMAND = "/sim demo1.sim"
+var SYSTEM_PREFIX_MSG_OUT = " -> "
+var SYSTEM_PREFIX_MSG_IN = " <- "
+
 var callbackMessage = undefined;
+
+/*Prompt vars*/
+var inputPrefix = []
+var mode = 0;
+inputPrefix[0] = "Command# "
+inputPrefix[1] = "WS"
+rl.setPrompt(inputPrefix[0],inputPrefix[0].length);
+var outputFileName = undefined;
+var outConsole = false;
+var wsList = [];
+
+
+var DEBUG = true;
+var port = 10082
+process.argv.forEach(function (val, index) {
+    if (val == "debug") {
+        DEBUG = true;
+    } else {
+        var values = val.split("=")
+        switch (values[0]){
+            case PARAM_PORT:
+                if (values.length  == 2){
+                    port = parseInt(values[1])
+                }
+                break;
+            case PARAM_FILE_OUTPUT:
+                if (values.length  == 2){
+                    outputFileName = values[1];
+//                    outputFile = fs.open(fileName,"a")
+//                    outputFile.write("hola")
+
+                }
+                break;
+            case PARAM_OUTPUT_CONSOLE:
+                console.log("por consola")
+                outConsole = true
+                break;
+        }
+    }
+
+});
+var print = function (string){
+    if (outputFileName !== undefined){
+        printFile(string,true)
+    }
+    if (outputFileName === undefined || outConsole){
+        readline.moveCursor(process.stdout,-(rl._prompt.length),0)
+        readline.clearLine(process.stdout,0)
+        console.log(SYSTEM_PREFIX_MSG_OUT+string);
+        rl.prompt();
+    }
+
+}
+var printFile = function (string,out){
+    var cad
+    if (out){
+        cad = SYSTEM_PREFIX_MSG_OUT +string
+    } else {
+        cad = SYSTEM_PREFIX_MSG_IN +string
+    }
+    fs.appendFile(outputFileName,Date.now()+":"+cad+"\n");
+}
 
 /* options*/
 var LIST_OPTION = "-l"
 /*Modes*/
 var NORMAL_MODE = 0;
 var WS_MODE = 1;
-
-var WebSocketServer = require('ws').Server;
 var wss = new WebSocketServer({port: port});
-var readline = require('readline');
-var rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
 console.log("Listen on port: "+port)
+if (outConsole || outputFileName === undefined){
+    console.log("Output console active")
+}
+if (outputFileName !== undefined) {
+    console.log("File Output active. " + outputFileName)
+}
+
 
 /*ws mode vars*/
 var wsActive = undefined
@@ -67,24 +121,17 @@ process.stdin.on('keypress', function (ch, key) {
 //    }
 });
 */
-var inputPrefix = []
-var mode = 0;
-inputPrefix[0] = "Command# "
-inputPrefix[1] = "WS"
-rl.setPrompt(inputPrefix[0],inputPrefix[0].length);
-
-var wsList = [];
 
 
 
 function start(){
     /*Web-socket server init*/
     wss.on('connection', function (ws) {
-        print('\nNew connection incoming. It is the '+ wsList.length +' connection. ',true)
+        print('New connection incoming. It is the '+ wsList.length +' connection. ')
         wsList.push(ws);
         ws.isClosed = false;
         ws.on('message',function (message) {
-            print("New message from " +wsList.indexOf(ws) +": "+message, true)
+            print("New message from " +wsList.indexOf(ws) +": "+message)
             if (ws.callback !== undefined){
                 ws.callback(message)
             }
@@ -130,8 +177,15 @@ var readCommand = function (){
         process.exit(0)
     });
 }
+var cleanWhitespaces  = function (string) {
+    return string.replace(/\s{2,}/g, ' ')
+}
 
 var executeCommand = function (input,callback){
+    input = cleanWhitespaces(input)
+    if (outputFileName !== undefined){
+        printFile(input);
+    }
 //    inputList.add(input);
     if (input.trim().indexOf("/"+COMMAND_EXIT) == 0){
         endRoutine();
@@ -244,7 +298,6 @@ var executeCommand = function (input,callback){
         switch (mode) {
             default :
             case NORMAL_MODE :
-                print ("Write: "+input);
                 break;
             case WS_MODE :
                 if (input !== ""){
@@ -277,26 +330,84 @@ var endRoutine = function (){
 
 var START_SIM_COMMAND = "/start";
 var END_SIM_COMMAND = "/end";
+var SIM_COMMAND_WSS = "/wss"
+var SIM_SPLIT_CHAR = " "
+var SIM_COMMAND_SEND = "send"
+var SIM_COMMAND_SEND_BROADCAST = "broadcast"
+var SIM_TIMEOUT = 200;
+
 var runSimulation = function (command) {
     fs.readFile(command[1], function (err, data) {
         if (err) throw err;
         var string = data.toString();
         var dataArray = string.split("\n");
-        var line =0;
-        while (dataArray[line].indexOf(START_SIM_COMMAND)!=0){
-            print("config line ="+dataArray[line])
-            line++
-        }
-        line++;
+        var nLine =0;
+        while (dataArray[nLine].indexOf(START_SIM_COMMAND)!=0){
+            var sLine = cleanWhitespaces(dataArray[nLine])
+            print("config line ="+sLine)
+            var command = sLine.split(" ")[0];
 
-        print("Start Simulation, simulation lines="+dataArray.lengt-line-1);
+            switch (command) {
+                case SIM_COMMAND_WSS:
+                    var wssArray = sLine.substr(sLine.indexOf(" ")+1).split(" ")
+                    var wssList = {};
+                    wssArray.forEach(function (ws) {
+                        var split = ws.split("=")
+                        wssList[split[1]] = wsList[split[0]]
+                        print(ws)
+
+                    })
+                    break;
+            }
+
+            nLine++
+        }
+        nLine++;
+        print("Start Simulation, The simulation has "+(dataArray.length-nLine-2) +" instructions.");
+        var realTime = 0;
+        while (dataArray[nLine].indexOf(END_SIM_COMMAND) != 0) {
+            var newLine = cleanWhitespaces(dataArray[nLine])
+            var simTime = + newLine.split(SIM_SPLIT_CHAR,1)[0]
+            realTime = simTime+SIM_TIMEOUT;
+            newLine = newLine.substr(newLine.indexOf(SIM_SPLIT_CHAR)+1)
+            var simCommand = newLine.split(SIM_SPLIT_CHAR,1)[0];
+            newLine = newLine.substr(newLine.indexOf(SIM_SPLIT_CHAR)+1)
+            switch (simCommand){
+                case SIM_COMMAND_SEND:
+                    var wsName = newLine.split(SIM_SPLIT_CHAR,1)[0]
+                    var message =  newLine.substr(newLine.indexOf(SIM_SPLIT_CHAR)+1)
+                    var ws = wssList[wsName];
+                    var cad = "Time="+simTime+", WebSocket="+wsName+", Message="+message;
+                    if (ws === undefined){
+                        cad += " ,status=WebSocket is undefined"
+                    } else {
+                        cad += " ,status=OK"
+                        setTimeout(function (ws,message){
+                            ws.send(message)
+                        }.bind(this,ws,message),realTime);
+                    }
+                    setTimeout(print.bind(this,cad),realTime);
+                    break;
+                case SIM_COMMAND_SEND_BROADCAST:
+                    break;
+            }
+            nLine++;
+        }
+        print ("Simulation time= "+simTime+" ms")
+        setTimeout(function () {
+            print("End simulation");
+        },+realTime+SIM_TIMEOUT)
+
+
+
     });}
 start();
 if (DEBUG){
 //    executeCommand("/ws");
 //    executeCommand("/e");
-    executeCommand("/sim demo1.sim");
+
     readCommand();
+    setTimeout(executeCommand.bind(this,"/sim demo1.sim"),3000);
     return;
     /*Client*/
 
