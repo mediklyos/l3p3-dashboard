@@ -92,7 +92,7 @@ var itemsFiltered = {};
 $.each(extraColumnsShown, function(index, value) {
     itemsFiltered[NGLC_FILTER_PREFIX+value] = []
 });
-//itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345");
+itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345");
 
 /*
     Slider styles. There's no need to modify the jQuery CSS file, so I create it here.
