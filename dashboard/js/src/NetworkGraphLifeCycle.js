@@ -92,7 +92,7 @@ var itemsFiltered = {};
 $.each(extraColumnsShown, function(index, value) {
     itemsFiltered[NGLC_FILTER_PREFIX+value] = []
 });
-//itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345");
+itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345");
 
 /*
     Slider styles. There's no need to modify the jQuery CSS file, so I create it here.
@@ -621,6 +621,7 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
             pos++;
         }
         reachedEnd = false;
+        console.log("REACHED END: "+reachedEnd)
     } else {
         if(itemsFiltered[NGLC_FILTER_PREFIX+NGLC_ID_COLUMN_NAME].length == 1) {
             var newPos = 0;
@@ -637,6 +638,7 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
                 newPos++;
             }
             reachedEnd = true;
+            console.log("REACHED END: "+reachedEnd)
         }
     }
 
@@ -1100,6 +1102,7 @@ var botStartTimer = function (){
         setTimeout(botStartTimer.bind(this),timerRest);
     }
 }
+
 var botStop = function (event) {
     event.target.isStoped = true;
 }
@@ -1123,31 +1126,41 @@ var getPreviousTime = function(currentPos, myEdges) {
     }
 }
 
+/**
+ * Pressed button to go forward.
+ */
 var up = function () {
-    if(!reachedEnd) {
-        var nextTime = getNextTime(currentEdgePosition, edges, current)
-        var i = 0;
-        while (+(current) + nextTime <= +(current)) {
-            nextTime = getNextTime(currentEdgePosition++, edges, current)
-            i++;
-        }
-        $("#nglc-internal-slider").slider('value', current);
-        current = +(current) + nextTime;
-        var lapse = getNextTime(currentEdgePosition + 1, edges, current);
-        currentEdgePosition = updateGraph(edges, current - 1, lapse, false);
+    var nextTime = getNextTime(currentEdgePosition, edges, current)
+    var i = 0;
+    while (+(current) + nextTime <= +(current)) {
+        nextTime = getNextTime(currentEdgePosition++, edges, current)
+        i++;
     }
+    $("#nglc-internal-slider").slider('value', current);
+    current = +(current) + nextTime;
+    var lapse = getNextTime(currentEdgePosition + 1, edges, current);
+    currentEdgePosition = updateGraph(edges, current - 1, lapse, false);
 }
+
+/**
+ * Pressed button to go backwards.
+ */
 var bot = function () {
     if(reachedEnd) {
-        currentEdgePosition++;
+        current = edges[edges.length - 2][NGLC_TIME_COLUMN_NAME]
+        reachedEnd = false;
+        $("#nglc-internal-slider").slider('value', current);
+        currentEdgePosition = updateGraph(edges,current, edges[edges.length - 2][NGLC_MEANTIME_COLUMN_NAME], false);
+        up();
+    } else {
+        currentEdgePosition-=2;
+        while(getPreviousTime(currentEdgePosition, edges) > current) {
+            currentEdgePosition--;
+        }
+        current = getPreviousTime(currentEdgePosition, edges);
+        $("#nglc-internal-slider").slider('value', current);
+        currentEdgePosition = updateGraph(edges,current, getNextTime(currentEdgePosition, edges, current), false);
     }
-    currentEdgePosition-=2;
-    while(getPreviousTime(currentEdgePosition, edges) > current) {
-        currentEdgePosition--;
-    }
-    current = getPreviousTime(currentEdgePosition, edges);
-    $("#nglc-internal-slider").slider('value', current);
-    currentEdgePosition = updateGraph(edges,current, getNextTime(currentEdgePosition, edges, current), false);
 }
 
 var re = function () {
