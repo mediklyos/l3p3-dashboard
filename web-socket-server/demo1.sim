@@ -1,6 +1,13 @@
 /wss 0=ws0 1=ws1
 /start
 100 send ws0 {command:"event",event:"evento1"}
-200 send ws1 {command:"prediction",event:"evento1",prediction:"22"}
-800 send ws0 Enviando caca
+200 send ws0 {command:"prediction",event:"evento1",prediction:"22"}
+400 send ws0 {command:"time", before:"180000",after:"30000"}
+800 send ws0 {command:"result",event:"evento1",result:"hit"}
+800 send ws1 {command:"result",event:"evento1",result:"miss-fp"}
+1600 send ws1 {command:"result",event:"evento1",result:"miss-fn"}
+2000 send ws0 {command:"time", before:"120000",after:"60000"}
+//800 send ws0 {command:"event",event:"evento1"}
+//1000 send ws0 {command:"event",event:"evento2"}
+//10000 send ws0 {command:"event",event:"evento3"}
 /end

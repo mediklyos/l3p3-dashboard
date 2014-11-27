@@ -1,0 +1,4 @@
+/wss 0=ws0 1=ws1
+/start
+5000 send ws0 {command:"event",event:"evento3"}
+/end

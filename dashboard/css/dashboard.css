@@ -596,18 +596,67 @@ div.pv-table-graph-footer>.pv-prediction-table thead tr:not(:first-child) th{
 .pv-miss {
 
 }
-.pv-hit, .pv-miss{
+.pv-hit, .pv-miss-fp, .pv-miss-fn{
     height: 20px;
     width: 20px;
     margin: auto
 
 }
 
-.pv-miss {
+.pv-miss-fp {
+    background-image: url('../icons/orange_cross.png');
+}
+
+.pv-miss-fn {
     background-image: url('../icons/red_cross.png');
 }
 .pv-hit {
     background-image: url('../icons/green_check.png');
+}
+
+.pv-events-count {
+    width: 100%;
+}
+.pv-events-count .pv-td-1 {
+    width: 70%;
+    text-align: left;
+}
+.pv-events-count .pv-td-2{
+    width: 20%;
+    text-align: right;
+
+}
+.pv-events-count .pv-td-3 {
+    width: 10%;
+    text-align: left;
+}
+
+.pv-alert-box{
+    background:red;
+    width:10px;
+    height:10px;
+    border: 0px solid white;
+    border-radius: 2px;
+    color: red;
+
+    animation: parpadeo 2s;
+    -webkit-animation: parpadeo 2s;
+    -moz-animation: parpadeo 2s;
+    /*animation-iteration-count:infinite;*/
+    -webkit-animation-iteration-count:infinite;
+    -moz-animation-iteration-count:infinite;
+}
+
+@keyframes parpadeo {
+    0%	{-webkit-box-shadow: 0px 0px 5px }
+    50%	{-webkit-box-shadow: 0px 0px 10px }
+    100%{-webkit-box-shadow: 0px 0px 5px }
+}
+
+@-webkit-keyframes parpadeo{
+    0%	{-webkit-box-shadow: 0px 0px 5px }
+    50%	{-webkit-box-shadow: 0px 0px 10px }
+    100%{-webkit-box-shadow: 0px 0px 5px }
 }
 
 #dd-filters-row {

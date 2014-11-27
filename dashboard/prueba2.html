@@ -1,0 +1,83 @@
+<html><head>
+
+    <meta charset="UTF-8">
+
+    <meta name="google" value="notranslate">
+
+    <!--
+  Copyright (c) 2014 by jonatan.lp (http://codepen.io/jonhyweb/pen/vHxnp)
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  -->
+
+    <title>Parpadeo Simple - CodePen</title>
+
+    <style>
+        /*body{background:rgba(0,0,0,0.9)}*/
+    div{
+        background:grey;
+        width:100px;
+        height:100px;
+        border: 1px solid white;
+        border-radius: 10px;
+        box-shadow:0px 0px 10px white;
+        -webkit-box-shadow:0px 0px 10px white;
+        -webkit-border-radius:0px 10px 0px 10px;
+        margin:100px auto;
+        animation: parpadeo 5s;
+        -webkit-animation: parpadeo 5s;
+        -moz-animation: parpadeo 5s;
+        animation-iteration-count:infinite;
+        -webkit-animation-iteration-count:infinite;
+        -moz-animation-iteration-count:infinite;
+    }
+    @keyframes parpadeo {
+        0%	{box-shadow: 0px 0px 10px white}
+        50%	{box-shadow: 0px 0px 50px white}
+        100%{box-shadow: 0px 0px 10px white}
+    }
+
+    @-webkit-keyframes parpadeo {
+        0%	{-webkit-box-shadow: 0px 0px 10px red}
+        50%	{-webkit-box-shadow: 0px 0px 50px red}
+        100%{-webkit-box-shadow: 0px 0px 10px red}
+
+    }
+        .charSelected{
+            background-color: #03a9f4;
+            animation: parpadeo2 1s;
+            -webkit-animation: parpadeo2 1s;
+            -moz-animation: parpadeo2 1s;
+            animation-iteration-count:infinite;
+            -webkit-animation-iteration-count:infinite;
+            -moz-animation-iteration-count:infinite;
+        }
+
+
+        @keyframes parpadeo2 {
+            0% {background-color: white}
+            100%{background-color: #03a9f4}
+        }
+
+        @-webkit-keyframes parpadeo2 {
+            0% {background-color: white}
+            50%{background-color: #03a9f4}
+            100% {background-color: white}
+        }
+    </style>
+
+</head>
+
+<body onload="">
+<div class="pv-alert-box"></div>
+<div>
+</div>
+<div class="charSelected">text</div>
+
+
+
+</body></html>

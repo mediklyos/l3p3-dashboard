@@ -68,7 +68,7 @@ var PV_EVENT_LINE_WIDTH = 1;
 var PV_EVENT_LINE_WIDTH_HOVER = 2;
 var PV_ZERO_POS = 0.75
 //var PV_TIMEOUT = -( PV_CHARTS_DEFAULT_TIME * PV_ZERO_POS)
-var PV_TIMEOUT = -30000
+var PV_TIMEOUT = 200
 
 var SYSTEM_EVENT_ORIGIN_PREDICTION = "prediction";
 var SYSTEM_EVENT_ORIGIN_SUMMARY = "event";
@@ -83,11 +83,19 @@ if (GLOBAL_DEBUG){
 var PV_WS_EVENT = "event"
 var PV_WS_PREDICTION = "prediction"
 var PV_WS_TIME = "time"
+var PV_WS_BEFORE = "before"
+var PV_WS_AFTER = "after"
 var PV_WS_RESULT = "result"
 var PV_WS_RESULT_HIT = "hit"
-var PV_WS_RESULT_MISS = "miss"
+var PV_WS_RESULT_MISS_FALSE_POSITIVE = "miss-fp"
+var PV_WS_RESULT_MISS_FALSE_NEGATIVE = "miss-fn"
 var PV_WS_RESULT_HIT_CLASS = PRE + "-hit"
-var PV_WS_RESULT_MISS_CLASS = PRE + "-miss"
+var PV_WS_RESULT_MISS_FALSE_POSITIVE_CLASS = PRE + "-miss-fp"
+var PV_WS_RESULT_MISS_FALSE_NEGATIVE_CLASS = PRE + "-miss-fn"
+var PV_WS_ALERT = "alert"
+var PV_WS_ALERT_TIMEOUT = "time"
+var PV_WS_ALERT_ON = "on"
+var PV_WS_ALERT_OFF = "off"
 var PV_SECOND = 1000;
 var PV_MINUTE = 60 * PV_SECOND
 var PV_HOUR = 60 * PV_MINUTE ;
@@ -210,6 +218,7 @@ var pvAddGraph= function () {
     canvas[0].smoothie = smoothie;
     canvas[0].smoothie.paintName = true;
     canvas[0].predictionResults = []
+    canvas[0].alerts = {}
 
     pvCharts.push(smoothie)
     var delay = PV_CHARTS_DEFAULT_TIME*(PV_ZERO_POS-1);
@@ -311,10 +320,11 @@ var drawOnCanvasEvents = function (jQCanvas) {
     var d3Svg = d3.select(jQSvg[0]);
     var thisDate = Date.now()
     var cy = jQSvg.height()-2
-    var toDelete = []
+    var eventsToDelete = []
+    var predictinoResultToDelete = [];
     var count = 1;
     jQSvg.find("."+PV_TOOLTIP_EVENTS_OCCURRED).remove();
-    $.each(canvas.predictionResults, function () {
+    $.each(canvas.predictionResults, function (key) {
         /*Eliminar cuando se sale*/
         if (canvas.smoothie.isStoped){
             if (this.lastPosition === undefined){
@@ -323,29 +333,36 @@ var drawOnCanvasEvents = function (jQCanvas) {
         } else {
             this.lastPosition = thisDate - this.time;
         }
-        var content = $('<div/>', {
-            class: PV_TOOLTIP_EVENTS_OCCURRED_INTERNAL
-        })
-        if (this.result === PV_WS_RESULT_MISS){
-            content.append('<img src="icons/red_cross.png">')
+        if (this.lastPosition > canvas.smoothie.graphTime *  canvas.smoothie.zero){
+            predictinoResultToDelete.push(key)
         } else {
-            content.append('<img src="icons/green_check.png">')
-        }
-        content.css('background', chroma(this.event.color).darken().alpha(0.2).css())
-        if (this.isHover || this.isClicked || this.event.isSumaryClicked || this.event.isSumaryHover) {
-            content.css('border','2px solid '+this.event.color)
-        } else {
-            content.css('border','1px solid '+this.event.color)
-        }
+            var content = $('<div/>', {
+                class: PV_TOOLTIP_EVENTS_OCCURRED_INTERNAL
+            })
+            if (this.result === PV_WS_RESULT_MISS_FALSE_POSITIVE) {
+                content.append($('<div/>').addClass(PV_WS_RESULT_MISS_FALSE_POSITIVE_CLASS))
+            } else if (this.result === PV_WS_RESULT_MISS_FALSE_NEGATIVE) {
+                content.append($('<div/>').addClass(PV_WS_RESULT_MISS_FALSE_NEGATIVE_CLASS))
+            }
+            else if (this.result === PV_WS_RESULT_HIT){
+                content.append($('<div/>').addClass(PV_WS_RESULT_HIT_CLASS))
+            }
+            content.css('background', chroma(this.event.color).darken().alpha(0.2).css())
+            if (this.isHover || this.isClicked || this.event.isSumaryClicked || this.event.isSumaryHover) {
+                content.css('border', '2px solid ' + this.event.color)
+            } else {
+                content.css('border', '1px solid ' + this.event.color)
+            }
 //        if (this.isHover || this.isClicked){
 //            content.css('z-index',-PV_Z_INDEX_LVL_3);
 //        } else {
 //            content.css('z-index',PV_Z_INDEX_LVL_2);
 //        }
-        var cx = jQSvg.width()*canvas.smoothie.zero;
-        var pixelDifference = parseInt(this.lastPosition / canvas.smoothie.options.millisPerPixel)
-        cx -= pixelDifference;
-        var tooltip = createTooltip(d3Svg,content ,PV_TOOLTIP_EVENTS_OCCURRED,MY_ALIGNMENT_TOP,cx,0)
+            var cx = jQSvg.width() * canvas.smoothie.zero;
+            var pixelDifference = parseInt(this.lastPosition / canvas.smoothie.options.millisPerPixel)
+            cx -= pixelDifference;
+            var tooltip = createTooltip(d3Svg, content, PV_TOOLTIP_EVENTS_OCCURRED, MY_ALIGNMENT_TOP, cx, 0)
+        }
 
     })
     $.each(canvas.smoothie.eventsHappend,function (key) {
@@ -357,7 +374,7 @@ var drawOnCanvasEvents = function (jQCanvas) {
             this.lastPosition = thisDate - this.time;
         }
         if (this.lastPosition > canvas.smoothie.graphTime *  canvas.smoothie.zero){
-            toDelete.push(key)
+            eventsToDelete.push(key)
         }else {
             var cx = jQSvg.width()*canvas.smoothie.zero;
             var pixelDifference = parseInt(this.lastPosition / canvas.smoothie.options.millisPerPixel)
@@ -427,12 +444,16 @@ var drawOnCanvasEvents = function (jQCanvas) {
         }
     })
 
-    if (toDelete.length > 0){
-        for (var i = toDelete.length-1;i >=0;i-- ) {
-            canvas.smoothie.eventsHappend.splice(toDelete[i],1);
+    if (eventsToDelete.length > 0 || predictinoResultToDelete.length > 0){
+        for (var i = eventsToDelete.length-1;i >=0;i-- ) {
+            canvas.smoothie.eventsHappend.splice(eventsToDelete[i],1);
+        }
+        for (var i = predictinoResultToDelete.length-1;i >=0;i-- ) {
+            canvas.predictionResults.splice(predictinoResultToDelete[i],1);
         }
         paintEvents(jQCanvas)
         paintLegendPredictions(getActiveGraph())
+        paintLegendPredictionResult(getActiveGraph())
 
     }
 
@@ -501,7 +522,10 @@ var paintEvents = function (jQCanvas){
 
 
 var paintEventsInADiv = function (jQCanvas) {
-    var container = getCharDiv(jQCanvas).find('.'+PV_EVENTS_COUNT).empty();
+    var container = getCharDiv(jQCanvas).find('.'+PV_EVENTS_COUNT).find('tbody');
+    var genericLine = container.find("."+DASHBOARD_TEMPLATES).clone()
+    container.empty();
+    container.append(genericLine)
     var canvas = jQCanvas[0];
     var smoothie = canvas.smoothie;
     var events = {}
@@ -512,6 +536,12 @@ var paintEventsInADiv = function (jQCanvas) {
             events[this.id].count = 0;
             events[this.id].event = this;
         }
+    })
+    $.each(canvas.alerts, function (value) {
+        events[value] = {}
+        events[value].count = 0;
+        events[value].event = smoothie.events[value];
+
     })
     $.each(canvas.predictionResults,function (){
         events[this.event.id] = {}
@@ -528,31 +558,41 @@ var paintEventsInADiv = function (jQCanvas) {
         }
     })
 
+
     var shortedKeys = $.map(events,function (value) {return [value.event.id]})
     shortedKeys.sort(function (a,b){
         return a.localeCompare(b);
     })
     $.each(shortedKeys, function () {
+        var alerted = "";
+        var newLine = genericLine.clone().removeClass(DASHBOARD_TEMPLATES).addClass(PV_EVENT_TYPE_CLASS+getIndexOfCanvas(canvas)+"-"+this).addClass(PV_EVENT_CLASS_SUMMARY);
         var event = pvAddEventToSmoothie(canvas,this);
-        var div = $('<div/>',{
-            title: this,
-            text: this + " (#"+events[this].count+")"
-        })
-        div.addClass(PV_EVENT_TYPE_CLASS+getIndexOfCanvas(canvas)+"-"+this).addClass(PV_EVENT_CLASS_SUMMARY)
-        div.mouseenter(function (canvas){
+        newLine.find("."+PV_CELL_1).text(this)
+        newLine.find("."+PV_CELL_2).text(events[this].count)
+        if (canvas.alerts[this] !== undefined){
+            if (canvas.alerts[this] === PV_WS_ALERT_ON){
+                newLine.find("."+PV_CELL_3).append($('<div class="pv-alert-box"/>').css('color',event.color).css('background',event.color))
+            }
+        }
+//        var div = $('<div/>',{
+//            title: this,
+//            text: this + " (#"+events[this].count+")"+alerted
+//        })
+//        div.addClass(PV_EVENT_TYPE_CLASS+getIndexOfCanvas(canvas)+"-"+this).addClass(PV_EVENT_CLASS_SUMMARY)
+        newLine.mouseenter(function (canvas){
             this.isSumaryHover = true;
             markText(canvas,{type:SYSTEM_EVENT_ORIGIN_SUMMARY,event:this});
         }.bind(event,canvas))
-        div.mouseleave(function (canvas){
+        newLine.mouseleave(function (canvas){
             this.isSumaryHover = false;
             markText(canvas, {type:SYSTEM_EVENT_ORIGIN_SUMMARY,event:this});
         }.bind(event,canvas))
-        div.click(function (canvas,event) {
+        newLine.click(function (canvas) {
             this.isSumaryClicked = !this.isSumaryClicked;
             markText(canvas, {type:SYSTEM_EVENT_ORIGIN_SUMMARY,event:this});
         }.bind(event,canvas))
-        div.css('color',event.color)
-        container.append(div)
+        newLine.css('color',event.color)
+        container.append(newLine)
     })
 
 }
@@ -574,11 +614,12 @@ var paintLegendPredictionResult = function (jQCanvas){
         newLine.find("."+PV_CELL_1).text(this.event.id).css('color',event.color)
         newLine.find("."+PV_CELL_2).text(printDate(this.time)).css('color',event.color)
         var img;
-        if (this.result === PV_WS_RESULT_MISS){
-            img = $('<div/>').addClass(PV_WS_RESULT_MISS_CLASS).addClass(PV_EVENT_TYPE_CLASS+this.event)
-        }else {
+        if (this.result === PV_WS_RESULT_MISS_FALSE_POSITIVE){
+            img = $('<div/>').addClass(PV_WS_RESULT_MISS_FALSE_POSITIVE_CLASS)//.addClass(PV_EVENT_TYPE_CLASS+this.event)
+        } else if (this.result === PV_WS_RESULT_MISS_FALSE_NEGATIVE){
+            img = $('<div/>').addClass(PV_WS_RESULT_MISS_FALSE_NEGATIVE_CLASS)
+        } else {
             img = $('<div/>').addClass(PV_WS_RESULT_HIT_CLASS)
-
         }
         newLine.find("."+PV_CELL_3).append(img)
         newLine.mouseenter (function (canvas){
@@ -591,12 +632,10 @@ var paintLegendPredictionResult = function (jQCanvas){
         newLine.mouseleave (function (canvas){
             this.isHover = false;
             markText(canvas, {type:SYSTEM_EVENT_ORIGIN_PREDICTION_RESULT,event:this})
-
         }.bind(this,canvas))
         newLine.click(function(canvas) {
             this.isClicked = !this.isClicked;
             markText(canvas, {type:SYSTEM_EVENT_ORIGIN_PREDICTION_RESULT,event:this})
-
         }.bind(this,canvas))
         tbody.append(newLine);
 
@@ -695,17 +734,17 @@ var paintFooterEvents = function (jQCanvas){
         line.find('.' + PV_CELL_2).removeAttr('class').addClass(className1).addClass(className2).append(spanTime);
         tbody.append(line);
         line.mouseenter(function (canvas) {
-            eventOccurrence.isHover = true;
+            this.isHover = true;
             markText(canvas, {type: SYSTEM_EVENT_ORIGIN_OCCURRENCE,event:this})
         }.bind(eventOccurrence,canvas))
 
         line.mouseleave(function (canvas) {
-            eventOccurrence.isHover = false;
+            this.isHover = false;
             markText(canvas,  {type: SYSTEM_EVENT_ORIGIN_OCCURRENCE,event:this})
         }.bind(eventOccurrence,canvas))
 
         line.click(function (canvas) {
-            eventOccurrence.isClicked = !eventOccurrence.isClicked;
+            this.isClicked = !this.isClicked;
             markText(canvas,  {type: SYSTEM_EVENT_ORIGIN_OCCURRENCE,event:this})
         }.bind(eventOccurrence,canvas))
     }
@@ -989,33 +1028,41 @@ var _pvLoadSource = function (url) {
         }
         switch (message.command) {
             case PV_WS_EVENT:
-                if (message.event === undefined){
+                if (message[PV_WS_EVENT] === undefined){
                     pv_print("Incorrect format of "+PV_WS_EVENT+" command. Please check the documentation");
                     ws.send("Incorrect format of "+PV_WS_EVENT+" command. Please check the documentation");
                 } else {
-                    pvAddEventOccurrenceToCanvas(ws.canvas,message.event)
+                    pvAddEventOccurrenceToCanvas(ws.canvas,message[PV_WS_EVENT])
                 }
                 break;
             case PV_WS_PREDICTION:
-                if (message.event === undefined || message.prediction === undefined){
+                if (message[PV_WS_EVENT] === undefined || message[PV_WS_PREDICTION] === undefined){
                     pv_print("Incorrect format of "+PV_WS_PREDICTION+" command. Please check the documentation");
                     ws.send("Incorrect format of "+PV_WS_PREDICTION+" command. Please check the documentation");
                 } else {
-                    pvAddPrediction(ws.canvas,message.event,message.prediction)
+                    pvAddPrediction(ws.canvas,message[PV_WS_EVENT],message[PV_WS_PREDICTION])
                 }
                 break;
             case PV_WS_TIME:
-                pv_changeGraphRange(ws.canvas,message.before,message.after)
+                pv_changeGraphRange(ws.canvas,message[PV_WS_BEFORE],message[PV_WS_AFTER])
                 break;
             case PV_WS_RESULT:
-                if (message.event === undefined || message.result === undefined){
+                if (message[PV_WS_EVENT] === undefined || message.result === undefined){
                     pv_print("Incorrect format of "+PV_WS_RESULT+" command. Please check the documentation");
                     ws.send("Incorrect format of "+PV_WS_RESULT+" command. Please check the documentation");
-                } else if (!pvAddPredictionResult(ws.canvas,message.event,Date.now(),message.result)){
+                } else if (!pvAddPredictionResult(ws.canvas,message[PV_WS_EVENT],Date.now(),message.result)){
                     pv_print("The prediction result cannot be registered");
                     ws.send("The prediction result cannot be registered");
                 }
 
+                break;
+            case PV_WS_ALERT:
+                if (message[PV_WS_EVENT] === undefined) {
+                    pv_print("Incorrect format of "+PV_WS_ALERT+" command. Please check the documentation");
+                    ws.send("Incorrect format of "+PV_WS_ALERT+" command. Please check the documentation");
+                } else {
+                    pvSetAlert(ws.canvas,message[PV_WS_EVENT],message[PV_WS_ALERT],message[PV_WS_ALERT_TIMEOUT])
+                }
                 break;
             default:
                 pv_print("Incorrect message")
@@ -1074,21 +1121,36 @@ var pv_changeGraphRange = function (canvas,before,after){
 
 }
 
+var pvSetAlert = function (canvas,event,alert,timeout) {
+    /*var objectEvent = */pvAddEventToSmoothie(canvas,event);
+    if (alert == PV_WS_ALERT_ON || alert == PV_WS_ALERT_OFF){
+        canvas.alerts[event] = alert;
+        if (timeout !== undefined){
+            setTimeout(function (canvas,event) {
+                delete canvas.alerts[event];
+                paintEventsInADiv($(canvas));
+            }.bind(this,canvas,event),timeout)
+        }
+        paintEventsInADiv($(canvas));
+    }
+}
+
 var pvAddPredictionResult = function (canvas,event,timestapm,result){
-    pv_print(event+":"+timestapm+":"+result)
+//    pv_print(event+":"+timestapm+":"+result)
     var objectEvent = pvAddEventToSmoothie(canvas,event);
 
     var jQCanvas = $(canvas)
     if (canvas.smoothie.isStoped){
         return true;
     }
-    if (!(result === PV_WS_RESULT_HIT || result === PV_WS_RESULT_MISS)) {
+    if (!(result === PV_WS_RESULT_HIT || result === PV_WS_RESULT_MISS_FALSE_POSITIVE || PV_WS_RESULT_MISS_FALSE_NEGATIVE)) {
         return false;
     }
     var predictionResult = {event:objectEvent,time:timestapm,result:result}
     canvas.predictionResults.push(predictionResult)
     paintEventsInADiv($(canvas));
     paintLegendPredictionResult(getActiveGraph())
+    setTimeout(refreshPredictions.bind(undefined,canvas),/*PV_TIMEOUT + */canvas.smoothie.graphTime * canvas.smoothie.zero)
 
     return true;
 }
@@ -1111,7 +1173,7 @@ var pvAddPrediction = function (canvas, eventName, prediction) {
 //    paintLegendPredictions($(canvas));
     paintEventsInADiv($(canvas));
     paintLegendPredictions(getActiveGraph());
-    setTimeout(refreshPredictions.bind(undefined,canvas),canvas.smoothie.graphTime * canvas.smoothie.zero)
+    setTimeout(refreshPredictions.bind(undefined,canvas),/*PV_TIMEOUT + */canvas.smoothie.graphTime * canvas.smoothie.zero)
 }
 var refreshPredictions = function (canvas) {
     var now = Date.now()
@@ -1120,10 +1182,10 @@ var refreshPredictions = function (canvas) {
         if (this.timeSeries.data.length > 0){
             if (this.timeSeries.data[this.timeSeries.data.length-1][0] < (now - canvas.smoothie.graphTime * canvas.smoothie.zero)){
                 isDelete = true
-                paintEventsInADiv($(canvas))
                 while(this.timeSeries.data.length > 0) {
                     this.timeSeries.data.pop();
                 }
+                paintEventsInADiv($(canvas))
             }
         }
 
@@ -1310,7 +1372,7 @@ var debugRoutines = function (){
 
 
 
-      setTimeout(generateEvent,150)
+//      setTimeout(generateEvent,150)
 //    setTimeout(demoEvents,500)
 
 }

@@ -25,7 +25,7 @@ var SYSTEM_PREFIX_MSG_IN = " <- "
 
 var callbackMessage = undefined;
 
-/*Prompt vars*/
+/* Prompt vars */
 var inputPrefix = []
 var mode = 0;
 inputPrefix[0] = "Command# "
@@ -36,7 +36,7 @@ var outConsole = false;
 var wsList = [];
 
 
-var DEBUG = true;
+var DEBUG = false;
 var port = 10082
 process.argv.forEach(function (val, index) {
     if (val == "debug") {
@@ -331,6 +331,7 @@ var endRoutine = function (){
 var START_SIM_COMMAND = "/start";
 var END_SIM_COMMAND = "/end";
 var SIM_COMMAND_WSS = "/wss"
+var SIM_COMMENT = "//"
 var SIM_SPLIT_CHAR = " "
 var SIM_COMMAND_SEND = "send"
 var SIM_COMMAND_SEND_BROADCAST = "broadcast"
@@ -366,32 +367,34 @@ var runSimulation = function (command) {
         print("Start Simulation, The simulation has "+(dataArray.length-nLine-2) +" instructions.");
         var realTime = 0;
         while (dataArray[nLine].indexOf(END_SIM_COMMAND) != 0) {
-            var newLine = cleanWhitespaces(dataArray[nLine])
-            var simTime = + newLine.split(SIM_SPLIT_CHAR,1)[0]
-            realTime = simTime+SIM_TIMEOUT;
-            newLine = newLine.substr(newLine.indexOf(SIM_SPLIT_CHAR)+1)
-            var simCommand = newLine.split(SIM_SPLIT_CHAR,1)[0];
-            newLine = newLine.substr(newLine.indexOf(SIM_SPLIT_CHAR)+1)
-            switch (simCommand){
-                case SIM_COMMAND_SEND:
-                    var wsName = newLine.split(SIM_SPLIT_CHAR,1)[0]
-                    var message =  newLine.substr(newLine.indexOf(SIM_SPLIT_CHAR)+1)
-                    var ws = wssList[wsName];
-                    var cad = "Time="+simTime+", WebSocket="+wsName+", Message="+message;
-                    if (ws === undefined){
-                        cad += " ,status=WebSocket is undefined"
-                    } else {
-                        cad += " ,status=OK"
-                        setTimeout(function (ws,message){
-                            ws.send(message)
-                        }.bind(this,ws,message),realTime);
-                    }
-                    setTimeout(print.bind(this,cad),realTime);
-                    break;
-                case SIM_COMMAND_SEND_BROADCAST:
-                    break;
+            var newLine = cleanWhitespaces(dataArray[nLine++])
+            if (newLine.indexOf(SIM_COMMENT) != 0 || newLine == " " || newLine == "") {
+                var simTime = +newLine.split(SIM_SPLIT_CHAR, 1)[0]
+                realTime = simTime + SIM_TIMEOUT;
+                newLine = newLine.substr(newLine.indexOf(SIM_SPLIT_CHAR) + 1)
+                var simCommand = newLine.split(SIM_SPLIT_CHAR, 1)[0];
+                newLine = newLine.substr(newLine.indexOf(SIM_SPLIT_CHAR) + 1)
+                switch (simCommand) {
+                    case SIM_COMMAND_SEND:
+                        var wsName = newLine.split(SIM_SPLIT_CHAR, 1)[0]
+                        var message = newLine.substr(newLine.indexOf(SIM_SPLIT_CHAR) + 1)
+                        var ws = wssList[wsName];
+                        var cad = "Time=" + simTime + ", WebSocket=" + wsName + ", Message=" + message;
+                        if (ws === undefined) {
+                            cad += " ,status=WebSocket is undefined"
+                        } else {
+                            cad += " ,status=OK"
+                            setTimeout(function (ws, message) {
+                                ws.send(message)
+                            }.bind(this, ws, message), realTime);
+                        }
+                        setTimeout(print.bind(this, cad), realTime);
+                        break;
+                    case SIM_COMMAND_SEND_BROADCAST:
+                        break;
+                }
             }
-            nLine++;
+//            nLine++;
         }
         print ("Simulation time= "+simTime+" ms")
         setTimeout(function () {

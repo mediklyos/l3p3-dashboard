@@ -769,6 +769,19 @@ function postLoad() {
     clearPanel();
 
 // Drag and drop code
+    loadDataSetFromUrl("data/encuesta_43.csv",{
+
+        Tiempo: CSVContainerForDistributions.TYPE_ID,
+        Curso: CSVContainerForDistributions.TYPE_DISCRETE,
+        Estudios: CSVContainerForDistributions.TYPE_DISCRETE,
+        Uso: CSVContainerForDistributions.TYPE_DISCRETE,
+        Plataforma: CSVContainerForDistributions.TYPE_DISCRETE,
+        "Per. Independencia": CSVContainerForDistributions.TYPE_DISCRETE,
+        Satisfacción: CSVContainerForDistributions.TYPE_DISCRETE,
+        Disponibilidad: CSVContainerForDistributions.TYPE_DISCRETE,
+        "Más usada": CSVContainerForDistributions.TYPE_DISCRETE,
+        "Menos Usada": CSVContainerForDistributions.TYPE_DISCRETE
+    })
     loadDataSetFromUrl("data/titanic.csv",{
         PassengerId: CSVContainerForDistributions.TYPE_ID,
         Survived: CSVContainerForDistributions.TYPE_DISCRETE,
