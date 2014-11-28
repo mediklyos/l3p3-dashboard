@@ -52,6 +52,7 @@
 
 //var ws;
 
+
 function ReconnectingWebSocket(url, protocols) {
 //    this.ws;
     protocols = protocols || [];
@@ -60,6 +61,7 @@ function ReconnectingWebSocket(url, protocols) {
     this.debug = false;
     this.reconnectInterval = 1000;
     this.timeoutInterval = 2000;
+
 
     var self = this;
 
@@ -130,8 +132,8 @@ function ReconnectingWebSocket(url, protocols) {
                     self.onclose(event);
                 }
                 setTimeout(function() {
-                    connect(true);
-                }, self.reconnectInterval);
+                    self.ws = connect(true);
+                }.bind(this), self.reconnectInterval);
             }
         };
         ws.onmessage = function(event) {

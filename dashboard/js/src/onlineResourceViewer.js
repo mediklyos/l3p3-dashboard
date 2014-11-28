@@ -7,7 +7,7 @@
 var LINE_HEADERS = 0
 var LINE_NORMAL = 1
 
-var MAX_COLS = 2;
+var ODV_MAX_COLS = 2;
 var TOTAL_COL_WIDTH = 12;
 
 var PRE = views[0][1].constantsPrefix; // odv
@@ -93,7 +93,7 @@ function columnsClick(event){
         button = button.parentNode;
     }
     $(button).removeClass('btn-default').addClass('btn-primary');
-    MAX_COLS = parseInt($(button).find('input').attr('value'));
+    ODV_MAX_COLS = parseInt($(button).find('input').attr('value'));
     resizingCols();
 
 //    $("#"+ORV_COLUMNS_CLICKS).find('.active').removeClass('btn-default').addClass('btn-primary');
@@ -174,7 +174,7 @@ function onlineResourceView_postLoad(url) {
 }
 
 function resizingCols(){
-    var colNum =Math.floor(TOTAL_COL_WIDTH / MAX_COLS);
+    var colNum =Math.floor(TOTAL_COL_WIDTH / ODV_MAX_COLS);
 //    $('#'+ODV_CHARTS).find('.chart').removeClassPrefix('col-').addClass('col-lg-'+colNum);
     $('#'+ODV_CHARTS).find('.'+ODV_CHART).removeClassPrefix('col-').addClass('col-lg-'+colNum);
     // De esta forma se ejecuta al cargar ejecutar todas las cosas, se hace asi porque antes no se
@@ -218,10 +218,7 @@ function initCharts(min, max) {
         }).appendTo(sliderDiv);
         slider.width(100);
 
-        var colors = chroma.brewer['Pastel2'];
-        colors[0] = 'blue'
-        colors[1] = 'green'
-        colors[2] = 'red'
+        var colors = web_colors
         var index = 0;
         allTimeSeries[sectionName] = {}
         allValueLabels[sectionName] = {}

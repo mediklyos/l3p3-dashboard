@@ -1,0 +1,7 @@
+/wss 0=ws0 1=ws1
+/start
+1000 send ws0 {command:"alert",event:"NodeId01_Mem_90",alert:"on",time:3000}
+1000 send ws1 {command:"alert",event:"NodeId01_Mem_90",alert:"on",time:3000}
+2000 send ws0 {command:"alert",event:"NodeId01_Mem_90",alert:"on"}
+
+/end

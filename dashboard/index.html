@@ -15,8 +15,10 @@
     <link href="css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Custom styles for this template -->
+    <link href="css/codeStyle.css" rel="stylesheet">
     <link href="css/dashboard.css" rel="stylesheet">
     <link href="css/drag-and-drop.css" rel="stylesheet">
+    <link href="css/jquery.colpick.css" rel="stylesheet">
     <style type="text/css"></style>
     <style id="holderjs-style" type="text/css"></style>
     <link rel="stylesheet" type="text/css" href="./css/dc.css" media="screen" />
@@ -87,9 +89,9 @@
 <div id="framework-main">
 
     <div id="left-column">
-        <div id="left-column-div" class="hidden-left-column">
+        <div id="left-column-div" class="">
         </div>
-        <div id="left-column-button" class="hidden-left-column" onclick="toggleLeftColumn()">
+        <div id="left-column-button" class="" onclick="toggleLeftColumn()">
         </div>
     </div>
     <div id="content-father">
@@ -97,6 +99,7 @@
         <div id="footer">
             <div id="footer-content"></div>
             <div id="footer-button" onclick="toggleFooter()"></div>
+            <div id="footer-button-maximize" onclick="toggleMaximizeFooter()"></div>
         </div>
     </div>
 </div>
@@ -111,6 +114,8 @@
 <script src="js/lib/jquery/file-upload/jquery.fileupload.js"></script>
 <script src="js/lib/jquery/jquery.resize.js"></script>
 <script src="js/lib/jquery/self-jquery.js"></script>
+<script src="js/lib/jquery/jquery.colpick.js"></script>
+
 
 <!-- under delete consideration -->
 <!--<script src="js/lib/jquery/jquery.browser.min.js"></script>-->
@@ -124,8 +129,8 @@
 <script src="js/lib/d3/d3.js"></script>
 <script src="js/lib/crossfilter.js"></script>
 <script src="js/lib/d3/dc.js"></script>
-<script src="js/lib/d3/d3plus.full.js"></script>
-<script src="http://www.d3plus.org/js/topojson.js"></script>
+<script src="js/lib/d3/d3plus.js"></script>
+<!--<script src="http://www.d3plus.org/js/topojson.js"></script>-->
 
 
 <!-- Single node viewer and global event viewer -->
@@ -139,10 +144,15 @@
 <script src="js/lib/sigma/sigma.min.js"></script>
 <script src="js/lib/sigma/plugins/sigma.parsers.json.min.js"></script>
 
+<script src="js/lib/reconnecting-websocket.js"></script>
+<script src="js/lib/smoothie.js"></script>
+<script src="js/lib/chroma.min.js"></script>
+<script src="js/lib/colors.min.js"></script>
+
 <!-- vis -->
 <script src="js/lib/vis/vis.js"></script>
 
-<script src="js/src/contants.js"></script>
+<script src="js/src/constants.js"></script>
 <script src="js/lib/objectWatch.js"></script>
 <script src="js/src/CSVContainerForDistributions.js"></script>
 <script src="js/src/BigCsvProcess.js"></script>
@@ -154,15 +164,14 @@
 <!--<script src="js/src/dynamicDistribution.js"></script>-->
 <!--<script src="js/src/temporalAssociationNetwork.js"></script>-->
 <!--<script src="js/src/example.js"></script>-->
-<script src="js/src/onlineResourceViewer.js"></script>
+<!--<script src="js/src/onlineResourceViewer.js"></script>-->
 <script src="js/src/bootstrapPrefabs.js"></script>
+<script src="js/src/svgPrefabs.js"></script>
 
 <!-- Online resource viewer -->
 <script src="js/lib/sugar-1.4.1.min.js"></script>
+<script src="js/src/config.js"></script>
 <!--<script src="js/lib/jquery/jquery-2.0.3.min.js"></script>-->
-<script src="js/lib/reconnecting-websocket.js"></script>
-<script src="js/lib/smoothie.js"></script>
-<script src="js/lib/chroma.min.js"></script>
 
 <script>
     var dimContent = function (){

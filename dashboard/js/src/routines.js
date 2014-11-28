@@ -38,6 +38,9 @@ function generateInteractiveMenus(){
         }
         linesPainted = 0;
         $.each(value,function(pos,value) {
+            if (value == undefined){
+                return;
+            }
             var request = new XMLHttpRequest();
             request.open('GET', value.ref, false);  // `false` makes the request synchronous
             request.send(null)
@@ -170,7 +173,7 @@ function changeView(view){
     disableFooter();
     toggleLeftColumn(false)
 
-    $("#"+LEFT_COLUMN_BUTTON_OPEN).addClass(CSS_CLASS_HIDDEN_LEFT_COLUMN)
+    $("#"+LEFT_COLUMN_BUTTON_OPEN).remove(CSS_CLASS_SHOW_LEFT_COLUMN)
     $("."+CONTENT_LINK_CLASS_NAME+"."+ACTIVE_CLASS).parents().removeClass("active");
     $("#"+TITLE_VIEW_ID).text(view.title)
     var parent = $("#"+ID_DASHBOARD_ACTIVE_VIEW_SCRIPT)[0];
@@ -240,11 +243,17 @@ var cookie_debug = getCookie(COOKIE_DEBUG);
 if (cookie_debug !== undefined){
     GLOBAL_DEBUG = cookie_debug == "true";
 }
+var cookie_colors = getCookie(COOKIE_COLORS)
+if (cookie_colors !== undefined) {
+    web_colors =cookie_colors.split(",")
+} else {
+    web_colors = ORIGINAL_COLORS;
+}
 var demoViews = []
 demoViews[0] = [];
 if (GLOBAL_DEBUG){
-    demoViews[0][0] = {id: "d3plusDemo",constantsPrefix: "d3p",ref: "js/templates/template_d3p.ejs",title : "Demo D3 plus", js: "js/src/d3plusDemo.js"}
 }
+demoViews[0][0] = {id: "d3plusDemo",constantsPrefix: "d3p",ref: "js/templates/template_d3p.ejs",title : "Demo D3 plus", js: "js/src/d3plusDemo.js"}
 
 
 var views = [];
@@ -263,6 +272,7 @@ if (GLOBAL_DEBUG){
 views[0][0] = {id: "DynamicDistributions",constantsPrefix: "dd",ref: "js/templates/template_dynamicDistribution.ejs",title : "Distribution charts", js: "js/src/dynamicDistribution.js"}
 views[0][1] = {id: "ComputerResources",constantsPrefix: "odv",ref: "js/templates/template_comp_resources.ejs",title : "Online Data Viewer", js: "js/src/onlineResourceViewer.js"}
 views[0][2] = {id: "NetworkGraphLifeCycle",constantsPrefix: "nglc",ref: "js/templates/template_NG_LC.ejs",title : "Network Graph Life Cycle", js: "js/src/NetworkGraphLifeCycle.js"}
+views[0][5] = {id: "predictorMonitor",constantsPrefix: "pv",ref: "js/templates/template_predictor.ejs",title : "Predictor Monitor", js: "js/src/predictorView.js"}
 //--------------------------------------------------------------------//
 views[1][0] = {id: "SingleNodeViewer",constantsPrefix: "snv",ref: "js/templates/template_singleNodeViewer.ejs",title : "Single Node Viewer", js: "js/src/singleNodeViewer.js"}
 views[1][1] = {id: "GlobalEventsViewer",constantsPrefix: "gev",ref: "js/templates/template_globalEventsViewer.ejs",title: "Global Events Viewer", js: "js/src/globalEventsViewer.js"}
@@ -275,52 +285,63 @@ $(function(){
 //    $("#"+views[0][2].id).addClass("active");
 //    $("#"+views[0][2].id).parents().addClass("active");
 //    $("#content").html(new EJS ({url: views[0][2].ref}).render());
-//        changeView(views[0][2]);
-        changeView(demoViews[0][0]);
-//    $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
+//        changeView(demoViews[0][0]);
+        changeView(views[0][5]);
+//        $("#content").html(new EJS ({url: "js/templates/template_config.ejs"}).render());
+
     } else {
         $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
     }
 //
 })
 
+var keyPress = function (event){
+    if (event.keyCode == FULL_SCREEN_KEY && event.ctrlKey){
+        if ($("."+SHOW_FOOTER_CLASS).length > 0 || $("."+CSS_CLASS_SHOW_LEFT_COLUMN).length > 0){
+            toggleFooter(false)
+            toggleLeftColumn(false)
+        } else {
+            toggleFooter(true)
+            toggleLeftColumn(true)
+        }
+    }
+}
+$(document).keypress(keyPress);
 var toggleLeftColumn = function (state) {
-//    $("#"+LEFT_COLUMN_BUTTON_OPEN).removeClass(CSS_CLASS_HIDDEN_LEFT_COLUMN)
-//    $("#"+LEFT_COLUMN).removeClass(CSS_CLASS_HIDDEN_LEFT_COLUMN)
     if (state === undefined){
-        $("#"+LEFT_COLUMN).children().toggleClass(CSS_CLASS_HIDDEN_LEFT_COLUMN)
+        $("#"+LEFT_COLUMN).children().toggleClass(CSS_CLASS_SHOW_LEFT_COLUMN)
     }
     else {
-        $("#"+LEFT_COLUMN).children().toggleClass(CSS_CLASS_HIDDEN_LEFT_COLUMN,!state)
+        $("#"+LEFT_COLUMN).children().toggleClass(CSS_CLASS_SHOW_LEFT_COLUMN,state)
     }
     $(window).trigger('resize');
 }
 
 var enableLeftColumn = function (){
-    $("#"+LEFT_COLUMN).css('display','')
+    $("#"+LEFT_COLUMN).addClass(CSS_ENABLE_CLASS )
     $("#"+LEFT_COLUMN_CONTENT).empty();
     $(window).trigger('resize');
 }
 
 var disableLeftColumn = function (){
     toggleLeftColumn(false)
-    $("#"+LEFT_COLUMN).css('display','none')
+    $("#"+LEFT_COLUMN).removeClass(CSS_ENABLE_CLASS )
     $(window).trigger('resize');
 }
 
 $(function (){
+    /*Disable by default*/
     disableLeftColumn();
     disableFooter();
-    toggleLeftColumn(false)
 })
 var disableFooter = function () {
     toggleFooter(false)
-    $("#"+FOOTER_ID).css('display','none')
+    $("#"+FOOTER_ID).removeClass(CSS_ENABLE_CLASS )
     $(window).trigger('resize');
 }
 
 var enableFooter = function () {
-    $("#"+FOOTER_ID).css('display','')
+    $("#"+FOOTER_ID).addClass(CSS_ENABLE_CLASS )
     $("#"+FOOTER_CONTENT_ID).empty();
     $(window).trigger('resize');
 }
@@ -331,8 +352,65 @@ var toggleFooter = function (state){
     } else {
         $("#"+CONTENT_FATHER).children().toggleClass(SHOW_FOOTER_CLASS,state)
         $("#"+CONTENT_FATHER).children().children().toggleClass(SHOW_FOOTER_CLASS,state)
-
     }
     $(window).trigger('resize');
 }
 
+var toggleMaximizeFooter = function (state) {
+    if (state === undefined){
+        $("#"+CONTENT_FATHER).children().toggleClass(MAXIMIZE_FOOTER_CLASS)
+        $("#"+CONTENT_FATHER).children().children().toggleClass(MAXIMIZE_FOOTER_CLASS)
+    } else {
+        $("#"+CONTENT_FATHER).children().toggleClass(MAXIMIZE_FOOTER_CLASS,state)
+        $("#"+CONTENT_FATHER).children().children().toggleClass(MAXIMIZE_FOOTER_CLASS,state)
+    }
+    $(window).trigger('resize');
+
+}
+
+/**
+ * Obtains the width of a html element, this function ignore the css inherit properties
+ * @param obj
+ * @returns {*}
+ */
+var realWidth = function (obj) {
+    var clone = obj.clone();
+    clone.css({ position: "absolute", visibility: "hidden", display: "block" });
+    $('body').append(clone);
+    var width = clone.outerWidth();
+    clone.remove();
+    return width;
+}
+
+var printDate = function (date) {
+    if (!(date instanceof Date)){
+        if ((typeof date) == "number"){
+            date = new Date(date);
+        } else{
+            return undefined;
+        }
+
+    }
+    var hour = date.getHours();
+    if (hour < 10){
+        hour = "0"+hour;
+    }
+    var minutes = date.getMinutes()
+    if (minutes < 10){
+        minutes = "0"+minutes
+    }
+    var seconds = date.getSeconds()
+    if (seconds < 10){
+        seconds = "0"+seconds
+    }
+    var year = date.getFullYear()
+    var month = date.getMonth()+1;
+    if (month< 10){
+        month= "0"+month
+    }
+    var day = date.getDate()
+    if (day< 10){
+        day= "0"+day
+    }
+    return hour+":"+minutes+":"+seconds+"-"+day+"/"+month+"/"+year
+}
