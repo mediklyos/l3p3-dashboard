@@ -46,7 +46,7 @@
                         <thead>
                         <tr>
                             <th colspan="3">
-                                Predictions result
+                                Prediction results
                                 <span style="float: right">
                                 <button class="btn btn-default footer-button" onclick="cleanPredictionResults()"><span class="glyphicon glyphicon-trash"></span></button>
                                     </span>
@@ -146,14 +146,14 @@
         </div>
 
         <!-- template pv-chart-->
-        <div class="pv-chart">
-                <div class="my-stats col-lg-12">
-                    <div class="controls">
+        <div class="pv-chart col-lg-12">
+                <div class="pv-my-stats">
+                    <div class="pv-controls">
                         <div class="center-content-panel">
                             <button type="button" class="btn btn-default pv-select-graph" onclick="PVSelectChart(event)"></button>
                         </div>
                         <div class="center-content-panel">
-                            <button type="button" class="btn btn-default" id="" onclick="pvActiveNames(event)">names</button>
+                            <button type="button" class="btn btn-default" id="" onclick="pvActiveNames(event)"><span class="glyphicon glyphicon-eye-open"></span></button>
                         </div>
                         <div class="center-content-panel">
                             <button type="button" class="btn btn-default pv-pause-graph" onclick="pvPause(event)"></button>
@@ -163,11 +163,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-10">
+                <div class="pv-canvas-graph">
                     <canvas height="80"  class="pv-canvas"></canvas>
                     <svg class="pv-svg-footer-class"></svg>
                 </div>
-                <div class="col-lg-2 div-border pv-events-count-parent">
+                <div class="div-border pv-events-count-parent">
                     <table class="pv-events-count">
                         <thead>
                             <tr>

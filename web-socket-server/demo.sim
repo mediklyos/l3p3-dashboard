@@ -19,6 +19,23 @@
 55000 send ws0 {command:"result",event:"NodeId01_CPU_90",result:"miss-fp"}
 60000 send ws0 {command:"event",event:"NodeId01_CPU_90"}
 60000 send ws0 {command:"result",event:"NodeId01_CPU_90",result:"miss-fn"}
+1000 send ws1 {command:"event",event:"NodeId02_CPU_75"}
+10000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
+12000 send ws1 {command:"event",event:"NodeId02_CPU_75"}
+15000 send ws1 {command:"prediction",event:"NodeId02_CPU_90",prediction:"22"}
+20000 send ws1 {command:"event",event:"NodeId02_Mem_75"}
+35000 send ws1 {command:"prediction",event:"NodeId02_CPU_90",prediction:"88"}
+35000 send ws1 {command:"prediction",event:"NodeId02_Mem_90",prediction:"75"}
+35000 send ws1 {command:"alert",event:"NodeId02_CPU_90",alert:"on"}
+35000 send ws1 {command:"alert",event:"NodeId02_Mem_90",alert:"on",time:10000}
+40000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
+40000 send ws1 {command:"result",event:"NodeId02_CPU_90",result:"hit"}
+45000 send ws1 {command:"prediction",event:"NodeId02_CPU_90",prediction:"99"}
+45000 send ws1 {command:"alert",event:"NodeId02_CPU_90",alert:"on",time:10000}
+55000 send ws1 {command:"prediction",event:"NodeId02_CPU_90",prediction:"0"}
+55000 send ws1 {command:"result",event:"NodeId02_CPU_90",result:"miss-fp"}
+60000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
+60000 send ws1 {command:"result",event:"NodeId02_CPU_90",result:"miss-fn"}
 /end
         pv_changeGraphRange(canvas1,300000,120000);
         pv_changeGraphRange(canvas2,600000,180000);

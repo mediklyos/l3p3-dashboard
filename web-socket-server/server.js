@@ -416,7 +416,7 @@ if (DEBUG){
 //    executeCommand("/e");
 
     readCommand();
-    setTimeout(executeCommand.bind(this,"/sim demo1.sim"),3000);
+    setTimeout(executeCommand.bind(this,"/sim demo.sim"),3000);
     return;
     /*Client*/
 

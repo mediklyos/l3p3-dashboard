@@ -50,8 +50,8 @@ var PV_EVENT_CLASS_SUMMARY = PRE + "-event-class-summary"
 var PV_EVENT_CLASS_ALERT = PRE + "-event-class-alert"
 var PV_EVENT_TYPE_CLASS = PRE + "-event-type-class-"
 /*Other constants*/
-var PV_LINE_BOLD = 3;
-var PV_LINE_NORMAL = 1
+var PV_LINE_BOLD = 4;
+var PV_LINE_NORMAL = 2
 var PV_MAX_LG_COL = 12;
 var PV_CHARTS_DEFAULT_TIME = 10*60*1000;
 var PV_SVG_FOOTER_LINE_FONT_SIZE = 10;
@@ -139,7 +139,7 @@ var PV_SMOOTHIE_DEFAULT_OPTIONS= {
         verticalSections: 5,
 //        strokeStyle: 'rgba(119,119,119,0.45)',
         strokeStyle: 'rgba(0,0,0,0.5)',
-        fillStyle: 'rgba(0,0,0,0.1)',
+        fillStyle: 'rgba(0,0,0,0.0)',
         millisPerLine: PV_SVG_FOOTER_LINE_SEPARATION
 
     },
