@@ -67,6 +67,29 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="pv-table-evens-alerts pv-prediction-table">
+                    <table class="table table-condensed">
+                        <thead>
+                        <tr>
+                            <th colspan="2">
+                                Alerts
+                            </th>
+
+
+                        </tr>
+                        <tr>
+                            <th>Event</th>
+                            <th>Alert Type</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="dashboard-templates">
+                            <td class="pv-td-1"></td>
+                            <td class="pv-td-2"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
                 <div class="hr"></div>
             </div>
             <!--<div id="pv-footer-chart-stats-events">-->
@@ -134,6 +157,9 @@
                         </div>
                         <div class="center-content-panel">
                             <button type="button" class="btn btn-default pv-pause-graph" onclick="pvPause(event)"></button>
+                        </div>
+                        <div class="center-content-panel">
+                            <button type="button" class="btn btn-default pv-delete-graph" onclick="pvDeleteGraph(event.target)"><span class="glyphicon glyphicon-trash"></span></button>
                         </div>
                     </div>
                 </div>

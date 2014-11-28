@@ -24,7 +24,6 @@ var PV_SVG_FOOTER_CLASS = PRE + "-svg-footer-class"
 var PV_INPUT_URL = PRE + "-input-url"
 var PV_EVENTS_COUNT = PRE + "-events-count"
 var PV_EVENTS_COUNT_PARENT = PRE + "-events-count-parent"
-var PV_EVENTS_LEGEND = PRE + "-events-legend"
 var PV_TOOLTIP  = PRE + "-tooltip"
 var PV_TOOLTIP_EVENTS_OCCURRED = PRE + "-tooltip-events-occurred"
 var PV_TOOLTIP_EVENTS_OCCURRED_INTERNAL = PRE + "-tooltip-events-occurred-internal"
@@ -34,6 +33,7 @@ var PV_FOOTER_CHART_EVENTS = PRE + "-footer-chart-stats-events"
 var PV_TABLE_EVENTS_OCCURRENCE = PRE + "-table-evens-occurrence"
 var PV_TABLE_EVENTS_PREDICTION = PRE + "-table-evens-prediction"
 var PV_TABLE_EVENTS_PREDICTION_RESULT = PRE + "-table-evens-prediction-result"
+var PV_TABLE_EVENTS_ALERTS = PRE + "-table-evens-alerts"
 var PV_CELL_1 = PRE +"-td-1"
 var PV_CELL_2 = PRE +"-td-2"
 var PV_CELL_3 = PRE +"-td-3"
@@ -47,6 +47,7 @@ var PV_EVENT_CLASS_OCCURRENCE_PREFIX = PRE + "-event-class-occurrence-"
 var PV_EVENT_CLASS_PREDICTION = PRE + "-prediction-class"
 var PV_EVENT_CLASS_PREDICTION_RESULT = PRE + "-prediction-class-prefix-result-"
 var PV_EVENT_CLASS_SUMMARY = PRE + "-event-class-summary"
+var PV_EVENT_CLASS_ALERT = PRE + "-event-class-alert"
 var PV_EVENT_TYPE_CLASS = PRE + "-event-type-class-"
 /*Other constants*/
 var PV_LINE_BOLD = 3;
@@ -74,6 +75,7 @@ var SYSTEM_EVENT_ORIGIN_PREDICTION = "prediction";
 var SYSTEM_EVENT_ORIGIN_SUMMARY = "event";
 var SYSTEM_EVENT_ORIGIN_PREDICTION_RESULT = "prediction_result";
 var SYSTEM_EVENT_ORIGIN_OCCURRENCE = "occurrence";
+var SYSTEM_EVENT_ORIGIN_ALERT = "alert";
 
 if (GLOBAL_DEBUG){
 
@@ -225,6 +227,18 @@ var pvAddGraph= function () {
     smoothie.streamTo(section.find('canvas').get(0), delay);
     smoothie.extraActionsInAnimation = drawOnCanvasEvents.bind(canvas[0])//.bind(this.smoothie);
     pvResizeFunction()
+}
+var pvButtonDeleteGraph = function (event){
+    var target = event.target;
+}
+var pvDeleteGraph = function (element) {
+    var div = getCharDiv(element);
+    var canvas = getCanvas(element)[0];
+    $.each(canvas.wss,function (){
+        this.close();
+    })
+    div.remove();
+
 }
 
 var pvActiveNames = function (event) {
@@ -452,22 +466,66 @@ var drawOnCanvasEvents = function (jQCanvas) {
             canvas.predictionResults.splice(predictinoResultToDelete[i],1);
         }
         paintEvents(jQCanvas)
-        paintLegendPredictions(getActiveGraph())
-        paintLegendPredictionResult(getActiveGraph())
+        pvPaintFooter();
 
     }
 
 
 }
 
+var pvPaintFooter = function (){
+    var jQCanvas = getActiveGraph();
+    var canvas = jQCanvas[0]
 
-var paintLegendPredictions = function (jQCanvas) {
+    if (canvas.smoothie.isStoped){
+        return;
+    }
+    paintFooterPredictions(jQCanvas)
+    paintFooterEvents(jQCanvas)
+    paintFooterPredictionResult(jQCanvas)
+    paintFooterAlerts(jQCanvas);
+
+
+}
+
+var paintFooterAlerts = function (jQCanvas){
+    var canvas = jQCanvas[0]
+    var canvasIndex = getIndexOfCanvas(canvas)
+    var tbody =$("#"+FOOTER_CONTENT_ID).find("."+PV_TABLE_EVENTS_ALERTS).find('tbody');
+    var genericLine = tbody.find("tr."+DASHBOARD_TEMPLATES)
+    tbody.empty()
+    tbody.append(genericLine)
+    $.each(canvas.alerts,function (key) {
+        var event = pvAddEventToSmoothie(canvas,key);
+        var className = PV_EVENT_TYPE_CLASS+canvasIndex+"-"+key
+        var newLine = genericLine.clone().removeClass(DASHBOARD_TEMPLATES).addClass(className).addClass(PV_EVENT_CLASS_ALERT)
+        newLine.css('color',event.color)
+        newLine.find("."+PV_CELL_1).text(key);
+        newLine.find("."+PV_CELL_2).text(this.type);
+        newLine.mouseenter(function (canvas){
+            this.isAlertHover = true;
+            markText(canvas,{type:SYSTEM_EVENT_ORIGIN_ALERT,event:this});
+        }.bind(event,canvas))
+        newLine.mouseleave(function (canvas){
+            this.isAlertHover = false;
+            markText(canvas, {type:SYSTEM_EVENT_ORIGIN_ALERT,event:this});
+        }.bind(event,canvas))
+        newLine.click(function (canvas) {
+            this.isAlertClicked = !this.isAlertClicked;
+            markText(canvas, {type:SYSTEM_EVENT_ORIGIN_ALERT,event:this});
+        }.bind(event,canvas))
+        tbody.append(newLine)
+
+
+    })
+
+}
+var paintFooterPredictions = function (jQCanvas) {
     var canvas = jQCanvas[0]
     var canvasIndex = getIndexOfCanvas(canvas)
     if (canvas.smoothie.isStoped){
         return;
     }
-    $(getCharDiv(jQCanvas)).find('.'+PV_EVENTS_LEGEND).empty();
     // TODO
 
     var tbody =$("#"+FOOTER_CONTENT_ID).find("."+PV_TABLE_EVENTS_PREDICTION ).find('tbody');
@@ -537,10 +595,10 @@ var paintEventsInADiv = function (jQCanvas) {
             events[this.id].event = this;
         }
     })
-    $.each(canvas.alerts, function (value) {
-        events[value] = {}
-        events[value].count = 0;
-        events[value].event = smoothie.events[value];
+    $.each(canvas.alerts, function (key) {
+        events[key] = {}
+        events[key].count = 0;
+        events[key].event = smoothie.events[key];
 
     })
     $.each(canvas.predictionResults,function (){
@@ -563,16 +621,22 @@ var paintEventsInADiv = function (jQCanvas) {
     shortedKeys.sort(function (a,b){
         return a.localeCompare(b);
     })
+    var normalLines = []
+    var alertedLines = [];
     $.each(shortedKeys, function () {
-        var alerted = "";
         var newLine = genericLine.clone().removeClass(DASHBOARD_TEMPLATES).addClass(PV_EVENT_TYPE_CLASS+getIndexOfCanvas(canvas)+"-"+this).addClass(PV_EVENT_CLASS_SUMMARY);
         var event = pvAddEventToSmoothie(canvas,this);
         newLine.find("."+PV_CELL_1).text(this)
         newLine.find("."+PV_CELL_2).text(events[this].count)
         if (canvas.alerts[this] !== undefined){
-            if (canvas.alerts[this] === PV_WS_ALERT_ON){
+            if (canvas.alerts[this].type === PV_WS_ALERT_ON){
                 newLine.find("."+PV_CELL_3).append($('<div class="pv-alert-box"/>').css('color',event.color).css('background',event.color))
+                alertedLines.push(newLine)
+            } else {
+                normalLines.push(newLine)
             }
+        } else {
+            normalLines.push(newLine)
         }
 //        var div = $('<div/>',{
 //            title: this,
@@ -592,12 +656,22 @@ var paintEventsInADiv = function (jQCanvas) {
             markText(canvas, {type:SYSTEM_EVENT_ORIGIN_SUMMARY,event:this});
         }.bind(event,canvas))
         newLine.css('color',event.color)
-        container.append(newLine)
+//        container.append(newLine)
     })
+
+    for (var i = 0; i < alertedLines.length;i++){
+        container.append(alertedLines[i])
+        if (i == alertedLines.length-1){
+            alertedLines[i].css('border-bottom','1px solid black')
+        }
+    }
+    for (var i = 0; i < normalLines.length;i++){
+        container.append(normalLines[i])
+    }
 
 }
 
-var paintLegendPredictionResult = function (jQCanvas){
+var paintFooterPredictionResult = function (jQCanvas){
     var canvas = jQCanvas[0]
     if (canvas.smoothie.isStoped){
         return true;
@@ -674,6 +748,9 @@ var markText = function (canvas, systemEvent,eventOccurrence) {
         case SYSTEM_EVENT_ORIGIN_PREDICTION:
             event = systemEvent.event;
             break;
+        case SYSTEM_EVENT_ORIGIN_ALERT:
+            event = systemEvent.event;
+            break;
     }
     eventClass = PV_EVENT_TYPE_CLASS + canvasIndex +"-" + event.id;
     var elements = $("."+eventClass)
@@ -707,6 +784,13 @@ var markText = function (canvas, systemEvent,eventOccurrence) {
                 $("."+eventClass+"."+PV_EVENT_CLASS_SUMMARY).css('font-weight', 'bold')
                 $("."+eventClass+"."+PV_EVENT_CLASS_PREDICTION).css('font-weight', 'bold')
                 event.timeSeries.lineOptions.lineWidth = PV_LINE_BOLD;
+            }
+            break;
+        case SYSTEM_EVENT_ORIGIN_ALERT:
+            if (event.isAlertClicked || event.isAlertHover){
+                $("."+eventClass+"."+PV_EVENT_CLASS_SUMMARY).css('font-weight', 'bold')
+                $("."+eventClass+"."+PV_EVENT_CLASS_ALERT).css('font-weight', 'bold')
+
             }
             break;
     }
@@ -919,17 +1003,8 @@ var PVSelectChart = function (event) {
     $(event.target).addClass('active')
     $("#"+PV_FOOTER_CHART_EVENTS).empty()
     var activeCanvas = getActiveGraph();
-//    $("."+PV_FOOTER_TABLE_GRAPH).attr("id",PV_FOOTER_TABLE_PREFIX_ID+activeSmoothie)
-//    paintEventsInADiv(activeCanvas);
     paintEvents(activeCanvas)
-//    paintFooterEvents(activeCanvas)
-    paintLegendPredictions(activeCanvas)
-    paintLegendPredictionResult(activeCanvas)
-//    paintEventsInADiv($("#"+PV_FOOTER_CHART_EVENTS),getActiveGraph()[0].smoothie.eventsHappend,function (events,pos) {
-//        return "Fecha: "
-//    })
-
-
+    pvPaintFooter();
 }
 var pvResizingCols = function () {
 
@@ -1123,15 +1198,25 @@ var pv_changeGraphRange = function (canvas,before,after){
 
 var pvSetAlert = function (canvas,event,alert,timeout) {
     /*var objectEvent = */pvAddEventToSmoothie(canvas,event);
+    if (canvas.alerts[event] === undefined){
+        canvas.alerts[event] = {}
+    }
     if (alert == PV_WS_ALERT_ON || alert == PV_WS_ALERT_OFF){
-        canvas.alerts[event] = alert;
+        if (canvas.alerts[event].timeoutFunction !== undefined) {
+            clearTimeout(canvas.alerts[event].timeoutFunction)
+            canvas.alerts[event].timeoutFunction = undefined;
+        }
+        canvas.alerts[event].type = alert
+//        canvas.alerts[event]
         if (timeout !== undefined){
-            setTimeout(function (canvas,event) {
+            canvas.alerts[event].timeoutFunction = setTimeout(function (canvas,event) {
                 delete canvas.alerts[event];
                 paintEventsInADiv($(canvas));
+                pvPaintFooter()
             }.bind(this,canvas,event),timeout)
         }
         paintEventsInADiv($(canvas));
+        pvPaintFooter()
     }
 }
 
@@ -1149,7 +1234,7 @@ var pvAddPredictionResult = function (canvas,event,timestapm,result){
     var predictionResult = {event:objectEvent,time:timestapm,result:result}
     canvas.predictionResults.push(predictionResult)
     paintEventsInADiv($(canvas));
-    paintLegendPredictionResult(getActiveGraph())
+    pvPaintFooter();
     setTimeout(refreshPredictions.bind(undefined,canvas),/*PV_TIMEOUT + */canvas.smoothie.graphTime * canvas.smoothie.zero)
 
     return true;
@@ -1170,9 +1255,8 @@ var pvAddPrediction = function (canvas, eventName, prediction) {
         event.timeSeries.append(now-1,event.timeSeries.data[event.timeSeries.data.length-1][1]);
     }
     event.timeSeries.append(now,prediction);
-//    paintLegendPredictions($(canvas));
     paintEventsInADiv($(canvas));
-    paintLegendPredictions(getActiveGraph());
+    pvPaintFooter();
     setTimeout(refreshPredictions.bind(undefined,canvas),/*PV_TIMEOUT + */canvas.smoothie.graphTime * canvas.smoothie.zero)
 }
 var refreshPredictions = function (canvas) {
@@ -1191,7 +1275,7 @@ var refreshPredictions = function (canvas) {
 
     })
     if (isDelete){
-        paintLegendPredictions(getActiveGraph())
+        pvPaintFooter();
 
     }
 }
@@ -1251,7 +1335,7 @@ function pvPause(event){
     if (canvas[0].smoothie.isStoped){
         canvas[0].smoothie.start();
         paintEvents(getActiveGraph());
-        paintLegendPredictions(getActiveGraph());
+        pvPaintFooter();
     } else {
         canvas[0].smoothie.stop();
     }

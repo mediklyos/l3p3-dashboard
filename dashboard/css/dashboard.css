@@ -557,7 +557,7 @@ div.pv-table-graph-footer {
     width: 100%;
 }
 div.pv-table-graph-footer>.pv-prediction-table {
-    width: 32%;
+    width: 24%;
     display: inline-table;
     border: 1px solid;
     border-radius: 5px;

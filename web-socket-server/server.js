@@ -231,7 +231,6 @@ var executeCommand = function (input,callback){
                         }
                         break;
                     case COMMAND_SIM:
-                        print("OK")
                         runSimulation(command)
                         break;
                     default :
@@ -242,6 +241,9 @@ var executeCommand = function (input,callback){
                 if ((input.charAt(0) == "/") && (input.charAt(1)) != "/") {
                     var command = input.slice(1).split(" ");
                     switch (command[0]) {
+                        case COMMAND_SIM:
+                            runSimulation(command)
+                            break;
                         case COMMAND_BACK:
                             print("Back to normal model")
                             mode = NORMAL_MODE;
@@ -338,8 +340,12 @@ var SIM_COMMAND_SEND_BROADCAST = "broadcast"
 var SIM_TIMEOUT = 200;
 
 var runSimulation = function (command) {
+    var fileName = command[1];
     fs.readFile(command[1], function (err, data) {
-        if (err) throw err;
+        if (err) {
+            print("The file does not exist: \""+fileName+"\"")
+            return;
+        }
         var string = data.toString();
         var dataArray = string.split("\n");
         var nLine =0;
