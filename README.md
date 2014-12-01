@@ -256,7 +256,59 @@ The call parameters are optionals and they are:
 * debug: If you want to put in debug mode. 
 * console: the console output is shown in the console. 
 * out=\<fileName\>: the console output is saved in a file. If it is not defined, the console output is activated
-* port: define the listen port of the server. the port by default is 10082 
+* port: define the listen port of the server. the port by default is 10082
+ 
+The console has two modes, the fist, general, is for general purpose. and the second, web socket, is to send messages to the clients 
+connected. The supported commands are the following:
+
+common:
+ 
+* */exit*: to exit the console
+* */ws*: interact with the second mode options. 
+  * No options, change to the web socket mode and send in brodcast mode  
+  * *-l* list of client connected
+  * *<nClient>* change to the nClient
+* */sim <fileName>* execute a simulation. fileName indicates the path of the simulation file
+
+only in web-socket mode:
+
+* */back* returns to the common mode
+* */echo* The echo mode is activated for the client. It is that the message received from the client is forwarded
+
+The */sim* command needs a simulation file. The repository has a example of this simulation. The format of this simulation is:
+ 
+Configuration commands: they are before */start* sentence, at the moment the configuration sentence supported is 
+*/wss [/<nWS/>=/<alias/>]**, where *nWS* is the number of client connected and the *alias* is the alias of the client in the
+simulation sentences. The body of the simulation is between */start* and */end* sentences. The format of the 
+simulation sentences are *<time> <command>* where *time* is the time of the sentence in the simulation, *command* is the 
+command executed in the sentence. At this moment the command supported is *send <wsAlias> <message>* where *wsAlias* is the 
+alias of the client and *message* is the message to send. Example: 
+
+`/wss 0=ws1 1=ws0`
+`/start`
+`0 send ws0 {command:"time",before:300000, after:120000}`
+`0 send ws1 {command:"time",before:600000, after:180000}`
+`// comment`
+`1000 send ws0 {command:"event",event:"NodeId02_CPU_75"}`
+`10000 send ws0 {command:"event",event:"NodeId02_CPU_90"}`
+`12000 send ws0 {command:"event",event:"NodeId02_CPU_75"}`
+`15000 send ws0 {command:"prediction",event:"NodeId02_CPU_90",prediction:"22"}`
+`20000 send ws0 {command:"event",event:"NodeId02_Mem_75"}`
+`35000 send ws0 {command:"prediction",event:"NodeId02_CPU_90",prediction:"88"}`
+`35000 send ws0 {command:"prediction",event:"NodeId02_Mem_90",prediction:"75"}`
+`35000 send ws0 {command:"alert",event:"NodeId02_CPU_90",alert:"on"}`
+`35000 send ws0 {command:"alert",event:"NodeId02_Mem_90",alert:"on",time:10000}`
+`40000 send ws0 {command:"event",event:"NodeId02_CPU_90"}`
+`40000 send ws0 {command:"result",event:"NodeId02_CPU_90",result:"hit"}`
+`45000 send ws0 {command:"prediction",event:"NodeId02_CPU_90",prediction:"99"}`
+`45000 send ws0 {command:"alert",event:"NodeId02_CPU_90",alert:"on",time:10000}`
+`55000 send ws0 {command:"prediction",event:"NodeId02_CPU_90",prediction:"0"}`
+`55000 send ws0 {command:"result",event:"NodeId02_CPU_90",result:"miss-fp"}`
+`60000 send ws0 {command:"event",event:"NodeId02_CPU_90"}`
+`60000 send ws0 {command:"result",event:"NodeId02_CPU_90",result:"miss-fn"}`
+`/end`
+
+This tools is not finished and there are more commands and simulation sentences.
 
 ## known bugs
 

@@ -153,9 +153,6 @@ function start(){
 var readCommand = function (){
     rl.prompt()
     rl.on('line',function(answer) {
-        // TODO: Log the answer in a database
-//        console.log("Thank you for your valuable feedback:", answer);
-//        rl.close();
         if (!executeCommand(answer)){
             endRoutine()
         } else {

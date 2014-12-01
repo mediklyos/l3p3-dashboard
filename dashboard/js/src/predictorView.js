@@ -176,7 +176,7 @@ var pv_clear = function (){
 }
 
 var pvSetThreshold = function (value) {
-    // TODO copiar del anterios
+    // TODO quitar threshold
 }
 
 var pvInitLeftColumnAndFooter = function (){
