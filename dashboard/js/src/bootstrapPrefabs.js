@@ -11,15 +11,12 @@ function createSetFilterPanelsByAttributeValue(id,parent,panelList,panel_id_pref
     }
     var buttonsPanel = $('<div/>', {
         class:"panel-group",
-//        text: "hola",
         id: id
     }).appendTo(parentPanel)
 
     $.each(panelList, function (key,value){
         var panel = $('<div/>',{
             class: "panel panel-default "+panels_class,
-            //text: "Filter by " + value,
-            //value: value,
             id: panel_id_prefix + key
         })
         // Panel title
@@ -51,8 +48,51 @@ function createSetFilterPanelsByAttributeValue(id,parent,panelList,panel_id_pref
 
         var panelBodyRow1 = jQuery('<div />',{class:'row'})
         var panelBodyRowColLG1 = jQuery('<div />',{class:'col-lg-12'})
-        var formGroup = jQuery('<div />',{class:'form-group'})
-        var inputfilter = jQuery('<input />',{class:"form-control", name: "filter-"+value, id: "filter-"+value})
+        var formGroup = jQuery('<div />',{class:'form-group'});
+        var inputfilter = jQuery('<input />',{class:"form-control", name: "filter-"+value, id: "filter-"+value});
+        if(value == "id" || value == "bank") {
+            formGroup.append(inputfilter);
+        } else {
+            var inputfilterContainer = $('<div />', {class: 'input-group'});
+            inputfilter.appendTo(inputfilterContainer);
+            var inputGroupButton = $('<div />', {
+                class: 'input-group-btn'
+            }).append($("<button />", {
+                type: "button",
+                class: "btn btn-default dropdown-toggle"}).attr("data-toggle", "dropdown").append(
+                    $('<span />', {
+                        class: "caret",
+                        style: "margin-top: 8px;margin-bottom: 8px;"})));
+
+            var lista = $('<ul />', {
+                id: 'lista-'+NGLC_FILTER_PREFIX+value,
+                class: 'dropdown-menu pull-right'
+            });
+
+            // Los <li /> los meto en la función de
+
+            lista.appendTo(inputGroupButton);
+            inputGroupButton.appendTo(inputfilterContainer);
+            inputfilterContainer.appendTo(formGroup);
+        }
+        /*
+         input with select
+
+         http://www.bootply.com/60932
+
+         <div class="input-group">
+         <input class="form-control" type="text">
+         <div class="input-group-btn">
+         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
+         <ul class="dropdown-menu pull-right">
+         <li><a href="#">Inches</a></li>
+         <li><a href="#">Feet</a></li>
+         <li><a href="#">mm</a></li>
+         </ul>
+         </div>
+         </div>
+         */
+
         var buttonUpdate = jQuery('<button />', {class: "btn btn-default", name: "updatebutton-"+value, text: "Update", style: "margin-right: 5px;"}).click(function(){
             var inputContent = $('#filter-'+value).val();
             updateFilterContent(inputContent, 'filter-'+value)
@@ -63,25 +103,25 @@ function createSetFilterPanelsByAttributeValue(id,parent,panelList,panel_id_pref
             resetFilterContent('filter-'+value)
         });
 
-        formGroup.append(inputfilter)
-        panelBodyRowColLG1.append(formGroup)
-        panelBodyRowColLG1.append(buttonUpdate)
-        panelBodyRowColLG1.append(buttonReset)
-        panelBodyRow1.append(panelBodyRowColLG1)
 
-        var panelBodyRow2 = jQuery('<div />',{class:'row'})
-        var panelBodyRowColLG2 = jQuery('<div />',{class:'col-lg-12', id: 'items-filter-'+value})
+        panelBodyRowColLG1.append(formGroup);
+        panelBodyRowColLG1.append(buttonUpdate);
+        panelBodyRowColLG1.append(buttonReset);
+        panelBodyRow1.append(panelBodyRowColLG1);
 
-        panelBodyRow2.append(panelBodyRowColLG2)
+        var panelBodyRow2 = jQuery('<div />',{class:'row'});
+        var panelBodyRowColLG2 = jQuery('<div />',{class:'col-lg-12', id: 'items-filter-'+value});
 
-        panelBody.append(panelBodyRow1)
-        panelBody.append(panelBodyRow2)
-        panelBody.appendTo(panel)
+        panelBodyRow2.append(panelBodyRowColLG2);
+
+        panelBody.append(panelBodyRow1);
+        panelBody.append(panelBodyRow2);
+        panelBody.appendTo(panel);
         panel.appendTo(buttonsPanel);
         if (!inline) {
             $('<br/>').appendTo(buttonsPanel);
         }
-    })
+    });
     return buttonsPanel;
 }
 

@@ -93,12 +93,18 @@ $.each(extraColumnsShown, function(index, value) {
     itemsFiltered[NGLC_FILTER_PREFIX+value] = []
 });
 //itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345");
+var filterDropdown = [NGLC_PRIORITY_COLUMN_NAME, NGLC_CAUSE_COLUMN_NAME];
+var dropdownSelectFilter = {};
+$.each(filterDropdown, function(index, value) {
+    dropdownSelectFilter[NGLC_FILTER_PREFIX+value] = []
+});
 
+var appliedDropdownList = false;
 /*
     Slider styles. There's no need to modify the jQuery CSS file, so I create it here.
  */
 var styleEl = document.createElement('style');
-styleEl.innerHTML = '.ui-widget-header {border: 1px solid #aaaaaa;background: #97C2FC; color: #222222}';
+styleEl.innerHTML = '.ui-widget-header {border: 1px solid #aaaaaa;background: #97C2FC; color: #222222} .customli { margin-left: 10px;}';
 document.head.appendChild(styleEl);
 
 var nglc_startRoutine = function (){
@@ -111,14 +117,13 @@ var nglc_startRoutine = function (){
 //        setNetworkFile("data/nglc-demo/nodes.json")
 //        setNetworkFile("data/nglc-demo/nodes2.json")
 //        setNetworkFile("data/nglc-demo/nodes4.json")
-        setNetworkFile("data/nglc-demo/nodesexp.json")
-        setTimeLineFile("data/nglc-demo/outputvisual.csv")
-
-        loadStatsFromFile("data/nglc-demo/stats.json")
-
+        setNetworkFile("data/nglc-demo/nodesexp.json");
+        setTimeLineFile("data/nglc-demo/outputvisual.csv");
+        loadStatsFromFile("data/nglc-demo/stats.json");
         loadFromUrl(networkUrl,timeLineUrl)
     }
 }
+
 var resetEdges = function () {
     $("#"+NGLC_INTERNAL_SLIDER).slider("option","value",$("#"+NGLC_INTERNAL_SLIDER).slider("option","min"))
 }
@@ -387,8 +392,51 @@ var removeUselessEdges = function (myEdges) {
 var loadStatsFromFile = function (file) {
     $.getJSON(file  , function (json) {
         stats = json;
+        createArrayToDropdownSelectFilters();
+        if(!appliedDropdownList) {
+            applyDropdownSelectFilters();
+        }
+    })
+
+};
+
+/**
+ * Create <li /> for the dropdown menu in filters.
+ */
+var applyDropdownSelectFilters = function () {
+    var lista;
+    $.each(filterDropdown, function(index, value) {
+        var currValue = value;
+        lista = $("#lista-"+NGLC_FILTER_PREFIX + value);
+        $.each(dropdownSelectFilter[NGLC_FILTER_PREFIX + value], function (index, val) {
+            $('<li />', {
+                class: 'customli'
+            }).append(
+                $('<label />').append(
+                    $('<input />', {
+                        type: 'checkbox',
+                        value: val,
+                        checked: checkLiActiveByDefault()
+                    }).click(function () {
+                        handleClickToFilter(this, currValue);
+                    })
+                ).append(
+                    $('<label />', {class: 'customli', text: val})
+                )).appendTo(lista);
+        })
+    });
+    appliedDropdownList = true;
+}
+var createArrayToDropdownSelectFilters = function () {
+    var currValue;
+    $.each(filterDropdown, function(index, value) {
+        currValue = value;
+        $.each(stats[value], function(name, val) {
+            dropdownSelectFilter[NGLC_FILTER_PREFIX+currValue].push(name);
+        })
     })
 }
+
 
 var loadNodesFromFile = function (file){
     var reader = new FileReader();
@@ -777,6 +825,15 @@ var handleClickToFilter = function (cb, filter) {
     }
 
 }
+
+var checkLiActiveByDefault = function (item, filter) {
+    if($.inArray(item, itemsFiltered[NGLC_FILTER_PREFIX+filter])<0) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
 
 /**
  * This method actives a checkbox if its value is filtered.
