@@ -1,0 +1,56 @@
+/wss 0=ws0 1=ws1
+/start
+0 send ws0 {command:"time",before:300000, after:120000}
+0 send ws1 {command:"time",before:600000, after:180000}
+1000 send ws0 {command:"event",event:"NodeId01_CPU_75"}
+10000 send ws0 {command:"event",event:"NodeId01_CPU_90"}
+12000 send ws0 {command:"event",event:"NodeId01_CPU_75"}
+15000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"22"}
+20000 send ws0 {command:"event",event:"NodeId01_Mem_75"}
+35000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"88"}
+35000 send ws0 {command:"prediction",event:"NodeId01_Mem_90",prediction:"75"}
+35000 send ws0 {command:"alert",event:"NodeId01_CPU_90",alert:"on"}
+35000 send ws0 {command:"alert",event:"NodeId01_Mem_90",alert:"on",time:10000}
+40000 send ws0 {command:"event",event:"NodeId01_CPU_90"}
+40000 send ws0 {command:"result",event:"NodeId01_CPU_90",result:"hit"}
+45000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"99"}
+45000 send ws0 {command:"alert",event:"NodeId01_CPU_90",alert:"on",time:10000}
+55000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"0"}
+55000 send ws0 {command:"result",event:"NodeId01_CPU_90",result:"miss-fp"}
+60000 send ws0 {command:"event",event:"NodeId01_CPU_90"}
+60000 send ws0 {command:"result",event:"NodeId01_CPU_90",result:"miss-fn"}
+1000 send ws1 {command:"event",event:"NodeId02_CPU_75"}
+10000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
+12000 send ws1 {command:"event",event:"NodeId02_CPU_75"}
+15000 send ws1 {command:"prediction",event:"NodeId02_CPU_90",prediction:"22"}
+20000 send ws1 {command:"event",event:"NodeId02_Mem_75"}
+35000 send ws1 {command:"prediction",event:"NodeId02_CPU_90",prediction:"88"}
+35000 send ws1 {command:"prediction",event:"NodeId02_Mem_90",prediction:"75"}
+35000 send ws1 {command:"alert",event:"NodeId02_CPU_90",alert:"on"}
+35000 send ws1 {command:"alert",event:"NodeId02_Mem_90",alert:"on",time:10000}
+40000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
+40000 send ws1 {command:"result",event:"NodeId02_CPU_90",result:"hit"}
+45000 send ws1 {command:"prediction",event:"NodeId02_CPU_90",prediction:"99"}
+45000 send ws1 {command:"alert",event:"NodeId02_CPU_90",alert:"on",time:10000}
+55000 send ws1 {command:"prediction",event:"NodeId02_CPU_90",prediction:"0"}
+55000 send ws1 {command:"result",event:"NodeId02_CPU_90",result:"miss-fp"}
+60000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
+60000 send ws1 {command:"result",event:"NodeId02_CPU_90",result:"miss-fn"}
+/end
+        pv_changeGraphRange(canvas1,300000,120000);
+        pv_changeGraphRange(canvas2,600000,180000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_1),1000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_2),10000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_3),20000);
+        setTimeout(pvAddPrediction.bind(this,canvas1, event0_4,22),20000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_2),40000);
+        setTimeout(pvAddPrediction.bind(this,canvas1, event0_4,88),40000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_4),165000);
+
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_1),1000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_2),15000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_5),55000);
+        setTimeout(pvAddPrediction.bind(this,canvas2, event1_3,22),30000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_1),30000);
+        setTimeout(pvAddPrediction.bind(this,canvas2, event1_4,33),60000);
+        setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas2, event1_3),215000);

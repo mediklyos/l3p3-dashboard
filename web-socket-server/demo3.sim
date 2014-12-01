@@ -1,4 +1,0 @@
-/wss 0=ws0 1=ws1
-/start
-100 send ws0 {command:"time", before:"6000", after: "3000"}
-/end

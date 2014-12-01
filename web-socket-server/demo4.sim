@@ -1,9 +1,0 @@
-/wss 0=ws0 1=ws1
-/start
-100 send ws0 {command:"alert",event:"evento1",alert:"on"}
-//200 send ws0 {command:"prediction",event:"evento1",prediction:"22"}
-//800 send ws0 {command:"event",event:"evento1"}
-//800 send ws0 {command:"result",event:"evento1",result:"hit"}
-//1000 send ws0 {command:"event",event:"evento2"}
-//10000 send ws0 {command:"event",event:"evento3"}
-/end

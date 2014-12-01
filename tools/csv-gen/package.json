@@ -1,0 +1,11 @@
+{
+  "name": "csv-gen",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node generator.js"
+  },
+  "dependencies": {
+    "filesystem": "^1.0.1"
+  }
+}
