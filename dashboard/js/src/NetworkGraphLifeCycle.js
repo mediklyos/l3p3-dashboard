@@ -101,11 +101,26 @@ $.each(filterDropdown, function(index, value) {
 
 var appliedDropdownList = false;
 /*
-    Slider styles. There's no need to modify the jQuery CSS file, so I create it here.
+    Custom styles. There's no need to modify the jQuery CSS file, so I create it here.
  */
-var styleEl = document.createElement('style');
-styleEl.innerHTML = '.ui-widget-header {border: 1px solid #aaaaaa;background: #97C2FC; color: #222222} .customli { margin-left: 10px;}';
-document.head.appendChild(styleEl);
+var arrayOfProgressBarColors = ["#5CB85C", "#16A085", "#2ECC71", "#27AE60", "#3498DB", "#2980B9", "#9B59B6", "#8E44AD", "#F1C40F", "#F39C12", "#E67E22", "#D35400", "#E74C3C", "#C0392B", "#7F8C8D"];
+var progressBarColors = {};
+
+$.each(filterDropdown, function(index, value) {
+    dropdownSelectFilter[NGLC_FILTER_PREFIX+value] = []
+});
+
+var addCSStoHTML = function(css) {
+    var styleEl = document.createElement('style');
+    styleEl.innerHTML = css;
+    document.head.appendChild(styleEl);
+}
+
+addCSStoHTML('.ui-widget-header {border: 1px solid #aaaaaa;background: #97C2FC; color: #222222} .customli { margin-left: 10px;}');
+
+//    '.progress-bar-draft {background-color: '+NGLC_BGCOLOR_PROG_BAR_DRAFT+'}' +
+//    '.progress-bar-waitingaccept {background-color: '+NGLC_BGCOLOR_PROG_BAR_DRAFT+'}';
+
 
 var nglc_startRoutine = function (){
     nglc_reset();
@@ -1047,6 +1062,15 @@ var paintGraphOnlyNodes = function (nodes) {
     resetEdges();
     networkGraph = new vis.Network(container,data,getOptions());
 //    nodesExtraInfo = {}
+    var i = 0;
+    var customCSS = "";
+    $.each(networkGraph.nodes, function(index, value) {
+        //console.log(index);
+        progressBarColors[index] = arrayOfProgressBarColors[i++];
+        customCSS += ".progress-bar-"+index.toLowerCase().replace(/ /g,'')+" {background-color: "+progressBarColors[index]+"}\n";
+    });
+    addCSStoHTML(customCSS);
+
     $.each(networkGraph.nodes,function (key,value){
         var node = {}
         node.node = value;
@@ -1054,6 +1078,7 @@ var paintGraphOnlyNodes = function (nodes) {
         node.id = key;
 //        nodesExtraInfo[key].node = node;
         value.elements = 0;
+        value.progressbarcolor = progressBarColors[key];
     })
     resetShowedElements();
     networkGraph.on('select',function (properties){
