@@ -9,28 +9,30 @@ var PRE = views[0][2].constantsPrefix;
 /*HTML id constants*/
 
 var NGLC_TEXT_EXPORT_BUTTON = "Export nodes";
-var NGLC_TEXT_LOAD_NODES = "Load Nodes"
-var NGLC_TEXT_LOAD_TIMELINE = "Load Timeline"
-var NGLC_GRAPH_CONTAINER = PRE + "-graph"
-var NGLC_SLIDER_PANEL = PRE +"-temporal-bar"
-var NGLC_GRAPH_PANEL = PRE + "-graph-panel"
-var NGLC_SLIDER_SUBPANEL = PRE + "-slider-subpanel"
-var NGLC_INTERNAL_SLIDER = PRE + "-internal-slider"
-var NGLC_DIV_START_DATE = PRE + "-start-date"
-var NGLC_DIV_END_DATE = PRE + "-end-date"
+var NGLC_TEXT_LOAD_NODES = "Load Nodes";
+var NGLC_TEXT_LOAD_TIMELINE = "Load Timeline";
+var NGLC_GRAPH_CONTAINER = PRE + "-graph";
+var NGLC_SLIDER_PANEL = PRE +"-temporal-bar";
+var NGLC_GRAPH_PANEL = PRE + "-graph-panel";
+var NGLC_SLIDER_SUBPANEL = PRE + "-slider-subpanel";
+var NGLC_INTERNAL_SLIDER = PRE + "-internal-slider";
+var NGLC_DIV_START_DATE = PRE + "-start-date";
+var NGLC_DIV_END_DATE = PRE + "-end-date";
 var NGLC_ID_FILE_INPUT_NODES = PRE + "-input-nodes";
 var NGLC_ID_TIME_SLIDER = PRE + "-time-slider";
 var NGLC_FILTER_PANEL = PRE + "-filter-panel";
-var NGLC_FILTER_COLUMNS_BUTTONS_PREFIX_ID = PRE + "-buttons-columns-filter-"
-var NGLC_FILTER_COLUMNS_BUTTONS_CLASS = PRE + "-buttons-columns-class"
-var NGLC_FOOTER_ID = PRE + "-footer-id"
-var NGLC_FOOTER_NODE_TABLE = PRE + "-footer-node-table"
-var NGLC_LEFT_MAIN= PRE + "-left-main"
-var NGLC_FILTER_BOX= PRE + "-filter-box"
+var NGLC_FILTER_COLUMNS_BUTTONS_PREFIX_ID = PRE + "-buttons-columns-filter-";
+var NGLC_FILTER_COLUMNS_BUTTONS_CLASS = PRE + "-buttons-columns-class";
+var NGLC_FOOTER_ID = PRE + "-footer-id";
+var NGLC_FOOTER_NODE_TABLE = PRE + "-footer-node-table";
+var NGLC_LEFT_MAIN= PRE + "-left-main";
+var NGLC_FILTER_BOX= PRE + "-filter-box";
 var NGLC_FILTER_PANEL_BY_ATTR_BOX = PRE + "-filter-panel-by-attr-box";
 var NGLC_FILTER_PANEL_BY_ATTR = PRE + "-filter-panel-by-attr";
-var NGLC_FILTER_COLUMNS_PANELS_PREFIX_ID = PRE + "-panel-filter-"
-var NGLC_FILTER_COLUMNS_PANEL_CLASS = PRE + "-panel-filter-class"
+var NGLC_FILTER_COLUMNS_PANELS_PREFIX_ID = PRE + "-panel-filter-";
+var NGLC_FILTER_COLUMNS_PANEL_CLASS = PRE + "-panel-filter-class";
+var NGLC_TIMELINEPROGRESSBAR = PRE + "-timelineprogressbar";
+var NGLC_PROGRESSBAR_ID = PRE + "-progress-bar-id-";
 /*Textos localizacion*/
 var NGLC_FILTERS_COLS_INFO= "Columns ";
 var NGLC_FILTERS_INPUTS_INFO = "Filters";
@@ -38,14 +40,14 @@ var NGLC_FILTERS_INPUTS_INFO = "Filters";
 /*Configurable constants*/
 var NGLC_ORIGIN_COLUMN_NAME = "origin";
 var NGLC_DESTINATION_COLUMN_NAME = "destination";
-var NGLC_TIME_COLUMN_NAME = "time"
+var NGLC_TIME_COLUMN_NAME = "time";
 var NGLC_MEANTIME_COLUMN_NAME = "meantime";
-var NGLC_ID_COLUMN_NAME = "id"
-var NGLC_PRIORITY_COLUMN_NAME = "priority"
-var NGLC_ZONE_COLUMN_NAME = "bank"
+var NGLC_ID_COLUMN_NAME = "id";
+var NGLC_PRIORITY_COLUMN_NAME = "priority";
+var NGLC_ZONE_COLUMN_NAME = "bank";
 var NGLC_CAUSE_COLUMN_NAME = "type";
 
-var NGLC_START_NODE_NAME = "Start"
+var NGLC_START_NODE_NAME = "Start";
 
 var NGLC_FILTER_PREFIX = "filter-";
 
@@ -70,7 +72,7 @@ var displayTimePrecision = 5;
 var lastLoaded = 0;
 var lastTime = 0;
 var extraColumnsShown = [NGLC_ID_COLUMN_NAME, NGLC_PRIORITY_COLUMN_NAME, NGLC_ZONE_COLUMN_NAME, NGLC_CAUSE_COLUMN_NAME];
-var columnsIgnored = {time:true,origin:true,destination:true}
+var columnsIgnored = {time:true,origin:true,destination:true};
 var extraColumnsActive = {};
 var selectedNodes = {};
 var timerFirst = 1000;
@@ -137,11 +139,11 @@ var nglc_startRoutine = function (){
         loadStatsFromFile("data/nglc-demo/stats.json");
         loadFromUrl(networkUrl,timeLineUrl)
     }
-}
+};
 
 var resetEdges = function () {
     $("#"+NGLC_INTERNAL_SLIDER).slider("option","value",$("#"+NGLC_INTERNAL_SLIDER).slider("option","min"))
-}
+};
 
 // Es aquí donde se crean las extraCols
 var resetShowedElements = function () {
@@ -154,7 +156,7 @@ var resetShowedElements = function () {
         })
     })
 
-}
+};
 
 var dateFormats = [
     {id: "year", value: "numeric"},
@@ -163,7 +165,7 @@ var dateFormats = [
     {id: "hour", value: "2-digit"},
     {id: "minute", value: "2-digit"},
     {id: "second", value: "2-digit"}
-]
+];
 
 var nglcResizeFunction = function (){
     $("#"+NGLC_GRAPH_CONTAINER).css('height',$("#content").outerHeight() + $("#content").offset().top - $("#"+NGLC_GRAPH_CONTAINER).offset().top)
@@ -171,11 +173,11 @@ var nglcResizeFunction = function (){
     if (networkGraph !== undefined) {
         networkGraph.redraw();
     }
-}
+};
 
 var nglcCleanFunction  = function (){
     $(window).unbind('resize', nglcResizeFunction)
-}
+};
 
 var loadNodesClick = function() {
     $("#"+NGLC_ID_FILE_INPUT_NODES).click();
@@ -185,15 +187,15 @@ var loadNodesClick = function() {
             loadNodesFromFile(file);
         }
     })
-}
+};
 
 var exportButtonClick  = function () {
-    var nodes = {}
+    var nodes = {};
     $.each(networkGraph.nodes,function (key,value){
         nodes[key] = {};
         nodes[key].x = value.x
         nodes[key].y = value.y
-    })
+    });
     var string = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(nodes));
     $(this)
         .attr({
@@ -201,7 +203,7 @@ var exportButtonClick  = function () {
             'href': string,
             'target': '_blank'
         });
-}
+};
 
 var loadTimeLineClick = function () {
     $("#"+NGLC_ID_FILE_INPUT_NODES).click();
@@ -281,9 +283,9 @@ var initLeftColumnAndFooter = function () {
 
     $("#"+FOOTER_CONTENT_ID).append($('<div/>',{
         id: NGLC_FOOTER_ID
-    }))
+    }));
 
-}
+};
 
 var resetFilterPanel = function (){
     var main = $("#"+NGLC_LEFT_MAIN);
@@ -378,7 +380,7 @@ var loadFromUrl = function (networkUrl,timeLineUrl){
                 edges = removeUselessEdges(edges);
             }
             current = + edges[0][NGLC_TIME_COLUMN_NAME]/*- (lapseTime / 2)*/;
-            paintGraphOnlyNodes(nodes)
+            paintGraphOnlyNodes(nodes);
             currentEdgePosition = updateGraph(edges,current -1, getNextTime(currentEdgePosition+1, edges, current), true)
         })
 
@@ -1038,12 +1040,13 @@ var paintGraphOnlyNodes = function (nodes) {
         var node = {
             id: key,
             label: key
-        }
+        };
         this.node = node;
         this.elements = 0;
     });
+
     var paintNodes = $.map(nodes,function (value,key){
-        var node = {}
+        var node = {};
         node.id = key;
         node.label = key+": " +value.elements;
         node.x = value.x;
@@ -1052,7 +1055,7 @@ var paintGraphOnlyNodes = function (nodes) {
         node.allowedToMoveY = true;
         node.elements = value.elements;
         return node;
-    })
+    });
 
     var data = {
         nodes: paintNodes
@@ -1068,31 +1071,33 @@ var paintGraphOnlyNodes = function (nodes) {
         //console.log(index);
         progressBarColors[index] = arrayOfProgressBarColors[i++];
         customCSS += ".progress-bar-"+index.toLowerCase().replace(/ /g,'')+" {background-color: "+progressBarColors[index]+"}\n";
+        $('<div />', {
+            id: NGLC_PROGRESSBAR_ID + index.toLowerCase().replace(/ /g,''),
+            class: "progress-bar progress-bar-" + index.toLowerCase().replace(/ /g,'')
+        }).appendTo('#'+NGLC_TIMELINEPROGRESSBAR);
     });
     addCSStoHTML(customCSS);
 
-    $.each(networkGraph.nodes,function (key,value){
-        var node = {}
+    $.each(networkGraph.nodes,function (key,value) {
+        var node = {};
         node.node = value;
         node.elements = 0;
         node.id = key;
 //        nodesExtraInfo[key].node = node;
         value.elements = 0;
         value.progressbarcolor = progressBarColors[key];
-    })
+    });
     resetShowedElements();
     networkGraph.on('select',function (properties){
         selectedNodes = {};
         $.each (properties.nodes, function (){
             selectedNodes[this] = networkGraph.nodes[this];
             //console.log(this)
-        })
+        });
         paintFooter(selectedNodes, extraColumnsActive);
         //console.debug(properties.nodes)
     });
-    return;
-
-}
+};
 
 var paintGraphUpdateEdges = function (nodes,edges){
 
@@ -1105,12 +1110,12 @@ var paintGraphUpdateEdges = function (nodes,edges){
         edge.style = "arrow";
         edge.color = value.edge["color"];
         return [edge]
-    })
+    });
 
     $.map(nodes,function (value,key){
         value.label = key+": " +value.elements;
         return value;
-    })
+    });
     /* Set up the nodes for vis library*/
     /*This code is not needed because this function only update the edges
     var paintNodes = $.map(nodes,function (value,key){
@@ -1127,8 +1132,7 @@ var paintGraphUpdateEdges = function (nodes,edges){
 */
     networkGraph.edgesData.clear();
     networkGraph.edgesData.add(paintEdges);
-
-}
+};
 
 var getOptions = function() {
 
@@ -1154,40 +1158,43 @@ var getOptions = function() {
 //        options.configurePhysics = true
     }
     return options
-}
+};
 
 /*DEBUG*/
 var upStart = function (event){
     event.target.isStoped = false;
     up();
     setTimeout(upStartTimer.bind(event.target),timerFirst);
-}
+};
+
 var upStartTimer = function (){
     if (!this.isStoped){
-        up()
+        up();
         setTimeout(upStartTimer.bind(this),timerRest);
     }
-}
+};
+
 var upStop = function (event) {
     event.target.isStoped = true;
-}
+};
 
 /*DEBUG*/
 var botStart = function (event){
     event.target.isStoped = false;
     bot();
     setTimeout(botStartTimer.bind(event.target),timerFirst);
-}
+};
+
 var botStartTimer = function (){
     if (!this.isStoped){
         bot()
         setTimeout(botStartTimer.bind(this),timerRest);
     }
-}
+};
 
 var botStop = function (event) {
     event.target.isStoped = true;
-}
+};
 
 var getNextTime = function(currentPos, myEdges, currTime) {
     if(currentPos<=0) {
@@ -1198,7 +1205,7 @@ var getNextTime = function(currentPos, myEdges, currTime) {
         //console.log(myEdges[currentPos][NGLC_TIME_COLUMN_NAME]);
         return +(myEdges[currentPos][NGLC_TIME_COLUMN_NAME]) - currTime;
     }
-}
+};
 
 var getPreviousTime = function(currentPos, myEdges) {
     if(currentPos <= 0) {
@@ -1206,30 +1213,30 @@ var getPreviousTime = function(currentPos, myEdges) {
     } else {
         return +(myEdges[currentPos-1][NGLC_TIME_COLUMN_NAME]);
     }
-}
+};
 
 /**
  * Pressed button to go forward.
  */
 var up = function () {
-    var nextTime = getNextTime(currentEdgePosition, edges, current)
+    var nextTime = getNextTime(currentEdgePosition, edges, current);
     var i = 0;
     while (+(current) + nextTime <= +(current)) {
-        nextTime = getNextTime(currentEdgePosition++, edges, current)
+        nextTime = getNextTime(currentEdgePosition++, edges, current);
         i++;
     }
     $("#nglc-internal-slider").slider('value', current);
     current = +(current) + nextTime;
     var lapse = getNextTime(currentEdgePosition + 1, edges, current);
     currentEdgePosition = updateGraph(edges, current - 1, lapse, false);
-}
+};
 
 /**
  * Pressed button to go backwards.
  */
 var bot = function () {
     if(reachedEnd) {
-        current = edges[edges.length - 2][NGLC_TIME_COLUMN_NAME]
+        current = edges[edges.length - 2][NGLC_TIME_COLUMN_NAME];
         reachedEnd = false;
         $("#nglc-internal-slider").slider('value', current);
         currentEdgePosition = updateGraph(edges,current, edges[edges.length - 2][NGLC_MEANTIME_COLUMN_NAME], false);
@@ -1243,9 +1250,9 @@ var bot = function () {
         $("#nglc-internal-slider").slider('value', current);
         currentEdgePosition = updateGraph(edges,current, getNextTime(currentEdgePosition, edges, current), false);
     }
-}
+};
 
 var re = function () {
     current = +1388655879000-lapseTime/2;
-    currentEdgePosition = updateGraph(edges,current,lapseTime,false)
-}
+    currentEdgePosition = updateGraph(edges,current,lapseTime,false);
+};
