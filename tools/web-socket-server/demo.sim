@@ -1,6 +1,6 @@
 /wss 0=ws0 1=ws1
 /start
-0 send ws0 {command:"time",before:300000, after:120000}
+0 send ws0 {command:"time",before:180000, after:120000}
 0 send ws1 {command:"time",before:600000, after:180000}
 1000 send ws0 {command:"event",event:"NodeId01_CPU_75"}
 10000 send ws0 {command:"event",event:"NodeId01_CPU_90"}
