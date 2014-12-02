@@ -294,23 +294,25 @@ var resizingCanvasChart = function (charts){
     $(function (){
 
         var width = canvas.parent().width();
-        canvas.attr('width', width)
-        $.each(canvas,function(){
-            if (this.smoothie !== undefined) {
-                var timePerPixel = this.smoothie.graphTime / width;
-                if (this.smoothie.zero === undefined) {
-                    this.smoothie.zero = PV_ZERO_POS
-                }
-                this.smoothie.options.millisPerPixel = timePerPixel;
-                drawOnCanvasEvents($(this))
-                var svg =  $(this).parent().find('svg.'+PV_SVG_FOOTER_CLASS);
+        if (width != 0 ){
+            canvas.attr('width', width)
+            $.each(canvas,function(){
+                if (this.smoothie !== undefined) {
+                    var timePerPixel = this.smoothie.graphTime / width;
+                    if (this.smoothie.zero === undefined) {
+                        this.smoothie.zero = PV_ZERO_POS
+                    }
+                    this.smoothie.options.millisPerPixel = timePerPixel;
+                    drawOnCanvasEvents($(this))
+                    var svg =  $(this).parent().find('svg.'+PV_SVG_FOOTER_CLASS);
 
-                drawFooter(svg,width,timePerPixel,this.smoothie.footerVerticalLine,this.smoothie.zero);
-                drawOnCanvasBase(this)
-            }
-            var divChart = getCharDiv(canvas);
-            divChart.find("."+PV_EVENTS_COUNT_PARENT).css('height',canvas.parent().height())
-        })
+                    drawFooter(svg,width,timePerPixel,this.smoothie.footerVerticalLine,this.smoothie.zero);
+                    drawOnCanvasBase(this)
+                }
+                var divChart = getCharDiv(canvas);
+                divChart.find("."+PV_EVENTS_COUNT_PARENT).css('height',canvas.parent().height())
+            })
+        }
     })
 
 
