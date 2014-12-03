@@ -242,23 +242,23 @@ The messages must be a string in json format. They are the following:
 
 * **Add Event**: This message indicates that a type of event has occur in the system. The attributes are the following: 
   * *command*: "event"
-  * *event*: <eventTypeName>
+  * *event*: \<eventTypeName\>
 * **Set prediction**: This message indicates a new prediction value of a event type. The attributes are the following:
   * *command*: "prediction"
-  * *event*: <eventTypeName>
-  * *prediction*: <predictionValue>, percentage format
+  * *event*: \<eventTypeName\>
+  * *prediction*: \<predictionValue\>, percentage format
 * **New prediction result**: This messages indicates the result of a prediction. The attributes are the following: 
   * *command*: "result"
-  * *event*: <eventTypeName>
-  * *result*: <hit|miss-fp|miss-fn>
+  * *event*: \<eventTypeName>
+  * *result*: \<hit|miss-fp|miss-fn\>
 * **Set alert**: Indicates a new prediction alert. The attributes are the following: 
   * *command*: "alert
-  * *event*: <eventTypeName>
-  * *alert*: <on|off>
+  * *event*: \<eventTypeName\>
+  * *alert*: \<on|off\>
 * **Set windows time**: This message indicates the windows time, observation and prediction. The attributes are the following: 
   * *command*: "time"
-  * *before*: <time>, time of the observation window, it is optional and it is indicates in milliseconds 
-  * *after*: <time>, time of the prediction window, it is optional and it is indicates in milliseconds 
+  * *before*: \<time\>, time of the observation window, it is optional and it is indicates in milliseconds 
+  * *after*: \<time\>, time of the prediction window, it is optional and it is indicates in milliseconds 
 
 ##### Technologies and libraries 
 
