@@ -292,7 +292,6 @@ var resizingCanvasChart = function (charts){
     }
     canvas.attr('height',actualHeight)
     $(function (){
-
         var width = canvas.parent().width();
         if (width != 0 ){
             canvas.attr('width', width)
@@ -314,9 +313,6 @@ var resizingCanvasChart = function (charts){
             })
         }
     })
-
-
-
 }
 
 var getIndexOfCanvas = function (canvas) {
