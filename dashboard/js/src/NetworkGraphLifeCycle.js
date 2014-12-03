@@ -955,7 +955,7 @@ var paintSlideBar = function (start,currentTime,end){
         },
         stop : function (event,ui){
             var div = $(ui.handle).parent().children(".tooltip")[0];
-            current =parseInt(ui.value)
+            current =parseInt(ui.value);
             currentEdgePosition = updateGraph(edges,current ,lapseTime,false)
 
             var currentDate = new Date(current );
@@ -1100,10 +1100,9 @@ var paintGraphOnlyNodes = function (nodes) {
 };
 
 var paintGraphUpdateEdges = function (nodes,edges){
-
     /* Set up the edges for vis library*/
     var paintEdges = $.map (edges, function (value){
-        var edge = {}
+        var edge = {};
         edge.from = value.edge[NGLC_ORIGIN_COLUMN_NAME]
         edge.to = value.edge[NGLC_DESTINATION_COLUMN_NAME];
         edge.label = value.count;
@@ -1187,7 +1186,7 @@ var botStart = function (event){
 
 var botStartTimer = function (){
     if (!this.isStoped){
-        bot()
+        bot();
         setTimeout(botStartTimer.bind(this),timerRest);
     }
 };
@@ -1228,13 +1227,57 @@ var up = function () {
     $("#nglc-internal-slider").slider('value', current);
     current = +(current) + nextTime;
     var lapse = getNextTime(currentEdgePosition + 1, edges, current);
+    if(itemsFiltered[NGLC_FILTER_PREFIX+NGLC_ID_COLUMN_NAME].length == 1) {
+        updateProgressBar(currentEdgePosition, "up");
+    }
     currentEdgePosition = updateGraph(edges, current - 1, lapse, false);
+};
+
+/**
+ * This method repaints the progress bar depending on the position and direction.
+ * @param currpos
+ * @param direction
+ */
+var updateProgressBar = function (currpos, direction) {
+    var start = edges[0][NGLC_TIME_COLUMN_NAME];
+    var end = edges[edges.length-1][NGLC_TIME_COLUMN_NAME];
+    var total = +(end)-+(start);
+    var arrayDurationData = {};
+    if(direction == "up") {
+        for (var i = 0; i < currpos; i++) {
+            if(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]] === undefined) {
+                arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]] = edges[i][NGLC_MEANTIME_COLUMN_NAME];
+            } else {
+                arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]] = +(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]]) + (edges[i][NGLC_MEANTIME_COLUMN_NAME]);
+            }
+            var progressbar = $('#'+NGLC_PROGRESSBAR_ID+edges[i][NGLC_DESTINATION_COLUMN_NAME].toLowerCase().replace(/ /g,''));
+            var percentage = +(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]])*100 /+(total);
+            progressbar.css('width', percentage+'%');
+        }
+    } else if(direction == "bot") {
+        resetProgressBar();
+        updateProgressBar(currpos-2, "up");
+    }
+
+};
+
+/**
+ * This method resets the progress bar to its original state. Used when the timeline is going backwards.
+ */
+var resetProgressBar = function () {
+    $.each(networkGraph.nodes, function(name, value) {
+        var progressbar = $('#'+NGLC_PROGRESSBAR_ID+name.toLowerCase().replace(/ /g,''));
+        progressbar.css('width', '0%');
+    });
 };
 
 /**
  * Pressed button to go backwards.
  */
 var bot = function () {
+    if(itemsFiltered[NGLC_FILTER_PREFIX+NGLC_ID_COLUMN_NAME].length == 1) {
+        updateProgressBar(currentEdgePosition, "bot");
+    }
     if(reachedEnd) {
         current = edges[edges.length - 2][NGLC_TIME_COLUMN_NAME];
         reachedEnd = false;
@@ -1250,6 +1293,7 @@ var bot = function () {
         $("#nglc-internal-slider").slider('value', current);
         currentEdgePosition = updateGraph(edges,current, getNextTime(currentEdgePosition, edges, current), false);
     }
+
 };
 
 var re = function () {
