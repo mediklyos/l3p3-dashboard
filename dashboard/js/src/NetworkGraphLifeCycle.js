@@ -1071,10 +1071,10 @@ var paintGraphOnlyNodes = function (nodes) {
         //console.log(index);
         progressBarColors[index] = arrayOfProgressBarColors[i++];
         customCSS += ".progress-bar-"+index.toLowerCase().replace(/ /g,'')+" {background-color: "+progressBarColors[index]+"}\n";
-        $('<div />', {
+        /*$('<div />', {
             id: NGLC_PROGRESSBAR_ID + index.toLowerCase().replace(/ /g,''),
             class: "progress-bar progress-bar-" + index.toLowerCase().replace(/ /g,'')
-        }).appendTo('#'+NGLC_TIMELINEPROGRESSBAR);
+        }).appendTo('#'+NGLC_TIMELINEPROGRESSBAR);*/
     });
     addCSStoHTML(customCSS);
 
@@ -1251,6 +1251,14 @@ var updateProgressBar = function (currpos, direction) {
                 arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]] = +(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]]) + (edges[i][NGLC_MEANTIME_COLUMN_NAME]);
             }
             var progressbar = $('#'+NGLC_PROGRESSBAR_ID+edges[i][NGLC_DESTINATION_COLUMN_NAME].toLowerCase().replace(/ /g,''));
+            if(progressbar.length == 0) {
+                progressbar = $('<div />', {
+                    id: NGLC_PROGRESSBAR_ID + edges[i][NGLC_DESTINATION_COLUMN_NAME].toLowerCase().replace(/ /g,''),
+                    class: "progress-bar progress-bar-" + edges[i][NGLC_DESTINATION_COLUMN_NAME].toLowerCase().replace(/ /g,'')
+                }).appendTo('#'+NGLC_TIMELINEPROGRESSBAR);
+
+            }
+
             var percentage = +(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]])*100 /+(total);
             progressbar.css('width', percentage+'%');
         }
