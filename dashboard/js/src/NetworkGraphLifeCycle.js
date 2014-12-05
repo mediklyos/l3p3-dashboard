@@ -95,6 +95,7 @@ $.each(extraColumnsShown, function(index, value) {
     itemsFiltered[NGLC_FILTER_PREFIX+value] = []
 });
 //itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345");
+//itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001037822");
 var filterDropdown = [NGLC_PRIORITY_COLUMN_NAME, NGLC_CAUSE_COLUMN_NAME];
 var dropdownSelectFilter = {};
 $.each(filterDropdown, function(index, value) {
@@ -119,12 +120,8 @@ var addCSStoHTML = function(css) {
 }
 
 addCSStoHTML('.ui-widget-header {border: 1px solid #aaaaaa;background: #97C2FC; color: #222222} .customli { margin-left: 10px;}');
-
-//    '.progress-bar-draft {background-color: '+NGLC_BGCOLOR_PROG_BAR_DRAFT+'}' +
-//    '.progress-bar-waitingaccept {background-color: '+NGLC_BGCOLOR_PROG_BAR_DRAFT+'}';
-
-
-var nglc_startRoutine = function (){
+addCSStoHTML('.timebox {box-shadow: 12px 0 15px -4px rgba(31, 73, 125, 0.8), -12px 0 8px -4px rgba(31, 73, 125, 0.8);width: 100px;height: 100px;margin: 50px;background: white;}');
+var nglc_startRoutine = function () {
     nglc_reset();
     lapseTime = 4000000;
     velocity = 4000000;
@@ -930,11 +927,13 @@ var paintSlideBar = function (start,currentTime,end){
         id: NGLC_DIV_START_DATE,
         text: new Intl.DateTimeFormat(myLocale, formatOptions).format(startDate)
     }).appendTo(internalDiv)
+    console.log(start)
+    console.log(end)
     var tooltip = undefined;
     slider = jQuery('<div/>').slider({
         range: "min",
-        min: parseInt(start),
-        max: parseInt(end),
+        min: parseInt(edges[0][NGLC_TIME_COLUMN_NAME]),
+        max: parseInt(edges[edges.length-1][NGLC_TIME_COLUMN_NAME]),
         //step: (parseInt(end)-parseInt(start))/edges.length,
         value: parseInt(current),
         slide : function (event,ui){
@@ -1137,12 +1136,6 @@ var getOptions = function() {
 
     var options = {
         physics: {
-//            barnesHut: {
-//                gravitationalConstant: 0,
-//                centralGravity: 0,
-//                springLength: 0,
-//                springConstant: 0,
-//                damping: 0}
             barnesHut: {gravitationalConstant: 0, centralGravity: 0, springConstant: 0}
         },
         smoothCurves : {
@@ -1201,7 +1194,6 @@ var getNextTime = function(currentPos, myEdges, currTime) {
     } else if(currentPos >= myEdges.length) {
         return lapseTime;
     } else {
-        //console.log(myEdges[currentPos][NGLC_TIME_COLUMN_NAME]);
         return +(myEdges[currentPos][NGLC_TIME_COLUMN_NAME]) - currTime;
     }
 };
@@ -1239,16 +1231,17 @@ var up = function () {
  * @param direction
  */
 var updateProgressBar = function (currpos, direction) {
+    var localpos = currpos;
     var start = edges[0][NGLC_TIME_COLUMN_NAME];
     var end = edges[edges.length-1][NGLC_TIME_COLUMN_NAME];
     var total = +(end)-+(start);
     var arrayDurationData = {};
     if(direction == "up") {
-        for (var i = 0; i < currpos; i++) {
+        for (var i = 0; i < localpos-1; i++) {
             if(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]] === undefined) {
                 arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]] = edges[i][NGLC_MEANTIME_COLUMN_NAME];
             } else {
-                arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]] = +(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]]) + (edges[i][NGLC_MEANTIME_COLUMN_NAME]);
+                arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]] = +(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]]) + +(edges[i][NGLC_MEANTIME_COLUMN_NAME]);
             }
             var progressbar = $('#'+NGLC_PROGRESSBAR_ID+edges[i][NGLC_DESTINATION_COLUMN_NAME].toLowerCase().replace(/ /g,''));
             if(progressbar.length == 0) {
@@ -1256,17 +1249,14 @@ var updateProgressBar = function (currpos, direction) {
                     id: NGLC_PROGRESSBAR_ID + edges[i][NGLC_DESTINATION_COLUMN_NAME].toLowerCase().replace(/ /g,''),
                     class: "progress-bar progress-bar-" + edges[i][NGLC_DESTINATION_COLUMN_NAME].toLowerCase().replace(/ /g,'')
                 }).appendTo('#'+NGLC_TIMELINEPROGRESSBAR);
-
             }
-
             var percentage = +(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]])*100 /+(total);
             progressbar.css('width', percentage+'%');
         }
     } else if(direction == "bot") {
         resetProgressBar();
-        updateProgressBar(currpos-2, "up");
+        updateProgressBar(localpos-2, "up");
     }
-
 };
 
 /**
