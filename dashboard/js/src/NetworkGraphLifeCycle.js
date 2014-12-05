@@ -95,7 +95,7 @@ $.each(extraColumnsShown, function(index, value) {
     itemsFiltered[NGLC_FILTER_PREFIX+value] = []
 });
 //itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345");
-itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001037822");
+//itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001037822");
 var filterDropdown = [NGLC_PRIORITY_COLUMN_NAME, NGLC_CAUSE_COLUMN_NAME];
 var dropdownSelectFilter = {};
 $.each(filterDropdown, function(index, value) {
