@@ -95,7 +95,7 @@ $.each(extraColumnsShown, function(index, value) {
     itemsFiltered[NGLC_FILTER_PREFIX+value] = []
 });
 //itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345");
-//itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001037822");
+itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001037822");
 var filterDropdown = [NGLC_PRIORITY_COLUMN_NAME, NGLC_CAUSE_COLUMN_NAME];
 var dropdownSelectFilter = {};
 $.each(filterDropdown, function(index, value) {
@@ -120,7 +120,9 @@ var addCSStoHTML = function(css) {
 }
 
 addCSStoHTML('.ui-widget-header {border: 1px solid #aaaaaa;background: #97C2FC; color: #222222} .customli { margin-left: 10px;}');
-addCSStoHTML('.timebox {box-shadow: 12px 0 15px -4px rgba(31, 73, 125, 0.8), -12px 0 8px -4px rgba(31, 73, 125, 0.8);width: 100px;height: 100px;margin: 50px;background: white;}');
+addCSStoHTML('.timeTable {width: 350px;position: fixed;top: 180px;right: 50px;}#rfcTimeTable td {border: 0px solid white;}');
+addCSStoHTML('.squared {border: 2x solid red;}');
+
 var nglc_startRoutine = function () {
     nglc_reset();
     lapseTime = 4000000;
@@ -1225,6 +1227,7 @@ var up = function () {
     currentEdgePosition = updateGraph(edges, current - 1, lapse, false);
 };
 
+var arrayDurationData;
 /**
  * This method repaints the progress bar depending on the position and direction.
  * @param currpos
@@ -1235,9 +1238,9 @@ var updateProgressBar = function (currpos, direction) {
     var start = edges[0][NGLC_TIME_COLUMN_NAME];
     var end = edges[edges.length-1][NGLC_TIME_COLUMN_NAME];
     var total = +(end)-+(start);
-    var arrayDurationData = {};
+    arrayDurationData = {};
     if(direction == "up") {
-        for (var i = 0; i < localpos-1; i++) {
+        for (var i = 0; i < localpos; i++) {
             if(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]] === undefined) {
                 arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]] = edges[i][NGLC_MEANTIME_COLUMN_NAME];
             } else {
@@ -1252,11 +1255,14 @@ var updateProgressBar = function (currpos, direction) {
             }
             var percentage = +(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]])*100 /+(total);
             progressbar.css('width', percentage+'%');
+            updateTableTimesProgressBar(localpos);
         }
     } else if(direction == "bot") {
         resetProgressBar();
         updateProgressBar(localpos-2, "up");
+        updateTableTimesProgressBar(localpos-2);
     }
+    
 };
 
 /**
@@ -1268,6 +1274,26 @@ var resetProgressBar = function () {
         progressbar.css('width', '0%');
     });
 };
+
+var updateTableTimesProgressBar = function (currpos) {
+    var localpos = currpos;
+    var mytable = $('#rfcTimeTable');
+    $('#rfcTimeTable > tbody').remove();
+    //mytable.remove();
+    for (var i = 0; i < localpos; i++) {
+        var row = $('<tr />');
+        row.append("<td><span style='font-size:12px; padding-left:15px;' class='progress-bar-"+edges[i][NGLC_DESTINATION_COLUMN_NAME].toLowerCase().replace(/ /g,'')+"'>&nbsp;</span></td>");
+        $('<td />', {
+            style: "width: 180px; font-weight: bold; font-size: 12px;",
+            text: edges[i][NGLC_DESTINATION_COLUMN_NAME]
+        }).appendTo(row);
+        $('<td />', {
+            style: "font-size: 12px;",
+            text: msToTime(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]])
+        }).appendTo(row);
+        row.appendTo(mytable);
+    }
+}
 
 /**
  * Pressed button to go backwards.
