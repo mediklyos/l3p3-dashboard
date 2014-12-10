@@ -360,6 +360,8 @@ var nglc_reset = function () {
     $("#"+NGLC_GRAPH_CONTAINER).empty();
     $("#"+NGLC_SLIDER_PANEL).empty();
     selectedNodes = {};
+    resetProgressBar(1, "up");
+    updateTableTimesProgressBar(0);
 }
 
 var setNetworkFile = function (url){
@@ -1269,10 +1271,12 @@ var updateProgressBar = function (currpos, direction) {
  * This method resets the progress bar to its original state. Used when the timeline is going backwards.
  */
 var resetProgressBar = function () {
-    $.each(networkGraph.nodes, function(name, value) {
-        var progressbar = $('#'+NGLC_PROGRESSBAR_ID+name.toLowerCase().replace(/ /g,''));
-        progressbar.css('width', '0%');
-    });
+    if(networkGraph != undefined) {
+        $.each(networkGraph.nodes, function(name, value) {
+            var progressbar = $('#'+NGLC_PROGRESSBAR_ID+name.toLowerCase().replace(/ /g,''));
+            progressbar.css('width', '0%');
+        });
+    }
 };
 
 var updateTableTimesProgressBar = function (currpos) {
