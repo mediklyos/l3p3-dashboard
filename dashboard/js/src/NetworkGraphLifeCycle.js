@@ -9,28 +9,30 @@ var PRE = views[0][2].constantsPrefix;
 /*HTML id constants*/
 
 var NGLC_TEXT_EXPORT_BUTTON = "Export nodes";
-var NGLC_TEXT_LOAD_NODES = "Load Nodes"
-var NGLC_TEXT_LOAD_TIMELINE = "Load Timeline"
-var NGLC_GRAPH_CONTAINER = PRE + "-graph"
-var NGLC_SLIDER_PANEL = PRE +"-temporal-bar"
-var NGLC_GRAPH_PANEL = PRE + "-graph-panel"
-var NGLC_SLIDER_SUBPANEL = PRE + "-slider-subpanel"
-var NGLC_INTERNAL_SLIDER = PRE + "-internal-slider"
-var NGLC_DIV_START_DATE = PRE + "-start-date"
-var NGLC_DIV_END_DATE = PRE + "-end-date"
+var NGLC_TEXT_LOAD_NODES = "Load Nodes";
+var NGLC_TEXT_LOAD_TIMELINE = "Load Timeline";
+var NGLC_GRAPH_CONTAINER = PRE + "-graph";
+var NGLC_SLIDER_PANEL = PRE +"-temporal-bar";
+var NGLC_GRAPH_PANEL = PRE + "-graph-panel";
+var NGLC_SLIDER_SUBPANEL = PRE + "-slider-subpanel";
+var NGLC_INTERNAL_SLIDER = PRE + "-internal-slider";
+var NGLC_DIV_START_DATE = PRE + "-start-date";
+var NGLC_DIV_END_DATE = PRE + "-end-date";
 var NGLC_ID_FILE_INPUT_NODES = PRE + "-input-nodes";
 var NGLC_ID_TIME_SLIDER = PRE + "-time-slider";
 var NGLC_FILTER_PANEL = PRE + "-filter-panel";
-var NGLC_FILTER_COLUMNS_BUTTONS_PREFIX_ID = PRE + "-buttons-columns-filter-"
-var NGLC_FILTER_COLUMNS_BUTTONS_CLASS = PRE + "-buttons-columns-class"
-var NGLC_FOOTER_ID = PRE + "-footer-id"
-var NGLC_FOOTER_NODE_TABLE = PRE + "-footer-node-table"
-var NGLC_LEFT_MAIN= PRE + "-left-main"
-var NGLC_FILTER_BOX= PRE + "-filter-box"
+var NGLC_FILTER_COLUMNS_BUTTONS_PREFIX_ID = PRE + "-buttons-columns-filter-";
+var NGLC_FILTER_COLUMNS_BUTTONS_CLASS = PRE + "-buttons-columns-class";
+var NGLC_FOOTER_ID = PRE + "-footer-id";
+var NGLC_FOOTER_NODE_TABLE = PRE + "-footer-node-table";
+var NGLC_LEFT_MAIN= PRE + "-left-main";
+var NGLC_FILTER_BOX= PRE + "-filter-box";
 var NGLC_FILTER_PANEL_BY_ATTR_BOX = PRE + "-filter-panel-by-attr-box";
 var NGLC_FILTER_PANEL_BY_ATTR = PRE + "-filter-panel-by-attr";
-var NGLC_FILTER_COLUMNS_PANELS_PREFIX_ID = PRE + "-panel-filter-"
-var NGLC_FILTER_COLUMNS_PANEL_CLASS = PRE + "-panel-filter-class"
+var NGLC_FILTER_COLUMNS_PANELS_PREFIX_ID = PRE + "-panel-filter-";
+var NGLC_FILTER_COLUMNS_PANEL_CLASS = PRE + "-panel-filter-class";
+var NGLC_TIMELINEPROGRESSBAR = PRE + "-timelineprogressbar";
+var NGLC_PROGRESSBAR_ID = PRE + "-progress-bar-id-";
 /*Textos localizacion*/
 var NGLC_FILTERS_COLS_INFO= "Columns ";
 var NGLC_FILTERS_INPUTS_INFO = "Filters";
@@ -38,14 +40,14 @@ var NGLC_FILTERS_INPUTS_INFO = "Filters";
 /*Configurable constants*/
 var NGLC_ORIGIN_COLUMN_NAME = "origin";
 var NGLC_DESTINATION_COLUMN_NAME = "destination";
-var NGLC_TIME_COLUMN_NAME = "time"
+var NGLC_TIME_COLUMN_NAME = "time";
 var NGLC_MEANTIME_COLUMN_NAME = "meantime";
-var NGLC_ID_COLUMN_NAME = "id"
-var NGLC_PRIORITY_COLUMN_NAME = "priority"
-var NGLC_ZONE_COLUMN_NAME = "bank"
+var NGLC_ID_COLUMN_NAME = "id";
+var NGLC_PRIORITY_COLUMN_NAME = "priority";
+var NGLC_ZONE_COLUMN_NAME = "bank";
 var NGLC_CAUSE_COLUMN_NAME = "type";
 
-var NGLC_START_NODE_NAME = "Start"
+var NGLC_START_NODE_NAME = "Start";
 
 var NGLC_FILTER_PREFIX = "filter-";
 
@@ -70,7 +72,7 @@ var displayTimePrecision = 5;
 var lastLoaded = 0;
 var lastTime = 0;
 var extraColumnsShown = [NGLC_ID_COLUMN_NAME, NGLC_PRIORITY_COLUMN_NAME, NGLC_ZONE_COLUMN_NAME, NGLC_CAUSE_COLUMN_NAME];
-var columnsIgnored = {time:true,origin:true,destination:true}
+var columnsIgnored = {time:true,origin:true,destination:true};
 var extraColumnsActive = {};
 var selectedNodes = {};
 var timerFirst = 1000;
@@ -93,6 +95,7 @@ $.each(extraColumnsShown, function(index, value) {
     itemsFiltered[NGLC_FILTER_PREFIX+value] = []
 });
 //itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001034345");
+itemsFiltered[NGLC_FILTER_PREFIX+"id"].push("RFC000001037822");
 var filterDropdown = [NGLC_PRIORITY_COLUMN_NAME, NGLC_CAUSE_COLUMN_NAME];
 var dropdownSelectFilter = {};
 $.each(filterDropdown, function(index, value) {
@@ -101,13 +104,26 @@ $.each(filterDropdown, function(index, value) {
 
 var appliedDropdownList = false;
 /*
-    Slider styles. There's no need to modify the jQuery CSS file, so I create it here.
+    Custom styles. There's no need to modify the jQuery CSS file, so I create it here.
  */
-var styleEl = document.createElement('style');
-styleEl.innerHTML = '.ui-widget-header {border: 1px solid #aaaaaa;background: #97C2FC; color: #222222} .customli { margin-left: 10px;}';
-document.head.appendChild(styleEl);
+var arrayOfProgressBarColors = ["#5CB85C", "#16A085", "#2ECC71", "#27AE60", "#3498DB", "#2980B9", "#9B59B6", "#8E44AD", "#F1C40F", "#F39C12", "#E67E22", "#D35400", "#E74C3C", "#C0392B", "#7F8C8D"];
+var progressBarColors = {};
 
-var nglc_startRoutine = function (){
+$.each(filterDropdown, function(index, value) {
+    dropdownSelectFilter[NGLC_FILTER_PREFIX+value] = []
+});
+
+var addCSStoHTML = function(css) {
+    var styleEl = document.createElement('style');
+    styleEl.innerHTML = css;
+    document.head.appendChild(styleEl);
+}
+
+addCSStoHTML('.ui-widget-header {border: 1px solid #aaaaaa;background: #97C2FC; color: #222222} .customli { margin-left: 10px;}');
+addCSStoHTML('.timeTable {width: 350px;position: fixed;top: 180px;right: 50px;}#rfcTimeTable td {border: 0px solid white;}');
+addCSStoHTML('.squared {border: 2x solid red;}');
+
+var nglc_startRoutine = function () {
     nglc_reset();
     lapseTime = 4000000;
     velocity = 4000000;
@@ -122,11 +138,11 @@ var nglc_startRoutine = function (){
         loadStatsFromFile("data/nglc-demo/stats.json");
         loadFromUrl(networkUrl,timeLineUrl)
     }
-}
+};
 
 var resetEdges = function () {
     $("#"+NGLC_INTERNAL_SLIDER).slider("option","value",$("#"+NGLC_INTERNAL_SLIDER).slider("option","min"))
-}
+};
 
 // Es aquí donde se crean las extraCols
 var resetShowedElements = function () {
@@ -139,7 +155,7 @@ var resetShowedElements = function () {
         })
     })
 
-}
+};
 
 var dateFormats = [
     {id: "year", value: "numeric"},
@@ -148,7 +164,7 @@ var dateFormats = [
     {id: "hour", value: "2-digit"},
     {id: "minute", value: "2-digit"},
     {id: "second", value: "2-digit"}
-]
+];
 
 var nglcResizeFunction = function (){
     $("#"+NGLC_GRAPH_CONTAINER).css('height',$("#content").outerHeight() + $("#content").offset().top - $("#"+NGLC_GRAPH_CONTAINER).offset().top)
@@ -156,11 +172,11 @@ var nglcResizeFunction = function (){
     if (networkGraph !== undefined) {
         networkGraph.redraw();
     }
-}
+};
 
 var nglcCleanFunction  = function (){
     $(window).unbind('resize', nglcResizeFunction)
-}
+};
 
 var loadNodesClick = function() {
     $("#"+NGLC_ID_FILE_INPUT_NODES).click();
@@ -170,15 +186,15 @@ var loadNodesClick = function() {
             loadNodesFromFile(file);
         }
     })
-}
+};
 
 var exportButtonClick  = function () {
-    var nodes = {}
+    var nodes = {};
     $.each(networkGraph.nodes,function (key,value){
         nodes[key] = {};
         nodes[key].x = value.x
         nodes[key].y = value.y
-    })
+    });
     var string = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(nodes));
     $(this)
         .attr({
@@ -186,7 +202,7 @@ var exportButtonClick  = function () {
             'href': string,
             'target': '_blank'
         });
-}
+};
 
 var loadTimeLineClick = function () {
     $("#"+NGLC_ID_FILE_INPUT_NODES).click();
@@ -266,9 +282,9 @@ var initLeftColumnAndFooter = function () {
 
     $("#"+FOOTER_CONTENT_ID).append($('<div/>',{
         id: NGLC_FOOTER_ID
-    }))
+    }));
 
-}
+};
 
 var resetFilterPanel = function (){
     var main = $("#"+NGLC_LEFT_MAIN);
@@ -344,6 +360,8 @@ var nglc_reset = function () {
     $("#"+NGLC_GRAPH_CONTAINER).empty();
     $("#"+NGLC_SLIDER_PANEL).empty();
     selectedNodes = {};
+    resetProgressBar(1, "up");
+    updateTableTimesProgressBar(0);
 }
 
 var setNetworkFile = function (url){
@@ -363,7 +381,7 @@ var loadFromUrl = function (networkUrl,timeLineUrl){
                 edges = removeUselessEdges(edges);
             }
             current = + edges[0][NGLC_TIME_COLUMN_NAME]/*- (lapseTime / 2)*/;
-            paintGraphOnlyNodes(nodes)
+            paintGraphOnlyNodes(nodes);
             currentEdgePosition = updateGraph(edges,current -1, getNextTime(currentEdgePosition+1, edges, current), true)
         })
 
@@ -913,11 +931,13 @@ var paintSlideBar = function (start,currentTime,end){
         id: NGLC_DIV_START_DATE,
         text: new Intl.DateTimeFormat(myLocale, formatOptions).format(startDate)
     }).appendTo(internalDiv)
+    console.log(start)
+    console.log(end)
     var tooltip = undefined;
     slider = jQuery('<div/>').slider({
         range: "min",
-        min: parseInt(start),
-        max: parseInt(end),
+        min: parseInt(edges[0][NGLC_TIME_COLUMN_NAME]),
+        max: parseInt(edges[edges.length-1][NGLC_TIME_COLUMN_NAME]),
         //step: (parseInt(end)-parseInt(start))/edges.length,
         value: parseInt(current),
         slide : function (event,ui){
@@ -938,7 +958,7 @@ var paintSlideBar = function (start,currentTime,end){
         },
         stop : function (event,ui){
             var div = $(ui.handle).parent().children(".tooltip")[0];
-            current =parseInt(ui.value)
+            current =parseInt(ui.value);
             currentEdgePosition = updateGraph(edges,current ,lapseTime,false)
 
             var currentDate = new Date(current );
@@ -1023,12 +1043,13 @@ var paintGraphOnlyNodes = function (nodes) {
         var node = {
             id: key,
             label: key
-        }
+        };
         this.node = node;
         this.elements = 0;
     });
+
     var paintNodes = $.map(nodes,function (value,key){
-        var node = {}
+        var node = {};
         node.id = key;
         node.label = key+": " +value.elements;
         node.x = value.x;
@@ -1037,7 +1058,7 @@ var paintGraphOnlyNodes = function (nodes) {
         node.allowedToMoveY = true;
         node.elements = value.elements;
         return node;
-    })
+    });
 
     var data = {
         nodes: paintNodes
@@ -1047,45 +1068,56 @@ var paintGraphOnlyNodes = function (nodes) {
     resetEdges();
     networkGraph = new vis.Network(container,data,getOptions());
 //    nodesExtraInfo = {}
-    $.each(networkGraph.nodes,function (key,value){
-        var node = {}
+    var i = 0;
+    var customCSS = "";
+    $.each(networkGraph.nodes, function(index, value) {
+        //console.log(index);
+        progressBarColors[index] = arrayOfProgressBarColors[i++];
+        customCSS += ".progress-bar-"+index.toLowerCase().replace(/ /g,'')+" {background-color: "+progressBarColors[index]+"}\n";
+        /*$('<div />', {
+            id: NGLC_PROGRESSBAR_ID + index.toLowerCase().replace(/ /g,''),
+            class: "progress-bar progress-bar-" + index.toLowerCase().replace(/ /g,'')
+        }).appendTo('#'+NGLC_TIMELINEPROGRESSBAR);*/
+    });
+    addCSStoHTML(customCSS);
+
+    $.each(networkGraph.nodes,function (key,value) {
+        var node = {};
         node.node = value;
         node.elements = 0;
         node.id = key;
 //        nodesExtraInfo[key].node = node;
         value.elements = 0;
-    })
+        value.progressbarcolor = progressBarColors[key];
+    });
     resetShowedElements();
     networkGraph.on('select',function (properties){
         selectedNodes = {};
         $.each (properties.nodes, function (){
             selectedNodes[this] = networkGraph.nodes[this];
             //console.log(this)
-        })
+        });
         paintFooter(selectedNodes, extraColumnsActive);
         //console.debug(properties.nodes)
     });
-    return;
-
-}
+};
 
 var paintGraphUpdateEdges = function (nodes,edges){
-
     /* Set up the edges for vis library*/
     var paintEdges = $.map (edges, function (value){
-        var edge = {}
+        var edge = {};
         edge.from = value.edge[NGLC_ORIGIN_COLUMN_NAME]
         edge.to = value.edge[NGLC_DESTINATION_COLUMN_NAME];
         edge.label = value.count;
         edge.style = "arrow";
         edge.color = value.edge["color"];
         return [edge]
-    })
+    });
 
     $.map(nodes,function (value,key){
         value.label = key+": " +value.elements;
         return value;
-    })
+    });
     /* Set up the nodes for vis library*/
     /*This code is not needed because this function only update the edges
     var paintNodes = $.map(nodes,function (value,key){
@@ -1102,19 +1134,12 @@ var paintGraphUpdateEdges = function (nodes,edges){
 */
     networkGraph.edgesData.clear();
     networkGraph.edgesData.add(paintEdges);
-
-}
+};
 
 var getOptions = function() {
 
     var options = {
         physics: {
-//            barnesHut: {
-//                gravitationalConstant: 0,
-//                centralGravity: 0,
-//                springLength: 0,
-//                springConstant: 0,
-//                damping: 0}
             barnesHut: {gravitationalConstant: 0, centralGravity: 0, springConstant: 0}
         },
         smoothCurves : {
@@ -1129,40 +1154,43 @@ var getOptions = function() {
 //        options.configurePhysics = true
     }
     return options
-}
+};
 
 /*DEBUG*/
 var upStart = function (event){
     event.target.isStoped = false;
     up();
     setTimeout(upStartTimer.bind(event.target),timerFirst);
-}
+};
+
 var upStartTimer = function (){
     if (!this.isStoped){
-        up()
+        up();
         setTimeout(upStartTimer.bind(this),timerRest);
     }
-}
+};
+
 var upStop = function (event) {
     event.target.isStoped = true;
-}
+};
 
 /*DEBUG*/
 var botStart = function (event){
     event.target.isStoped = false;
     bot();
     setTimeout(botStartTimer.bind(event.target),timerFirst);
-}
+};
+
 var botStartTimer = function (){
     if (!this.isStoped){
-        bot()
+        bot();
         setTimeout(botStartTimer.bind(this),timerRest);
     }
-}
+};
 
 var botStop = function (event) {
     event.target.isStoped = true;
-}
+};
 
 var getNextTime = function(currentPos, myEdges, currTime) {
     if(currentPos<=0) {
@@ -1170,10 +1198,9 @@ var getNextTime = function(currentPos, myEdges, currTime) {
     } else if(currentPos >= myEdges.length) {
         return lapseTime;
     } else {
-        //console.log(myEdges[currentPos][NGLC_TIME_COLUMN_NAME]);
         return +(myEdges[currentPos][NGLC_TIME_COLUMN_NAME]) - currTime;
     }
-}
+};
 
 var getPreviousTime = function(currentPos, myEdges) {
     if(currentPos <= 0) {
@@ -1181,30 +1208,106 @@ var getPreviousTime = function(currentPos, myEdges) {
     } else {
         return +(myEdges[currentPos-1][NGLC_TIME_COLUMN_NAME]);
     }
-}
+};
 
 /**
  * Pressed button to go forward.
  */
 var up = function () {
-    var nextTime = getNextTime(currentEdgePosition, edges, current)
+    var nextTime = getNextTime(currentEdgePosition, edges, current);
     var i = 0;
     while (+(current) + nextTime <= +(current)) {
-        nextTime = getNextTime(currentEdgePosition++, edges, current)
+        nextTime = getNextTime(currentEdgePosition++, edges, current);
         i++;
     }
     $("#nglc-internal-slider").slider('value', current);
     current = +(current) + nextTime;
     var lapse = getNextTime(currentEdgePosition + 1, edges, current);
+    if(itemsFiltered[NGLC_FILTER_PREFIX+NGLC_ID_COLUMN_NAME].length == 1) {
+        updateProgressBar(currentEdgePosition, "up");
+    }
     currentEdgePosition = updateGraph(edges, current - 1, lapse, false);
+};
+
+var arrayDurationData;
+/**
+ * This method repaints the progress bar depending on the position and direction.
+ * @param currpos
+ * @param direction
+ */
+var updateProgressBar = function (currpos, direction) {
+    var localpos = currpos;
+    var start = edges[0][NGLC_TIME_COLUMN_NAME];
+    var end = edges[edges.length-1][NGLC_TIME_COLUMN_NAME];
+    var total = +(end)-+(start);
+    arrayDurationData = {};
+    if(direction == "up") {
+        for (var i = 0; i < localpos; i++) {
+            if(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]] === undefined) {
+                arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]] = edges[i][NGLC_MEANTIME_COLUMN_NAME];
+            } else {
+                arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]] = +(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]]) + +(edges[i][NGLC_MEANTIME_COLUMN_NAME]);
+            }
+            var progressbar = $('#'+NGLC_PROGRESSBAR_ID+edges[i][NGLC_DESTINATION_COLUMN_NAME].toLowerCase().replace(/ /g,''));
+            if(progressbar.length == 0) {
+                progressbar = $('<div />', {
+                    id: NGLC_PROGRESSBAR_ID + edges[i][NGLC_DESTINATION_COLUMN_NAME].toLowerCase().replace(/ /g,''),
+                    class: "progress-bar progress-bar-" + edges[i][NGLC_DESTINATION_COLUMN_NAME].toLowerCase().replace(/ /g,'')
+                }).appendTo('#'+NGLC_TIMELINEPROGRESSBAR);
+            }
+            var percentage = +(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]])*100 /+(total);
+            progressbar.css('width', percentage+'%');
+            updateTableTimesProgressBar(localpos);
+        }
+    } else if(direction == "bot") {
+        resetProgressBar();
+        updateProgressBar(localpos-2, "up");
+        updateTableTimesProgressBar(localpos-2);
+    }
+    
+};
+
+/**
+ * This method resets the progress bar to its original state. Used when the timeline is going backwards.
+ */
+var resetProgressBar = function () {
+    if(networkGraph != undefined) {
+        $.each(networkGraph.nodes, function(name, value) {
+            var progressbar = $('#'+NGLC_PROGRESSBAR_ID+name.toLowerCase().replace(/ /g,''));
+            progressbar.css('width', '0%');
+        });
+    }
+};
+
+var updateTableTimesProgressBar = function (currpos) {
+    var localpos = currpos;
+    var mytable = $('#rfcTimeTable');
+    $('#rfcTimeTable > tbody').remove();
+    //mytable.remove();
+    for (var i = 0; i < localpos; i++) {
+        var row = $('<tr />');
+        row.append("<td><span style='font-size:12px; padding-left:15px;' class='progress-bar-"+edges[i][NGLC_DESTINATION_COLUMN_NAME].toLowerCase().replace(/ /g,'')+"'>&nbsp;</span></td>");
+        $('<td />', {
+            style: "width: 180px; font-weight: bold; font-size: 12px;",
+            text: edges[i][NGLC_DESTINATION_COLUMN_NAME]
+        }).appendTo(row);
+        $('<td />', {
+            style: "font-size: 12px;",
+            text: msToTime(arrayDurationData[edges[i][NGLC_DESTINATION_COLUMN_NAME]])
+        }).appendTo(row);
+        row.appendTo(mytable);
+    }
 }
 
 /**
  * Pressed button to go backwards.
  */
 var bot = function () {
+    if(itemsFiltered[NGLC_FILTER_PREFIX+NGLC_ID_COLUMN_NAME].length == 1) {
+        updateProgressBar(currentEdgePosition, "bot");
+    }
     if(reachedEnd) {
-        current = edges[edges.length - 2][NGLC_TIME_COLUMN_NAME]
+        current = edges[edges.length - 2][NGLC_TIME_COLUMN_NAME];
         reachedEnd = false;
         $("#nglc-internal-slider").slider('value', current);
         currentEdgePosition = updateGraph(edges,current, edges[edges.length - 2][NGLC_MEANTIME_COLUMN_NAME], false);
@@ -1218,9 +1321,10 @@ var bot = function () {
         $("#nglc-internal-slider").slider('value', current);
         currentEdgePosition = updateGraph(edges,current, getNextTime(currentEdgePosition, edges, current), false);
     }
-}
+
+};
 
 var re = function () {
     current = +1388655879000-lapseTime/2;
-    currentEdgePosition = updateGraph(edges,current,lapseTime,false)
-}
+    currentEdgePosition = updateGraph(edges,current,lapseTime,false);
+};
