@@ -75,29 +75,13 @@ function createSetFilterPanelsByAttributeValue(id,parent,panelList,panel_id_pref
             inputGroupButton.appendTo(inputfilterContainer);
             inputfilterContainer.appendTo(formGroup);
         }
-        /*
-         input with select
-
-         http://www.bootply.com/60932
-
-         <div class="input-group">
-         <input class="form-control" type="text">
-         <div class="input-group-btn">
-         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></button>
-         <ul class="dropdown-menu pull-right">
-         <li><a href="#">Inches</a></li>
-         <li><a href="#">Feet</a></li>
-         <li><a href="#">mm</a></li>
-         </ul>
-         </div>
-         </div>
-         */
 
         var buttonUpdate = jQuery('<button />', {class: "btn btn-default", name: "updatebutton-"+value, text: "Update", style: "margin-right: 5px;"}).click(function(){
             var inputContent = $('#filter-'+value).val();
             updateFilterContent(inputContent, 'filter-'+value)
             $('#filter-'+value).val('');
         });
+
         var buttonReset = jQuery('<button />', {class: "btn btn-default", name: "resetbutton-"+value, text: "Reset"}).click(function(){
             $('#filter-'+value).val('');
             resetFilterContent('filter-'+value)
