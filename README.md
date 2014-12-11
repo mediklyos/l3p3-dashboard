@@ -534,142 +534,142 @@ The view has been created to support the prediction view. It is not finished and
 ## known bugs
 
 TODO
- 
-## Technology summary 
+ ## Technology summary
 
-This chapter summarizes the libraries and technologies used in the views to represent the data
- 
-### Javascript libraries
+ This chapter summarizes the libraries and technologies used in the views to represent the data
 
-#### jQuery
+ ### Javascript libraries
 
-#### [d3.js](https://github.com/mbostock/d3)
+ #### jQuery
 
-* Description:D3.js is a JavaScript library for manipulating documents based on data. D3 helps you bring data to life 
-using HTML, SVG and CSS. D3’s emphasis on web standards gives you the full capabilities of modern browsers without 
-tying yourself to a proprietary framework, combining powerful visualization components and a data-driven approach to 
-DOM manipulation. 
+ #### [d3.js](https://github.com/mbostock/d3)
 
-* Views: Distribution Charts, Single Node viewer, Global Events viewer, Online Data Viewer, Network Graph Life Cycle, 
-  predictor Monitor, D3 Plus Demo
+ * Description:D3.js is a JavaScript library for manipulating documents based on data. D3 helps you bring data to life
+ using HTML, SVG and CSS. D3’s emphasis on web standards gives you the full capabilities of modern browsers without
+ tying yourself to a proprietary framework, combining powerful visualization components and a data-driven approach to
+ DOM manipulation.
 
-* Good points: Very powerful to create svg content, It is the base of others libraries and the library contains useful 
-  tools as csv reader. 
+ * Views: Distribution Charts, Single Node viewer, Global Events viewer, Online Data Viewer, Network Graph Life Cycle,
+   predictor Monitor, D3 Plus Demo
 
-* Bad points: Very complex to use. 
+ * Good points: Very powerful to create svg content, It is the base of others libraries and the library contains useful
+   tools as csv reader.
 
-#### [dc](http://dc-js.github.io/dc.js/)
+ * Bad points: Very complex to use.
 
-* Description: dc.js is a javascript charting library with native crossfilter support and allowing highly efficient 
-exploration on large multi-dimensional dataset (inspired by crossfilter's demo). It leverages d3 engine to render charts 
-in css friendly svg format. Charts rendered using dc.js are naturally data driven and reactive therefore providing instant 
-feedback on user's interaction. The main objective of this project is to provide an easy yet powerful javascript library 
-which can be utilized to perform data visualization and analysis in browser as well as on mobile device. 
+ #### [dc](http://dc-js.github.io/dc.js/)
 
-* Views: Distribution Charts, Single Node viewer, Global Events viewer
+ * Description: dc.js is a javascript charting library with native crossfilter support and allowing highly efficient
+ exploration on large multi-dimensional dataset (inspired by crossfilter's demo). It leverages d3 engine to render charts
+ in css friendly svg format. Charts rendered using dc.js are naturally data driven and reactive therefore providing instant
+ feedback on user's interaction. The main objective of this project is to provide an easy yet powerful javascript library
+ which can be utilized to perform data visualization and analysis in browser as well as on mobile device.
 
-* Good points: It is simple create graphs. The native crossfilter support allows highly efficient with big datasets  
+ * Views: Distribution Charts, Single Node viewer, Global Events viewer
 
-* Bad points: Perform advanced graphics modifications is difficult and can damage the advantages of the library with large volumes of data  
+ * Good points: It is simple create graphs. The native crossfilter support allows highly efficient with big datasets
 
-#### [d3plus](http://d3plus.org/)
+ * Bad points: Perform advanced graphics modifications is difficult and can damage the advantages of the library with large volumes of data
 
-* Description: d3plus is an extension to the D3 library that allows fast and easy creation of data visualizations.
+ #### [d3plus](http://d3plus.org/)
 
-* Views: D3 Plus Demo
+ * Description: d3plus is an extension to the D3 library that allows fast and easy creation of data visualizations.
 
-* Good points: Simple to create graphs and big catalogue of graphs
+ * Views: D3 Plus Demo
 
-* Bad points: Poor performance with big data sets because It doesn't has native crossfilter support.   
+ * Good points: Simple to create graphs and big catalogue of graphs
 
-#### [smoothie](http://smoothiecharts.org/)
+ * Bad points: Poor performance with big data sets because It doesn't has native crossfilter support.
 
-* Description: Smoothie Charts is a really small charting library designed for live streaming data.  
+ #### [smoothie](http://smoothiecharts.org/)
 
-* Views: Online Data Viewer, predictor Monitor
+ * Description: Smoothie Charts is a really small charting library designed for live streaming data.
 
-* Good points: small library, good documentation on its website, good visual aspect, easy to use when the library 
-has been understood how it works
+ * Views: Online Data Viewer, predictor Monitor
 
-* Bad points: The library has problems when the graph area is resized. It is not possible to update the graph if it is 
-paused. Difficult to manage the zero point.    
+ * Good points: small library, good documentation on its website, good visual aspect, easy to use when the library
+ has been understood how it works
+
+ * Bad points: The library has problems when the graph area is resized. It is not possible to update the graph if it is
+ paused. Difficult to manage the zero point.
 
 
-#### [Science](https://github.com/jasondavies/science.js/)
+ #### [Science](https://github.com/jasondavies/science.js/)
 
-* Description: Science.js is a JavaScript library for scientific and statistical computing. 
+ * Description: Science.js is a JavaScript library for scientific and statistical computing.
 
-* Views: Distribution Charts
+ * Views: Distribution Charts
 
-* Good points: Powerful science library, contains various implementations of statistical methods similar to those 
-  provided by R, 
+ * Good points: Powerful science library, contains various implementations of statistical methods similar to those
+   provided by R,
 
-* Bad points: Por documentation, The graphs results are statics. 
+ * Bad points: Por documentation, The graphs results are statics.
 
-#### [Crossfilter](http://square.github.io/crossfilter/)
+ #### [Crossfilter](http://square.github.io/crossfilter/)
 
-* Description: Crossfilter is a JavaScript library for exploring large multivariate datasets in the browser
+ * Description: Crossfilter is a JavaScript library for exploring large multivariate datasets in the browser
 
-* Views: Distribution Charts, Single Node viewer, Global Events viewer, Online Data Viewer, Network Graph Life Cycle, 
-  predictor Monitor, D3 Plus Demo
+ * Views: Distribution Charts, Single Node viewer, Global Events viewer, Online Data Viewer, Network Graph Life Cycle,
+   predictor Monitor, D3 Plus Demo
 
-* Good points: Fast to manage large data sets
+ * Good points: Fast to manage large data sets
 
-* Bad points: Nothing special 
+ * Bad points: Nothing special
 
-#### [vis](http://visjs.org/)
+ #### [vis](http://visjs.org/)
 
-* Description: Vis.js is a dynamic, browser based visualization library. The library is designed to be easy to use, 
-to handle large amounts of dynamic data, and to enable manipulation of and interaction with the data. The library 
-consists of the components DataSet, Timeline, Network, Graph2d, and Graph3d. 
+ * Description: Vis.js is a dynamic, browser based visualization library. The library is designed to be easy to use,
+ to handle large amounts of dynamic data, and to enable manipulation of and interaction with the data. The library
+ consists of the components DataSet, Timeline, Network, Graph2d, and Graph3d.
 
-* Views: Network Graph Life Cycle, 
-  
-* Good points: Easy to use, 
+ * Views: Network Graph Life Cycle,
 
-* Bad points: He said that can manipulate large amount of dynamic data but our test has problems with it. 
+ * Good points: Easy to use,
 
-### nodeJS
+ * Bad points: He said that can manipulate large amount of dynamic data but our test has problems with it.
 
-#### Express
+ ### nodeJS
 
-* Description: Express is a minimal and flexible Node.js web application framework that provides a robust set of features for web and mobile applications. 
+ #### Express
 
-* Tools: onlineDataViewerServer, fileServer,  web-socket-server. 
-  
-* Good points: Allows to create server easily and quickly. 
+ * Description: Express is a minimal and flexible Node.js web application framework that provides a robust set of features for web and mobile applications.
 
-* Bad points: Nothing special
+ * Tools: onlineDataViewerServer, fileServer,  web-socket-server.
 
-#### WS
+ * Good points: Allows to create server easily and quickly.
 
-* Description: Simple to use, blazing fast and thoroughly tested websocket client, server and console for node.js
+ * Bad points: Nothing special
 
-* Tools: onlineDataViewerServer, web-socket-server. 
-  
-* Good points: It is easy to use
+ #### WS
 
-* Bad points: Nothing special
+ * Description: Simple to use, blazing fast and thoroughly tested websocket client, server and console for node.js
 
-#### Keypress
+ * Tools: onlineDataViewerServer, web-socket-server.
 
-* Description: 
+ * Good points: It is easy to use
 
-* Tools: web-socket-server. 
-  
-* Good points: Easy way to create a console with advanced features as up-arrow for last command used
+ * Bad points: Nothing special
 
-* Bad points: Nothing special
+ #### Keypress
 
-#### Filesystem
+ * Description:
 
-* Description: File I/O is provided by simple wrappers around standard POSIX functions 
+ * Tools: web-socket-server.
 
-* Tools: onlineDataViewerServer, fileServer, CSV-Gen, web-socket-server. 
-  
-* Good points: The most useful filesystem library of Node.js 
+ * Good points: Easy way to create a console with advanced features as up-arrow for last command used
 
-* Bad points: Nothing special
+ * Bad points: Nothing special
+
+ #### Filesystem
+
+ * Description: File I/O is provided by simple wrappers around standard POSIX functions
+
+ * Tools: onlineDataViewerServer, fileServer, CSV-Gen, web-socket-server.
+
+ * Good points: The most useful filesystem library of Node.js
+
+ * Bad points: Nothing special
+
 
 ## Developers and contributors
 
