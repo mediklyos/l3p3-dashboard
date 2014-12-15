@@ -4,6 +4,8 @@ L3P3-Dashboard-repository
 This Repository contains the Dashboard code, the visual result of the l3p3 project. In this project is a collaboration
 among Produban and the Center for Open Middleware.
 
+![logo-com](images/logoCOM3.png) ![logo-produban](images/produban-big.png)
+
 The documentation of the repository is in the wiki. The table of contents of the wiki is the following
 
 1. [Home](https://github.com/centeropenmiddleware/l3p3-dashboard/wiki)
