@@ -1,4 +1,4 @@
-L3P3-Dashboard-repository
+L3P3 Dashboard
 =========================
 
 This Repository contains the Dashboard code, the visual result of the l3p3 project. In this project is a collaboration
