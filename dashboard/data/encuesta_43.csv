@@ -1,4 +1,4 @@
-Tiempo,Curso,Estudios,Uso,Plataforma,Per. Independencia,Satisfacción,Disponibilidad,Más usada,Menos Usada
+Timestamp,Course,Studies,Frequency of use,Plarform,Perception of dependence,Satisfaction,Availability,Most used tool, Least Used tool
 11/24/2014 18:19:25,2012 / 2013,Grado,Mensual,Moodle,No,Muy poca,Baja,Recursos (ficheros),Foros
 11/24/2014 18:19:52,2013 / 2014,Grado,Mensual,Moodle,No,Muy poca,Baja,Recursos (ficheros),Foros
 11/24/2014 18:34:38,2013 / 2014,Grado,Semanal,Moodle,No,Poca,Baja,Recursos (ficheros),Foros
@@ -42,3 +42,14 @@ Tiempo,Curso,Estudios,Uso,Plataforma,Per. Independencia,Satisfacción,Disponibil
 11/27/2014 9:57:02,2014 / 2015,Grado,Diaria,Sakai,No,Normal,Alta,Recursos (ficheros),Foros
 11/27/2014 13:14:15,2014 / 2015,Grado,Diaria,Sakai,Si,Poca,Normal,Recursos (ficheros),Foros
 11/27/2014 20:19:08,2014 / 2015,Grado,Diaria,Sakai,No,Normal,Normal,Recursos (ficheros),Foros
+11/28/2014 10:41:52,2014 / 2015,Grado,Semanal,Moodle,No,Bastante,Alta,Recursos (ficheros),Noticias
+11/29/2014 17:27:20,2013 / 2014,Grado,Mensual,Moodle,No,Poca,Baja,Recursos (ficheros),Foros
+11/29/2014 19:47:54,2014 / 2015,Grado,Semanal,Moodle,No,Muy poca,Baja,Recursos (ficheros),Foros
+11/30/2014 14:27:50,2014 / 2015,Grado,Diaria,Sakai,No,Normal,Normal,Recursos (ficheros),Foros
+12/1/2014 10:52:14,2013 / 2014,Grado,Semanal,Sakai,No,Muy poca,Baja,Recursos (ficheros),Foros
+12/3/2014 12:17:46,2014 / 2015,Grado,Semanal,Moodle,Si,Muy poca,Normal,Recursos (ficheros),Noticias
+12/3/2014 17:04:07,2014 / 2015,Grado,Diaria,Moodle,No,Poca,Normal,Recursos (ficheros),Foros
+12/3/2014 22:16:35,2014 / 2015,Grado,Semanal,Moodle,No,Poca,Normal,Recursos (ficheros),Foros
+12/5/2014 10:08:02,2014 / 2015,Grado,Mensual,Moodle,Si,Poca,Normal,Recursos (ficheros),Foros
+12/5/2014 11:19:14,2014 / 2015,Grado,Diaria,Moodle,No,Normal,Normal,Recursos (ficheros),Noticias
+12/8/2014 19:31:43,2014 / 2015,Grado,Semanal,Moodle,No,Poca,Normal,Recursos (ficheros),Foros
