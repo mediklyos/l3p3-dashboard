@@ -789,16 +789,16 @@ function postLoad() {
 // Drag and drop code
     loadDataSetFromUrl("data/encuesta_43.csv",{
 
-        Tiempo: CSVContainerForDistributions.TYPE_ID,
-        Curso: CSVContainerForDistributions.TYPE_DISCRETE,
-        Estudios: CSVContainerForDistributions.TYPE_DISCRETE,
-        Uso: CSVContainerForDistributions.TYPE_DISCRETE,
-        Plataforma: CSVContainerForDistributions.TYPE_DISCRETE,
-        "Per. Independencia": CSVContainerForDistributions.TYPE_DISCRETE,
-        Satisfacción: CSVContainerForDistributions.TYPE_DISCRETE,
-        Disponibilidad: CSVContainerForDistributions.TYPE_DISCRETE,
-        "Más usada": CSVContainerForDistributions.TYPE_DISCRETE,
-        "Menos Usada": CSVContainerForDistributions.TYPE_DISCRETE
+        Timestamp: CSVContainerForDistributions.TYPE_ID,
+        Course: CSVContainerForDistributions.TYPE_DISCRETE,
+        Studies: CSVContainerForDistributions.TYPE_DISCRETE,
+        "Frequency of use": CSVContainerForDistributions.TYPE_DISCRETE,
+        Platform: CSVContainerForDistributions.TYPE_DISCRETE,
+        "Perception of dependence": CSVContainerForDistributions.TYPE_DISCRETE,
+        Satisfaction: CSVContainerForDistributions.TYPE_DISCRETE,
+        Availability: CSVContainerForDistributions.TYPE_DISCRETE,
+        "Most used tool": CSVContainerForDistributions.TYPE_DISCRETE,
+        "Least Used tool": CSVContainerForDistributions.TYPE_DISCRETE
     })
     loadDataSetFromUrl("data/titanic.csv",{
         PassengerId: CSVContainerForDistributions.TYPE_ID,
