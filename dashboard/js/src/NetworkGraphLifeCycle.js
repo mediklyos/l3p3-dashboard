@@ -399,6 +399,32 @@ var resetFilterPanel = function (){
     myPanels.addClass("nglc-box-margins-vertical");
 };
 
+/*
+    METHODS FOR COOKIES (NEED TO CREATE ANOTHER FILE FOR THIS)
+ */
+
+function setCookie(cookiename, cookievalue, expirationdays) {
+    var d = new Date();
+    d.setTime(d.getTime() + (expirationdays*24*60*60*1000));
+    var expires = "expires="+d.toUTCString();
+    document.cookie = cookiename + "=" + cookievalue + "; " + expires;
+}
+
+function getCookie(cookiename) {
+    var name = cookiename + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i<ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1);
+        if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
+    }
+    return "";
+}
+
+/*
+    END OF METHODS FOR COOKIES
+ */
+
 var nglc_reset = function () {
     nodes = [];
     stats = [];
