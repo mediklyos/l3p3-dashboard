@@ -53,7 +53,9 @@ var NGLC_PROGRESSBAR_ID = PRE + "-progress-bar-id-";
 /*Textos localizacion*/
 var NGLC_FILTERS_COLS_INFO= "Columns ";
 var NGLC_FILTERS_INPUTS_INFO = "Filters";
-var NGLC_STARTING_TIME_INFO = "Starting time";
+var NGLC_STARTING_TIME_INFO = "Start position";
+var NGLC_STARTING_TIME_RADIOBUTTON_START_TEXT = "First RFC";
+var NGLC_STARTING_TIME_RADIOBUTTON_END_TEXT = "Last RFC";
 
 /*Configurable constants*/
 var NGLC_ORIGIN_COLUMN_NAME = "origin";
@@ -341,8 +343,29 @@ var resetFilterPanel = function (){
         class: 'nglc-box-margins-vertical',
         text: NGLC_STARTING_TIME_INFO
     }));
+    var divStartTimeRadioButtons = $('<div />', {
+        class: "nglc-box-margins-vertical btn-group"
+    });
+    var formRadioButtons = $('<form />');
+    $('<label/>', {
+        style: "display:block"
+    }).html(NGLC_STARTING_TIME_RADIOBUTTON_START_TEXT+"   ").append($('<input />', {
+        class: "btn btn-default nglc-buttons-columns-class",
+        type: "radio"
+    })).appendTo(formRadioButtons);
 
-    // Apply filters button
+    $('<label/>', {
+        style: "display:block"
+    }).html(NGLC_STARTING_TIME_RADIOBUTTON_END_TEXT+"   ").append($('<input />', {
+        class: "btn btn-default nglc-buttons-columns-class",
+        type: "radio"
+    })).appendTo(formRadioButtons);
+    divStartTimeRadioButtons.append(formRadioButtons);
+    startTimeRadioButtons.append(divStartTimeRadioButtons);
+
+    /*
+     Apply filters button
+      */
     var filterPanelsByAttributeValue = jQuery('<div />',{class:'nglc-box-margins',id: NGLC_FILTER_PANEL_BY_ATTR_BOX}).appendTo(main);
     filterPanelsByAttributeValue.append($('<div/>',{
         class: "hr"
