@@ -44,6 +44,7 @@ var NGLC_FOOTER_NODE_TABLE = PRE + "-footer-node-table";
 var NGLC_LEFT_MAIN= PRE + "-left-main";
 var NGLC_FILTER_BOX= PRE + "-filter-box";
 var NGLC_FILTER_PANEL_BY_ATTR_BOX = PRE + "-filter-panel-by-attr-box";
+var NGLC_START_TIME_RADIO_BUTTONS_BOX = PRE + "-start-time-radio-button-box";
 var NGLC_FILTER_PANEL_BY_ATTR = PRE + "-filter-panel-by-attr";
 var NGLC_FILTER_COLUMNS_PANELS_PREFIX_ID = PRE + "-panel-filter-";
 var NGLC_FILTER_COLUMNS_PANEL_CLASS = PRE + "-panel-filter-class";
@@ -52,6 +53,7 @@ var NGLC_PROGRESSBAR_ID = PRE + "-progress-bar-id-";
 /*Textos localizacion*/
 var NGLC_FILTERS_COLS_INFO= "Columns ";
 var NGLC_FILTERS_INPUTS_INFO = "Filters";
+var NGLC_STARTING_TIME_INFO = "Starting time";
 
 /*Configurable constants*/
 var NGLC_ORIGIN_COLUMN_NAME = "origin";
@@ -307,11 +309,11 @@ var resetFilterPanel = function (){
     var filterPanel = jQuery('<div />',{class:'nglc-box-margins',id: NGLC_FILTER_BOX}).appendTo(main);
     filterPanel.append($('<div/>',{
         class: "hr"
-    }))//.css("border-top-width","3px"))
+    }));
     filterPanel.append($('<div/>', {
         class: 'nglc-box-margins-vertical',
         text: NGLC_FILTERS_COLS_INFO
-    }))
+    }));
 //    filterPanel.append($('<div/>',{
 //        class: "hr"
 //    }))
@@ -328,26 +330,41 @@ var resetFilterPanel = function (){
     })
     panel.addClass("nglc-box-margins-vertical");
 
+    /*
+    Radio buttons to select the starting time (first or last RFC).
+     */
+    var startTimeRadioButtons = jQuery('<div />',{class:'nglc-box-margins',id: NGLC_START_TIME_RADIO_BUTTONS_BOX}).appendTo(main);
+    startTimeRadioButtons.append($('<div/>',{
+        class: "hr"
+    }));
+    startTimeRadioButtons.append($('<div/>', {
+        class: 'nglc-box-margins-vertical',
+        text: NGLC_STARTING_TIME_INFO
+    }));
+
+    // Apply filters button
     var filterPanelsByAttributeValue = jQuery('<div />',{class:'nglc-box-margins',id: NGLC_FILTER_PANEL_BY_ATTR_BOX}).appendTo(main);
     filterPanelsByAttributeValue.append($('<div/>',{
         class: "hr"
-    }))
+    }));
     filterPanelsByAttributeValue.append($('<div/>', {
         class: 'nglc-box-margins-vertical',
         text: NGLC_FILTERS_INPUTS_INFO
-    }))
+    }));
     var divApplyFilterButton = $('<div />', {
         class: "nglc-box-margins-vertical btn-group"
-    })
+    });
     $('<input />', {
         class: "btn btn-default nglc-buttons-columns-class",
         value: NGLC_BUTTON_APPLY_FILTERS_VALUE,
         type: "button"
     }).click(function(){
         nglc_startRoutine();
-    }).appendTo(divApplyFilterButton)
-    filterPanelsByAttributeValue.append(divApplyFilterButton)
+    }).appendTo(divApplyFilterButton);
+    filterPanelsByAttributeValue.append(divApplyFilterButton);
 
+
+    // Creating collapsible panels
     var myPanels = createSetFilterPanelsByAttributeValue(NGLC_FILTER_PANEL_BY_ATTR, filterPanelsByAttributeValue, extraColumnsShown, NGLC_FILTER_COLUMNS_PANELS_PREFIX_ID, NGLC_FILTER_COLUMNS_PANEL_CLASS, function(result) {
         if (result.active){
             extraColumnsActive[result.key] = true;
@@ -355,9 +372,9 @@ var resetFilterPanel = function (){
             delete extraColumnsActive[result.key]
         }
         paintFooter(selectedNodes, extraColumnsActive);
-    })
+    });
     myPanels.addClass("nglc-box-margins-vertical");
-}
+};
 
 var nglc_reset = function () {
     nodes = [];
@@ -574,7 +591,7 @@ var updateGraph = function (edges,time,lapseTime,repaint) {
 
     /*Tiempo hacia atras*/
     if (lastTime > time){
-        console.log("EJECUTO HACIA ATRAS")
+        //console.log("EJECUTO HACIA ATRAS")
         // -- porque la posición donde apunta es el siguiente que hay que mirar en caso de ir a delante
         pos--;
         while (pos >= 0 && (edges[pos][NGLC_TIME_COLUMN_NAME] > time )) {
