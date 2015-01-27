@@ -356,8 +356,10 @@ var resetFilterPanel = function (){
     var radioButtonFirst = $('<input />', {
         class: "btn btn-default nglc-buttons-columns-class",
         type: "radio",
-        checked: NGLC_STARTPOSITIONCOOKIE_FIRST == cookiestartposition
+        checked: NGLC_STARTPOSITIONCOOKIE_FIRST == cookiestartposition,
+        disabled: NGLC_STARTPOSITIONCOOKIE_FIRST == cookiestartposition
     });
+
     $('<label/>', {
         style: "display:block"
     }).html(NGLC_STARTING_TIME_RADIOBUTTON_START_TEXT+"   ").append(radioButtonFirst).appendTo(formRadioButtons);
@@ -365,13 +367,19 @@ var resetFilterPanel = function (){
     var radioButtonLast = $('<input />', {
         class: "btn btn-default nglc-buttons-columns-class",
         type: "radio",
-        checked: NGLC_STARTPOSITIONCOOKIE_LAST == cookiestartposition
+        checked: NGLC_STARTPOSITIONCOOKIE_LAST == cookiestartposition,
+        disabled: NGLC_STARTPOSITIONCOOKIE_LAST == cookiestartposition
     });
+
     $('<label/>', {
         style: "display:block"
     }).html(NGLC_STARTING_TIME_RADIOBUTTON_END_TEXT+"   ").append(radioButtonLast).appendTo(formRadioButtons);
     divStartTimeRadioButtons.append(formRadioButtons);
     startTimeRadioButtons.append(divStartTimeRadioButtons);
+
+    // onClick radiobuttons
+    radioButtonFirst.click(function() {toggleCookieCheckBoxes(radioButtonFirst, radioButtonLast, NGLC_STARTPOSITIONCOOKIE_TEXT, NGLC_STARTPOSITIONCOOKIE_FIRST);});
+    radioButtonLast.click(function()  {toggleCookieCheckBoxes( radioButtonLast, radioButtonFirst, NGLC_STARTPOSITIONCOOKIE_TEXT, NGLC_STARTPOSITIONCOOKIE_LAST);});
 
     /*
      Apply filters button
@@ -408,6 +416,20 @@ var resetFilterPanel = function (){
     });
     myPanels.addClass("nglc-box-margins-vertical");
 };
+
+function toggleCookieCheckBoxes(clickedCheckBox, noClickedCheckBox, cookiename, cookievalue) {
+    if(clickedCheckBox.prop('checked')) {
+        clickedCheckBox.prop('disabled', true);
+        noClickedCheckBox.prop('checked', false)
+        noClickedCheckBox.prop('disabled', false);
+        setCookie(cookiename, cookievalue);
+    } else {
+        noClickedCheckBox.prop('checked', true);
+        clickedCheckBox.prop('disabled', false);
+        noClickedCheckBox.prop('disabled', true)
+        setCookie(cookiename, cookievalue);
+    }
+}
 
 /*
     METHODS FOR COOKIES (NEED TO CREATE ANOTHER FILE FOR THIS)
