@@ -73,6 +73,7 @@ var NGLC_FILTER_PREFIX = "filter-";
 
 var NGLC_STATS_GLOBAL_COLUMN_NAME = "global";
 var NGLC_BUTTON_APPLY_FILTERS_VALUE = "Apply filters";
+var NGLC_BUTTON_APPLY_BUTTON_VALUE = "Apply";
 
 /*View attributes*/
 var nodes;
@@ -381,6 +382,19 @@ var resetFilterPanel = function (){
     // onClick radiobuttons
     radioButtonFirst.click(function() {toggleCookieCheckBoxes(radioButtonFirst, radioButtonLast, NGLC_STARTPOSITIONCOOKIE_TEXT, NGLC_STARTPOSITIONCOOKIE_FIRST);});
     radioButtonLast.click(function()  {toggleCookieCheckBoxes( radioButtonLast, radioButtonFirst, NGLC_STARTPOSITIONCOOKIE_TEXT, NGLC_STARTPOSITIONCOOKIE_LAST);});
+
+    var divApplyStartTimeButton = $('<div />', {
+        class: "nglc-box-margins-vertical btn-group"
+    });
+    $('<input />', {
+        class: "btn btn-default nglc-buttons-columns-class",
+        value: NGLC_BUTTON_APPLY_BUTTON_VALUE,
+        type: "button",
+        style: "margin-left: 20px"
+    }).click(function(){
+        nglc_startRoutine();
+    }).appendTo(divApplyStartTimeButton);
+    startTimeRadioButtons.append(divApplyStartTimeButton);
 
     /*
      Apply filters button
