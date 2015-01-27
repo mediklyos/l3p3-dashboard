@@ -105,6 +105,12 @@ var NGLC_DURATION_MEAN_TABLE_COLUMN_NAME = "Duration #";
 var NGLC_ARRIVAL_TIME_TABLE_COLUMN_NAME = "Arrival Time";
 var NGLC_TOTAL_DURATION_TIME_TABLE_COLUMN_NAME = "Total duration";
 
+
+var NGLC_STARTPOSITIONCOOKIE_FIRST = "firstrfc";
+var NGLC_STARTPOSITIONCOOKIE_LAST = "lastrfc";
+var NGLC_STARTPOSITIONCOOKIE_TEXT = "startposition";
+var cookiestartposition = "";
+
 /* Control variable that is used to know when all the items are closed */
 var reachedEnd = false;
 /*
@@ -265,7 +271,7 @@ var initLeftColumnAndFooter = function () {
         text: NGLC_TEXT_EXPORT_BUTTON
     }).appendTo(buttonsBox).click(exportButtonClick)
     ;
-    var nodes = {}
+    var nodes = {};
 
 //    createPanelButtons("Columns",NGLC_FILTER_PANEL,main,extraColumnsShown,"",PRE,function(){})
     // IN a new div because I want to be in a new line
@@ -347,19 +353,21 @@ var resetFilterPanel = function (){
         class: "nglc-box-margins-vertical btn-group"
     });
     var formRadioButtons = $('<form />');
-    $('<label/>', {
-        style: "display:block"
-    }).html(NGLC_STARTING_TIME_RADIOBUTTON_START_TEXT+"   ").append($('<input />', {
+    var radioButtonFirst = $('<input />', {
         class: "btn btn-default nglc-buttons-columns-class",
         type: "radio"
-    })).appendTo(formRadioButtons);
+    });
+    $('<label/>', {
+        style: "display:block"
+    }).html(NGLC_STARTING_TIME_RADIOBUTTON_START_TEXT+"   ").append(radioButtonFirst).appendTo(formRadioButtons);
 
-    $('<label/>', {
-        style: "display:block"
-    }).html(NGLC_STARTING_TIME_RADIOBUTTON_END_TEXT+"   ").append($('<input />', {
+    var radioButtonLast = $('<input />', {
         class: "btn btn-default nglc-buttons-columns-class",
         type: "radio"
-    })).appendTo(formRadioButtons);
+    });
+    $('<label/>', {
+        style: "display:block"
+    }).html(NGLC_STARTING_TIME_RADIOBUTTON_END_TEXT+"   ").append(radioButtonLast).appendTo(formRadioButtons);
     divStartTimeRadioButtons.append(formRadioButtons);
     startTimeRadioButtons.append(divStartTimeRadioButtons);
 
@@ -419,6 +427,15 @@ function getCookie(cookiename) {
         if (c.indexOf(name) == 0) return c.substring(name.length, c.length);
     }
     return "";
+}
+
+function checkCookieStartPositionRadioButtons (cookiename) {
+    var position = getCookie(cookiename);
+    if (position == "" || position == NGLC_STARTPOSITIONCOOKIE_FIRST) {
+        return NGLC_STARTPOSITIONCOOKIE_FIRST;
+    } else {
+        return NGLC_STARTPOSITIONCOOKIE_LAST;
+    }
 }
 
 /*
