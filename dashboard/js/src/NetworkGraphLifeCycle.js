@@ -355,7 +355,8 @@ var resetFilterPanel = function (){
     var formRadioButtons = $('<form />');
     var radioButtonFirst = $('<input />', {
         class: "btn btn-default nglc-buttons-columns-class",
-        type: "radio"
+        type: "radio",
+        checked: NGLC_STARTPOSITIONCOOKIE_FIRST == cookiestartposition
     });
     $('<label/>', {
         style: "display:block"
@@ -363,7 +364,8 @@ var resetFilterPanel = function (){
 
     var radioButtonLast = $('<input />', {
         class: "btn btn-default nglc-buttons-columns-class",
-        type: "radio"
+        type: "radio",
+        checked: NGLC_STARTPOSITIONCOOKIE_LAST == cookiestartposition
     });
     $('<label/>', {
         style: "display:block"
