@@ -109,7 +109,7 @@ var NGLC_TOTAL_DURATION_TIME_TABLE_COLUMN_NAME = "Total duration";
 var NGLC_STARTPOSITIONCOOKIE_FIRST = "firstrfc";
 var NGLC_STARTPOSITIONCOOKIE_LAST = "lastrfc";
 var NGLC_STARTPOSITIONCOOKIE_TEXT = "startposition";
-var cookiestartposition = "";
+var cookiestartposition = checkCookieStartPositionRadioButtons(NGLC_STARTPOSITIONCOOKIE_TEXT);
 
 /* Control variable that is used to know when all the items are closed */
 var reachedEnd = false;
@@ -432,6 +432,7 @@ function getCookie(cookiename) {
 function checkCookieStartPositionRadioButtons (cookiename) {
     var position = getCookie(cookiename);
     if (position == "" || position == NGLC_STARTPOSITIONCOOKIE_FIRST) {
+        setCookie(NGLC_STARTPOSITIONCOOKIE_TEXT, NGLC_STARTPOSITIONCOOKIE_FIRST, 30);
         return NGLC_STARTPOSITIONCOOKIE_FIRST;
     } else {
         return NGLC_STARTPOSITIONCOOKIE_LAST;
