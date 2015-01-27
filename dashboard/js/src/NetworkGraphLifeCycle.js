@@ -110,6 +110,7 @@ var NGLC_STARTPOSITIONCOOKIE_FIRST = "firstrfc";
 var NGLC_STARTPOSITIONCOOKIE_LAST = "lastrfc";
 var NGLC_STARTPOSITIONCOOKIE_TEXT = "startposition";
 var cookiestartposition = checkCookieStartPositionRadioButtons(NGLC_STARTPOSITIONCOOKIE_TEXT);
+var cookie_duration = 30; // 30 days
 
 /* Control variable that is used to know when all the items are closed */
 var reachedEnd = false;
@@ -422,12 +423,12 @@ function toggleCookieCheckBoxes(clickedCheckBox, noClickedCheckBox, cookiename, 
         clickedCheckBox.prop('disabled', true);
         noClickedCheckBox.prop('checked', false)
         noClickedCheckBox.prop('disabled', false);
-        setCookie(cookiename, cookievalue);
+        setCookie(cookiename, cookievalue, cookie_duration);
     } else {
         noClickedCheckBox.prop('checked', true);
         clickedCheckBox.prop('disabled', false);
         noClickedCheckBox.prop('disabled', true)
-        setCookie(cookiename, cookievalue);
+        setCookie(cookiename, cookievalue, cookie_duration);
     }
 }
 
@@ -456,7 +457,7 @@ function getCookie(cookiename) {
 function checkCookieStartPositionRadioButtons (cookiename) {
     var position = getCookie(cookiename);
     if (position == "" || position == NGLC_STARTPOSITIONCOOKIE_FIRST) {
-        setCookie(NGLC_STARTPOSITIONCOOKIE_TEXT, NGLC_STARTPOSITIONCOOKIE_FIRST, 30);
+        setCookie(NGLC_STARTPOSITIONCOOKIE_TEXT, NGLC_STARTPOSITIONCOOKIE_FIRST, cookie_duration);
         return NGLC_STARTPOSITIONCOOKIE_FIRST;
     } else {
         return NGLC_STARTPOSITIONCOOKIE_LAST;
