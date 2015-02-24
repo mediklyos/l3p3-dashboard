@@ -111,7 +111,7 @@ var PV_WS_RESULT_HIT_CLASS = PRE + "-hit"
 var PV_WS_RESULT_MISS_FALSE_POSITIVE_CLASS = PRE + "-miss-fp"
 var PV_WS_RESULT_MISS_FALSE_NEGATIVE_CLASS = PRE + "-miss-fn"
 var PV_WS_ALERT = "alert"
-var PV_WS_ALERT_TIMEOUT = "time"
+var PV_WS_ALERT_TIMEOUT = "timeout"
 var PV_WS_ALERT_ON = "on"
 var PV_WS_ALERT_OFF = "off"
 var PV_SECOND = 1000;
@@ -288,10 +288,16 @@ var pvAddEventToSmoothie = function (canvas,eventName){
     return smoothie.events[eventName];
 
 }
-var pvAddEventOccurrenceToCanvas = function (canvas,eventId,predictionStatus){
+var pvAddEventOccurrenceToCanvas = function (canvas,eventId,moment){
+    var time;
+    if (moment == undefined){
+        time = Date.now();
+    } else {
+        time = moment;
+    }
     var jQCanvas = $(canvas)
     var event = pvAddEventToSmoothie(canvas,eventId)
-    var occurrenceEvent = {event:event,time: Date.now()}
+    var occurrenceEvent = {event:event,time: time}
     event.occurrences.push(occurrenceEvent)
     canvas.smoothie.eventsHappend.push(occurrenceEvent )
 
@@ -1121,7 +1127,7 @@ var _pvLoadSource = function (url) {
                     pv_print("Incorrect format of "+PV_WS_EVENT+" command. Please check the documentation");
                     ws.send("Incorrect format of "+PV_WS_EVENT+" command. Please check the documentation");
                 } else {
-                    pvAddEventOccurrenceToCanvas(ws.canvas,message[PV_WS_EVENT])
+                    pvAddEventOccurrenceToCanvas(ws.canvas,message[PV_WS_EVENT],message[PV_WS_TIME])
                 }
                 break;
             case PV_WS_PREDICTION:
@@ -1129,7 +1135,7 @@ var _pvLoadSource = function (url) {
                     pv_print("Incorrect format of "+PV_WS_PREDICTION+" command. Please check the documentation");
                     ws.send("Incorrect format of "+PV_WS_PREDICTION+" command. Please check the documentation");
                 } else {
-                    pvAddPrediction(ws.canvas,message[PV_WS_EVENT],message[PV_WS_PREDICTION])
+                    pvAddPrediction(ws.canvas,message[PV_WS_EVENT],message[PV_WS_PREDICTION],message[PV_WS_TIME])
                 }
                 break;
             case PV_WS_TIME:
@@ -1150,7 +1156,7 @@ var _pvLoadSource = function (url) {
                     pv_print("Incorrect format of "+PV_WS_ALERT+" command. Please check the documentation");
                     ws.send("Incorrect format of "+PV_WS_ALERT+" command. Please check the documentation");
                 } else {
-                    pvSetAlert(ws.canvas,message[PV_WS_EVENT],message[PV_WS_ALERT],message[PV_WS_ALERT_TIMEOUT])
+                    pvSetAlert(ws.canvas,message[PV_WS_EVENT],message[PV_WS_ALERT],message[PV_WS_ALERT_TIMEOUT],message[PV_WS_TIME])
                 }
                 break;
             default:
@@ -1254,21 +1260,28 @@ var pvAddPredictionResult = function (canvas,event,timestapm,result){
     return true;
 }
 
-var pvAddPrediction = function (canvas, eventName, prediction) {
+var pvAddPrediction = function (canvas, eventName, prediction,moment) {
     /*The step not work corretly in the librery, this code fix it because put 0 if not exist value or put
      * the last value*/
     var event = pvAddEventToSmoothie(canvas,eventName)
-    var now = Date.now();
-     if (event.timeSeries.data.length == 0) {
-        event.timeSeries.append(now-1,0);
-
-     } else if (event.timeSeries.data[event.timeSeries.data.length-1][0] < (now-canvas.smoothie.graphTime)) {
-         event.timeSeries.append(event.timeSeries.data[event.timeSeries.data.length-1][0]+1,-1);
-         event.timeSeries.append(now-1,0);
-     } else {
-        event.timeSeries.append(now-1,event.timeSeries.data[event.timeSeries.data.length-1][1]);
+    var time
+    if (moment == undefined){
+        time = Date.now();
+    } else {
+        time = moment;
+        
     }
-    event.timeSeries.append(now,prediction);
+    
+     if (event.timeSeries.data.length == 0) {
+        event.timeSeries.append(time-1,0);
+
+     } else if (event.timeSeries.data[event.timeSeries.data.length-1][0] < (time-canvas.smoothie.graphTime)) {
+         event.timeSeries.append(event.timeSeries.data[event.timeSeries.data.length-1][0]+1,-1);
+         event.timeSeries.append(time-1,0);
+     } else {
+        event.timeSeries.append(time-1,event.timeSeries.data[event.timeSeries.data.length-1][1]);
+    }
+    event.timeSeries.append(time,prediction);
     paintEventsInADiv($(canvas));
     pvPaintFooter();
     setTimeout(refreshPredictions.bind(undefined,canvas),/*PV_TIMEOUT + */canvas.smoothie.graphTime * canvas.smoothie.zero)
