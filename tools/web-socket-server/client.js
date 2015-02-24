@@ -56,11 +56,18 @@ var print = function (string,prompt){
 }
 
 var newClient = function (addr,port) {
+    var direction;
     if (port === undefined){
-        port = addr;
-        addr = "localhost";
+        direction = addr;
+    } else {
+        direction = addr+":"+port;
     }
-    var ws = new WebSocket('ws://'+addr+':' + port);
+    
+    if (direction.indexOf("ws://") != 0){
+        direction = "ws://"+direction;
+        
+    }
+    var ws = new WebSocket(direction);
     activeClient = listWS.length;
     listWS.push(ws);
 
@@ -85,6 +92,13 @@ var newClient = function (addr,port) {
         print("Connection closed")
         listWS.splice(listWS.indexOf(ws));
     })
+    ws.on('error',function (message){
+//        listWS.slice(listWS.indexOf(ws),1)
+//        activeClient = undefined;
+//        prompt = "# ";
+        print ("Error in the websocket")
+    })
+    return true;
 }
 
 
@@ -117,12 +131,14 @@ var executeCommand = function (input){
             case COMMAND_CONNECT :
                 switch (command.length) {
                     case 2:
-                        newClient(command[1])
-                        prompt = activeClient + ") "
+                        if (newClient(command[1])) {
+                            prompt = activeClient + ") "
+                        }
                         break;
                     case 3:
-                        newClient(command[1],command[2])
-                        prompt = activeClient + ") "
+                        if (newClient(command[1],command[2])) {
+                            prompt = activeClient + ") "
+                        }
                         break;
                     default :
                         print("Incorrect number of parameters")
@@ -133,12 +149,12 @@ var executeCommand = function (input){
             case COMMAND_ECHO:
                 if (activeClient !== undefined) {
                     listWS[activeClient].callback = (function (message){
-                        this.send(message);
+                        wsSend(this,input)
                     }).bind(listWS[activeClient])
                 } else {
                     for (var key in listWS) {
                         listWS[key].callback = (function (message){
-                            this.send(message);
+                            wsSend(this,input)
                         }).bind(listWS[key])
                     }
                 }
@@ -196,15 +212,14 @@ var executeCommand = function (input){
         if (input !== ""){
             if (activeClient === undefined){
                 for (var key in listWS){
-                    listWS[key].send(input);
+                    wsSend(listWS[key],input)
                 }
             } else {
-                listWS[activeClient].send(input);
+                wsSend(listWS[activeClient],input)
             }
         }
 
     }
-
     return true;
 }
 
@@ -212,5 +227,11 @@ var endRoutine = function (){
     rl.close();
 };
 
-
+var wsSend = function (ws,message){
+    try { ws.send(message); }
+    catch (e) {
+        print("There are some problem sending a message")
+    }
+    
+}
 readCommand();
