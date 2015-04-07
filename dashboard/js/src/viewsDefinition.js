@@ -33,6 +33,7 @@ views[1][1] = {id: "GlobalEventsViewer",constantsPrefix: "gev",ref: "js/template
 
 if (GLOBAL_DEBUG){
 
+    views[0][6] = {id: "alertTable",constantsPrefix: "at",ref: "js/templates/template_alert_table.ejs",title : "Alerts", js: "js/src/alertTableLogic.js"}
     views[0][4] = {id: "TemporalAssociationNetwork",constantsPrefix: "tan",ref: "js/templates/template_temporal_association_network.ejs",title : "Temporal Association Network", js: "js/src/temporalAssociationNetwork.js"}
     views[0][3] = {id: "ColorMapViewer",constantsPrefix: "CMV",ref: "js/templates/template_color_map.ejs",title : "Color map", js: "js/src/color_map.js"}
     views[2][0] = {id: "examples",constantsPrefix: "",ref: "js/templates/example.ejs",title: "Examples", js: "js/src/example.js"}

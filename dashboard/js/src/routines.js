@@ -266,28 +266,10 @@ if (cookie_colors !== undefined) {
     web_colors = ORIGINAL_COLORS;
 }
 
-
-
-//views[0][0] = {id: "DynamicDistributions",constantsPrefix: "dd",ref: "js/templates/template_dynamicDistribution.ejs",title : "Distribution charts", js: "js/src/dynamicDistribution.js"}
-//views[0][1] = {id: "ComputerResources",constantsPrefix: "odv",ref: "js/templates/template_comp_resources.ejs",title : "Online Data Viewer", js: "js/src/onlineResourceViewer.js"}
-//views[0][2] = {id: "NetworkGraphLifeCycle",constantsPrefix: "nglc",ref: "js/templates/template_NG_LC.ejs",title : "Network Graph Life Cycle", js: "js/src/NetworkGraphLifeCycle.js"}
-//views[0][5] = {id: "predictorMonitor",constantsPrefix: "pv",ref: "js/templates/template_predictor.ejs",title : "Predictor Monitor", js: "js/src/predictorView.js"}
-////--------------------------------------------------------------------//
-//views[1][0] = {id: "SingleNodeViewer",constantsPrefix: "snv",ref: "js/templates/template_singleNodeViewer.ejs",title : "Single Node Viewer", js: "js/src/singleNodeViewer.js"}
-//views[1][1] = {id: "GlobalEventsViewer",constantsPrefix: "gev",ref: "js/templates/template_globalEventsViewer.ejs",title: "Global Events Viewer", js: "js/src/globalEventsViewer.js"}
 generateInteractiveMenus();
 $(function(){
     if (GLOBAL_DEBUG){
-//    $("#"+views[0][1].id).addClass("active");
-//    $("#"+views[0][1].id).parents().addClass("active");
-//    $("#content").html(new EJS ({url: views[0][1].ref}).render());
-//    $("#"+views[0][2].id).addClass("active");
-//    $("#"+views[0][2].id).parents().addClass("active");
-//    $("#content").html(new EJS ({url: views[0][2].ref}).render());
-//        changeView(demoViews[0][0]);
-        changeView(views[0][5]);
-//        $("#content").html(new EJS ({url: "js/templates/template_config.ejs"}).render());
-
+        changeView(views[0][6]);
     } else {
         $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
     }

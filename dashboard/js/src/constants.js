@@ -19,7 +19,19 @@
  under the License.
  */
 
+var getCookie = function(cname) {
+ var name = cname + "=";
+ var ca = document.cookie.split(';');
+ for(var i=0; i<ca.length; i++) {
+  var c = ca[i];
+  while (c.charAt(0)==' ') c = c.substring(1);
+  if (c.indexOf(name) != -1) return c.substring(name.length, c.length);
+ }
+ return undefined;
+}
+
 var COOKIE_DEBUG="debug";
+
 var COOKIE_COLORS="colors"
 
 var CONTENT_FATHER = "content-father"
@@ -64,6 +76,10 @@ var MAXIMIZE_FOOTER_CLASS = "maximize-footer"
 
 var RESET = false
 var GLOBAL_DEBUG = false;
+var cookie_debug = getCookie(COOKIE_DEBUG);
+if (cookie_debug !== undefined){
+ GLOBAL_DEBUG = cookie_debug == "true";
+}
 var ORIGINAL_COLORS = chroma.brewer['Set1'];
 ORIGINAL_COLORS [2] = 'black';
 //ORIGINAL_COLORS[0] = 'blue'

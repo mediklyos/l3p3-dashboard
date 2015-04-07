@@ -250,9 +250,11 @@ var pvButtonDeleteGraph = function (event){
 var pvDeleteGraph = function (element) {
     var div = getCharDiv(element);
     var canvas = getCanvas(element)[0];
-    $.each(canvas.wss,function (){
-        this.close();
-    })
+    if (canvas.wss != undefined) {
+        $.each(canvas.wss,function (){
+            this.close();
+        })
+    }
     div.remove();
 
 }
@@ -1135,7 +1137,9 @@ var _pvLoadSource = function (url) {
                     pv_print("Incorrect format of "+PV_WS_PREDICTION+" command. Please check the documentation");
                     ws.send("Incorrect format of "+PV_WS_PREDICTION+" command. Please check the documentation");
                 } else {
-                    pvAddPrediction(ws.canvas,message[PV_WS_EVENT],message[PV_WS_PREDICTION],message[PV_WS_TIME])
+                    /*The prediction is in per one, the visualizacion is percent*/
+                    var prediction = Math.round(message[PV_WS_PREDICTION] * 10000) / 100
+                    pvAddPrediction(ws.canvas,message[PV_WS_EVENT],prediction,message[PV_WS_TIME])
                 }
                 break;
             case PV_WS_TIME:
@@ -1372,11 +1376,12 @@ function pvPause(event){
 
 var debugRoutines = function (){
     toggleFooter(true);
-    pvAddGraph();
+    //pvAddGraph();
     pvAddGraph();
     activeSmoothie = 0;
     $($("canvas")[1]).parent().find("."+PV_SELECT_CHART_BUTTON).addClass('active')
-    _pvLoadSource("localhost:10082")
+    //_pvLoadSource("localhost:10082")
+    _pvLoadSource("localhost:3345/channel1/")
     setTimeout(function() {
         activeSmoothie = 1;
         $($("."+PV_SELECT_CHART_BUTTON)[1]).trigger("click")

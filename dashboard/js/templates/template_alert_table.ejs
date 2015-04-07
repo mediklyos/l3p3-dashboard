@@ -1,0 +1,65 @@
+<!--  Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+
+<div class="main">
+    <div class="col-lg-6">
+        <table class="table table-condensed at-table" id="at-table-left">
+            <thead>
+                <tr>
+                    <th colspan="6" class="at-table-header">
+                        Alerts
+                    </th>
+                </tr>
+                <tr>
+                    <th class="col-md-3 at-cell-event"><span onclick="atAlertSortByName()">Event</span>
+                        <sub onclick="atShowAlerted()">alerted</sub><sub>|</sub><sub onclick="atShowReceived()">received</sub><sub>|</sub><sub onclick="atShowAll()">all</sub></th>
+                    <th class="col-md-1 at-cell-origin">Origin</th>
+                    <th class="col-md-1 at-cell-alert" onclick="atAlertSortByAlert()">Alert</th>
+                    <th class="col-md-1 at-cell-prediction">Prediction</th>
+                    <th class="col-md-1 at-cell-start" onclick="atAlertSortByStartDate()">Start</th>
+                    <th class="col-md-1 at-cell-end" onclick="atAlertSortByEndDate()">End</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="dashboard-templates">
+                    <td class="at-cell-event"></td>
+                    <td class="at-cell-origin"></td>
+                    <td class="at-cell-alert">#</td>
+                    <td class="at-cell-prediction"></td>
+                    <td class="at-cell-start"></td>
+                    <td class="at-cell-end"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    $(function(){
+        atResizeFunction();
+        $(window).resize(atResizeFunction)
+        clear = atClearFunction;
+        enableFooter();
+        enableLeftColumn();
+        atStartRoutines();
+
+        if (GLOBAL_DEBUG){
+            atDebugRoutines ();
+        }
+    })
+
+</script>

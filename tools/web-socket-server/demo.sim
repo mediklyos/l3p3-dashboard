@@ -1,7 +1,180 @@
 /wss 0=ws0 1=ws1
 /start
 0 send ws0 {command:"time",before:180000, after:120000}
-0 send ws1 {command:"time",before:600000, after:180000}
+0 send ws1 {command:"time",before:240000, after:180000}
+
+# Other events
+1000 send ws0 {command:"event",event:"NodeId01_CPU_75"}
+24000 send ws0 {command:"event",event:"NodeId01_CPU_75"}
+40000 send ws0 {command:"event",event:"NodeId01_Mem_75"}
+# NodeId01_CPU_90
+25000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"22"}
+42000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"88", timeout: 38000}
+42000 send ws0 {command:"alert",event:"NodeId01_CPU_90",alert:"on",timeout: 38000}
+50000 send ws0 {command:"event",event:"NodeId01_CPU_90"}
+50000 send ws0 {command:"result",event:"NodeId01_CPU_90",result:"hit"}
+80000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"11", timeout: 20000}
+90000 send ws0 {command:"event",event:"NodeId01_CPU_90"}
+90000 send ws0 {command:"result",event:"NodeId01_CPU_90",result:"miss-fn"}
+# NodeId01_Mem_90
+42000 send ws0 {command:"prediction",event:"NodeId01_Mem_90",prediction:"75", timeout: 30000}
+42000 send ws0 {command:"alert",event:"NodeId01_Mem_90",alert:"on",timeout: 30000}
+72000 send ws0 {command:"result",event:"NodeId01_Mem_90",result:"miss-fp"}
+72000 send ws0 {command:"prediction",event:"NodeId01_Mem_90",prediction:"0", timeout: 0}
+
+
+# Other events
+101000 send ws0 {command:"event",event:"NodeId01_CPU_75"}
+124000 send ws0 {command:"event",event:"NodeId01_CPU_75"}
+140000 send ws0 {command:"event",event:"NodeId01_Mem_75"}
+# NodeId01_CPU_90
+125000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"22"}
+142000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"88", timeout: 38000}
+142000 send ws0 {command:"alert",event:"NodeId01_CPU_90",alert:"on",timeout: 38000}
+150000 send ws0 {command:"event",event:"NodeId01_CPU_90"}
+150000 send ws0 {command:"result",event:"NodeId01_CPU_90",result:"hit"}
+180000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"11", timeout: 20000}
+190000 send ws0 {command:"event",event:"NodeId01_CPU_90"}
+190000 send ws0 {command:"result",event:"NodeId01_CPU_90",result:"miss-fn"}
+# NodeId01_Mem_90
+142000 send ws0 {command:"prediction",event:"NodeId01_Mem_90",prediction:"75", timeout: 30000}
+142000 send ws0 {command:"alert",event:"NodeId01_Mem_90",alert:"on",timeout: 30000}
+172000 send ws0 {command:"result",event:"NodeId01_Mem_90",result:"miss-fp"}
+172000 send ws0 {command:"prediction",event:"NodeId01_Mem_90",prediction:"0", timeout: 0}
+
+
+# Other events
+201000 send ws0 {command:"event",event:"NodeId01_CPU_75"}
+224000 send ws0 {command:"event",event:"NodeId01_CPU_75"}
+240000 send ws0 {command:"event",event:"NodeId01_Mem_75"}
+# NodeId01_CPU_90
+225000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"22"}
+242000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"88", timeout: 38000}
+242000 send ws0 {command:"alert",event:"NodeId01_CPU_90",alert:"on",timeout: 38000}
+250000 send ws0 {command:"event",event:"NodeId01_CPU_90"}
+250000 send ws0 {command:"result",event:"NodeId01_CPU_90",result:"hit"}
+280000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"11", timeout: 20000}
+290000 send ws0 {command:"event",event:"NodeId01_CPU_90"}
+290000 send ws0 {command:"result",event:"NodeId01_CPU_90",result:"miss-fn"}
+# NodeId01_Mem_90
+242000 send ws0 {command:"prediction",event:"NodeId01_Mem_90",prediction:"75", timeout: 30000}
+242000 send ws0 {command:"alert",event:"NodeId01_Mem_90",alert:"on",timeout: 30000}
+272000 send ws0 {command:"result",event:"NodeId01_Mem_90",result:"miss-fp"}
+272000 send ws0 {command:"prediction",event:"NodeId01_Mem_90",prediction:"0", timeout: 0}
+
+# Other events
+301000 send ws0 {command:"event",event:"NodeId01_CPU_75"}
+324000 send ws0 {command:"event",event:"NodeId01_CPU_75"}
+340000 send ws0 {command:"event",event:"NodeId01_Mem_75"}
+# NodeId01_CPU_90
+325000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"22"}
+342000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"88", timeout: 38000}
+342000 send ws0 {command:"alert",event:"NodeId01_CPU_90",alert:"on",timeout: 38000}
+350000 send ws0 {command:"event",event:"NodeId01_CPU_90"}
+350000 send ws0 {command:"result",event:"NodeId01_CPU_90",result:"hit"}
+380000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"11", timeout: 20000}
+390000 send ws0 {command:"event",event:"NodeId01_CPU_90"}
+390000 send ws0 {command:"result",event:"NodeId01_CPU_90",result:"miss-fn"}
+# NodeId01_Mem_90
+342000 send ws0 {command:"prediction",event:"NodeId01_Mem_90",prediction:"75", timeout: 30000}
+342000 send ws0 {command:"alert",event:"NodeId01_Mem_90",alert:"on",timeout: 30000}
+372000 send ws0 {command:"result",event:"NodeId01_Mem_90",result:"miss-fp"}
+372000 send ws0 {command:"prediction",event:"NodeId01_Mem_90",prediction:"0", timeout: 0}
+
+
+
+# WSS2
+
+1000 send ws1 {command:"event",event:"NodeId02_Mem_75"}
+14000 send ws1 {command:"event",event:"NodeId02_Net_75"}
+24000 send ws1 {command:"event",event:"NodeId02_CPU_75"}
+34000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
+70000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
+
+25000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"22"}
+35000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"90"}
+35000 send ws1 {command:"alert",event:"NodeId02_Net_90",alert:"on",timeout: 30000}
+50000 send ws1 {command:"event",event:"NodeId02_Net_90"}
+50000 send ws1 {command:"result",event:"NodeId02_Net_90",result:"hit"}
+65000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"0"}
+71000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"77"}
+71000 send ws1 {command:"alert",event:"NodeId02_Net_90",alert:"on",timeout: 10000}
+81000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"0"}
+81000 send ws1 {command:"result",event:"NodeId02_Net_90",result:"miss-fp"}
+95000 send ws1 {command:"event",event:"NodeId02_Net_90"}
+95000 send ws1 {command:"result",event:"NodeId02_Net_90",result:"miss-fn"}
+
+
+101000 send ws1 {command:"event",event:"NodeId02_Mem_75"}
+114000 send ws1 {command:"event",event:"NodeId02_Net_75"}
+124000 send ws1 {command:"event",event:"NodeId02_CPU_75"}
+134000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
+170000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
+
+125000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"22"}
+135000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"90"}
+135000 send ws1 {command:"alert",event:"NodeId02_Net_90",alert:"on",timeout: 30000}
+150000 send ws1 {command:"event",event:"NodeId02_Net_90"}
+150000 send ws1 {command:"result",event:"NodeId02_Net_90",result:"hit"}
+165000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"0"}
+171000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"77"}
+171000 send ws1 {command:"alert",event:"NodeId02_Net_90",alert:"on",timeout: 10000}
+181000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"0"}
+181000 send ws1 {command:"result",event:"NodeId02_Net_90",result:"miss-fp"}
+195000 send ws1 {command:"event",event:"NodeId02_Net_90"}
+195000 send ws1 {command:"result",event:"NodeId02_Net_90",result:"miss-fn"}
+
+201000 send ws1 {command:"event",event:"NodeId02_Mem_75"}
+214000 send ws1 {command:"event",event:"NodeId02_Net_75"}
+224000 send ws1 {command:"event",event:"NodeId02_CPU_75"}
+234000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
+270000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
+
+225000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"22"}
+235000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"90"}
+235000 send ws1 {command:"alert",event:"NodeId02_Net_90",alert:"on",timeout: 30000}
+250000 send ws1 {command:"event",event:"NodeId02_Net_90"}
+250000 send ws1 {command:"result",event:"NodeId02_Net_90",result:"hit"}
+265000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"0"}
+271000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"77"}
+271000 send ws1 {command:"alert",event:"NodeId02_Net_90",alert:"on",timeout: 10000}
+281000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"0"}
+281000 send ws1 {command:"result",event:"NodeId02_Net_90",result:"miss-fp"}
+295000 send ws1 {command:"event",event:"NodeId02_Net_90"}
+295000 send ws1 {command:"result",event:"NodeId02_Net_90",result:"miss-fn"}
+
+
+
+301000 send ws1 {command:"event",event:"NodeId02_Mem_75"}
+314000 send ws1 {command:"event",event:"NodeId02_Net_75"}
+324000 send ws1 {command:"event",event:"NodeId02_CPU_75"}
+334000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
+370000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
+
+325000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"22"}
+335000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"90"}
+335000 send ws1 {command:"alert",event:"NodeId02_Net_90",alert:"on",timeout: 30000}
+350000 send ws1 {command:"event",event:"NodeId02_Net_90"}
+350000 send ws1 {command:"result",event:"NodeId02_Net_90",result:"hit"}
+365000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"0"}
+371000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"77"}
+371000 send ws1 {command:"alert",event:"NodeId02_Net_90",alert:"on",timeout: 10000}
+381000 send ws1 {command:"prediction",event:"NodeId02_Net_90",prediction:"0"}
+381000 send ws1 {command:"result",event:"NodeId02_Net_90",result:"miss-fp"}
+395000 send ws1 {command:"event",event:"NodeId02_Net_90"}
+395000 send ws1 {command:"result",event:"NodeId02_Net_90",result:"miss-fn"}
+
+
+
+
+
+
+
+
+/end
+
+
+
 1000 send ws0 {command:"event",event:"NodeId01_CPU_75"}
 20000 send ws0 {command:"event",event:"NodeId01_CPU_90"}
 24000 send ws0 {command:"event",event:"NodeId01_CPU_75"}
@@ -11,6 +184,7 @@
 70000 send ws0 {command:"prediction",event:"NodeId01_Mem_90",prediction:"75"}
 70000 send ws0 {command:"alert",event:"NodeId01_CPU_90",alert:"on"}
 70000 send ws0 {command:"alert",event:"NodeId01_Mem_90",alert:"on",timeout:10000}
+80000 send ws0 {command:"prediction",event:"NodeId01_Mem_90",prediction:"23"}
 80000 send ws0 {command:"event",event:"NodeId01_CPU_90"}
 80000 send ws0 {command:"result",event:"NodeId01_CPU_90",result:"hit"}
 90000 send ws0 {command:"prediction",event:"NodeId01_CPU_90",prediction:"99"}
@@ -26,8 +200,10 @@
 40000 send ws1 {command:"event",event:"NodeId02_Mem_75"}
 70000 send ws1 {command:"prediction",event:"NodeId02_CPU_90",prediction:"88"}
 70000 send ws1 {command:"prediction",event:"NodeId02_Mem_90",prediction:"75"}
+70000 send ws1 {command:"prediction",event:"NodeId02_Mem_90",prediction:"75"}
 70000 send ws1 {command:"alert",event:"NodeId02_CPU_90",alert:"on"}
-70000 send ws1 {command:"alert",event:"NodeId02_Mem_90",alert:"on",timeout:10000}
+70000 send ws1 {command:"alert",event:"NodeId02_Mem_90",alert:"on",timeout:30000}
+100000 send ws1 {command:"prediction",event:"NodeId02_Mem_90",prediction:"11"}
 80000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
 80000 send ws1 {command:"result",event:"NodeId02_CPU_90",result:"hit"}
 90000 send ws1 {command:"prediction",event:"NodeId02_CPU_90",prediction:"99"}
@@ -36,7 +212,6 @@
 110000 send ws1 {command:"result",event:"NodeId02_CPU_90",result:"miss-fp"}
 120000 send ws1 {command:"event",event:"NodeId02_CPU_90"}
 120000 send ws1 {command:"result",event:"NodeId02_CPU_90",result:"miss-fn"}
-/end
         pv_changeGraphRange(canvas1,300000,120000);
         pv_changeGraphRange(canvas2,600000,180000);
         setTimeout(pvAddEventOccurrenceToCanvas.bind(this,canvas1, event0_1),1000);
