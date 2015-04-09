@@ -1123,51 +1123,15 @@ var _pvLoadSource = function (url) {
             ws.send("Incorrect message format, Use JSON format.")
             return;
         }
-        switch (message.command) {
-            case PV_WS_EVENT:
-                if (message[PV_WS_EVENT] === undefined){
-                    pv_print("Incorrect format of "+PV_WS_EVENT+" command. Please check the documentation");
-                    ws.send("Incorrect format of "+PV_WS_EVENT+" command. Please check the documentation");
-                } else {
-                    pvAddEventOccurrenceToCanvas(ws.canvas,message[PV_WS_EVENT],message[PV_WS_TIME])
-                }
-                break;
-            case PV_WS_PREDICTION:
-                if (message[PV_WS_EVENT] === undefined || message[PV_WS_PREDICTION] === undefined){
-                    pv_print("Incorrect format of "+PV_WS_PREDICTION+" command. Please check the documentation");
-                    ws.send("Incorrect format of "+PV_WS_PREDICTION+" command. Please check the documentation");
-                } else {
-                    /*The prediction is in per one, the visualizacion is percent*/
-                    var prediction = Math.round(message[PV_WS_PREDICTION] * 10000) / 100
-                    pvAddPrediction(ws.canvas,message[PV_WS_EVENT],prediction,message[PV_WS_TIME])
-                }
-                break;
-            case PV_WS_TIME:
-                pv_changeGraphRange(ws.canvas,message[PV_WS_BEFORE],message[PV_WS_AFTER])
-                break;
-            case PV_WS_RESULT:
-                if (message[PV_WS_EVENT] === undefined || message.result === undefined){
-                    pv_print("Incorrect format of "+PV_WS_RESULT+" command. Please check the documentation");
-                    ws.send("Incorrect format of "+PV_WS_RESULT+" command. Please check the documentation");
-                } else if (!pvAddPredictionResult(ws.canvas,message[PV_WS_EVENT],Date.now(),message.result)){
-                    pv_print("The prediction result cannot be registered");
-                    ws.send("The prediction result cannot be registered");
-                }
 
-                break;
-            case PV_WS_ALERT:
-                if (message[PV_WS_EVENT] === undefined) {
-                    pv_print("Incorrect format of "+PV_WS_ALERT+" command. Please check the documentation");
-                    ws.send("Incorrect format of "+PV_WS_ALERT+" command. Please check the documentation");
-                } else {
-                    pvSetAlert(ws.canvas,message[PV_WS_EVENT],message[PV_WS_ALERT],message[PV_WS_ALERT_TIMEOUT],message[PV_WS_TIME])
-                }
-                break;
-            default:
-                pv_print("Incorrect message")
-                ws.send("Incorrect message. Consult documentation")
-
+        if (message instanceof Array) {
+            message.forEach(function (aMessage){
+                registerMessage(aMessage)
+            })
+        } else {
+            registerMessage(message)
         }
+
 //        console.log(e)
 
 
@@ -1179,6 +1143,54 @@ var _pvLoadSource = function (url) {
     canvas.wss.push(ws);
 
 
+}
+
+var registerMessage = function (message) {
+    switch (message.command) {
+        case PV_WS_EVENT:
+            if (message[PV_WS_EVENT] === undefined){
+                pv_print("Incorrect format of "+PV_WS_EVENT+" command. Please check the documentation");
+                ws.send("Incorrect format of "+PV_WS_EVENT+" command. Please check the documentation");
+            } else {
+                pvAddEventOccurrenceToCanvas(ws.canvas,message[PV_WS_EVENT],message[PV_WS_TIME])
+            }
+            break;
+        case PV_WS_PREDICTION:
+            if (message[PV_WS_EVENT] === undefined || message[PV_WS_PREDICTION] === undefined){
+                pv_print("Incorrect format of "+PV_WS_PREDICTION+" command. Please check the documentation");
+                ws.send("Incorrect format of "+PV_WS_PREDICTION+" command. Please check the documentation");
+            } else {
+                /*The prediction is in per one, the visualizacion is percent*/
+                var prediction = Math.round(message[PV_WS_PREDICTION] * 10000) / 100
+                pvAddPrediction(ws.canvas,message[PV_WS_EVENT],prediction,message[PV_WS_TIME])
+            }
+            break;
+        case PV_WS_TIME:
+            pv_changeGraphRange(ws.canvas,message[PV_WS_BEFORE],message[PV_WS_AFTER])
+            break;
+        case PV_WS_RESULT:
+            if (message[PV_WS_EVENT] === undefined || message.result === undefined){
+                pv_print("Incorrect format of "+PV_WS_RESULT+" command. Please check the documentation");
+                ws.send("Incorrect format of "+PV_WS_RESULT+" command. Please check the documentation");
+            } else if (!pvAddPredictionResult(ws.canvas,message[PV_WS_EVENT],Date.now(),message.result)){
+                pv_print("The prediction result cannot be registered");
+                ws.send("The prediction result cannot be registered");
+            }
+
+            break;
+        case PV_WS_ALERT:
+            if (message[PV_WS_EVENT] === undefined) {
+                pv_print("Incorrect format of "+PV_WS_ALERT+" command. Please check the documentation");
+                ws.send("Incorrect format of "+PV_WS_ALERT+" command. Please check the documentation");
+            } else {
+                pvSetAlert(ws.canvas,message[PV_WS_EVENT],message[PV_WS_ALERT],message[PV_WS_ALERT_TIMEOUT],message[PV_WS_TIME])
+            }
+            break;
+        default:
+            pv_print("Incorrect message")
+            ws.send("Incorrect message. Consult documentation")
+
+    }
 }
 
 var pv_changeGraphRange = function (canvas,before,after){
