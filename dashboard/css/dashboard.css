@@ -828,3 +828,7 @@ thead {
 /*, th.at-cell-alert, th.at-cell-start, th.at-cell-end {*/
     cursor: help;
 }
+
+.at-selected-row {
+    font-weight: bold;
+}
