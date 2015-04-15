@@ -29,7 +29,8 @@ under the License.
             </div>
 
         </div>
-        <table class="table table-condensed at-table" id="at-table-left">
+
+        <table class="table table-condensed" id="at-table-left">
             <thead>
                 <tr>
                     <th colspan="6" class="at-table-header">
@@ -109,21 +110,63 @@ under the License.
                 <thead>
                 <tr>
                     <th colspan="2" class="at-table-header">
-                        Previous predictions
+                        <span>Previous predictions</span>
+                        <span><button id="at-clear-prediction-result-button" class="btn btn-default footer-button" onclick="atClearResults()"><span class="glyphicon glyphicon-trash"></span></button></span>
                     </th>
                 </tr>
                 <tr>
-                    <th class="col-md-3">Event</th>
+                    <th class="col-md-3">Event
+                        <span class="at-tip">
+                            <!--(<span id="at-tip-correctly" class="bg-success">Correct</span>-->
+                            <!--<span id="at-tip-correctly" class="bg-danger">False negative</span>-->
+                            <!--<span id="at-tip-correctly" class="bg-warning">False positive</span>)-->
+                        </span>
+                    </th>
                     <th class="col-md-1">Time</th>
                 </tr>
                 </thead>
                 <tbody>
+
                 <tr class="dashboard-templates">
                     <td class="at-cell-event"></td>
                     <td class="at-cell-time"></td>
                 </tr>
                 </tbody>
-            </table>
+                <tfoot>
+                <tr>
+                    <td colspan="2" ><span id="at-tip-correctly" class="text-success">Correct</span>
+                        <span id="at-tip-correctly" class="text-danger">False negative</span>
+                        <span id="at-tip-correctly" class="text-warning">False positive</span>
+                    </td>
+            </tr>
+            </tfoot>
+        </table>
+        <!--<table class="table table-condensed at-table" id="at-table-results">-->
+                <!--<thead>-->
+                <!--<tr>-->
+                    <!--<th colspan="2" class="at-table-header">-->
+                        <!--<span>Previous predictions</span>-->
+                        <!--<span><button id="at-clear-prediction-result-button" class="btn btn-default footer-button" onclick="atClearResults()"><span class="glyphicon glyphicon-trash"></span></button></span>-->
+                    <!--</th>-->
+                <!--</tr>-->
+                <!--<tr>-->
+                    <!--<th class="col-md-3">Event-->
+                        <!--<span class="at-tip">-->
+                            <!--(<span id="at-tip-correctly" class="bg-success">Correct</span>-->
+                            <!--<span id="at-tip-correctly" class="bg-danger">False negative</span>-->
+                            <!--<span id="at-tip-correctly" class="bg-warning">False positive</span>)-->
+                        <!--</span>-->
+                    <!--</th>-->
+                    <!--<th class="col-md-1">Time</th>-->
+                <!--</tr>-->
+                <!--</thead>-->
+                <!--<tbody>-->
+                <!--<tr class="dashboard-templates">-->
+                    <!--<td class="at-cell-event"></td>-->
+                    <!--<td class="at-cell-time"></td>-->
+                <!--</tr>-->
+                <!--</tbody>-->
+            <!--</table>-->
         </div>
     </div>
 </div>

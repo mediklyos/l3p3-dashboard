@@ -894,7 +894,6 @@ thead {
 
 #at-col-center {
     position: absolute;
-    right: calc(25vw);
     height: 96%;
     overflow-y: auto;
 
@@ -904,10 +903,51 @@ thead {
     position: absolute;
     right: 20px;
     height: 96%;
-    overflow-y: auto;
+    overflow-y: hidden;
 }
 #at-col-right div {
     height: 50%;
+    /*overflow-y: auto;*/
+}
+
+#at-clear-prediction-result-button {
+    float:right;
+}
+
+.at-tip{
+    /*font-size: 10px;*/
+    font-weight: normal;
+}
+
+#at-table-results {
+    height: 95%;
+}
+#at-table-results tbody {
+    height: 100%;
     overflow-y: auto;
 }
+
+
+.at-table tbody {
+    overflow-y: auto;
+}
+
+.at-table thead,
+.at-table tbody,
+.at-table tfoot{
+    display: block;
+}
+
+#at-table-results tfoot tr td {
+    width: 25vw;
+    text-align: center;
+}
+
+
+/*#at-table-results thead,*/
+/*#at-table-results tbody,*/
+/*#at-table-results tfoot{*/
+    /*display: block;*/
+/*}*/
+
 

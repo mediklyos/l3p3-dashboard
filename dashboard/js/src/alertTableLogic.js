@@ -17,7 +17,6 @@
  */
 /*Constants*/
 var PRE = views[0][6].constantsPrefix + "-";
-var AT_TABLE              = PRE + "table-";
 var AT_CELL_EVENT         = PRE + "cell-event";
 var AT_CELL_ORIGIN        = PRE + "cell-origin";
 var AT_CELL_ALERT         = PRE + "cell-alert";
@@ -31,19 +30,28 @@ var AT_PREDICTION_TIME    = PRE + "prediction-time";
 var AT_INFO               = PRE + "info";
 var AT_INFO_ICON          = PRE + "info-icon";
 var AT_ALERT_CLASS        = "danger";
+var AT_ALERT_2_CLASS      = "warning";
+var AT_SUCCESS_CLASS      = "success";
 var AT_ROW_SELECTED       = PRE + "selected-row";
 var AT_HIDDEN_ELEMENT     = PRE + "hidden-element";
 var AT_ALERT_SELECTED_NAME= PRE + "alert-selected-name";
 
-var AT_TABLE_LEFT         = AT_TABLE + "left";
-var AT_TABLE_EVENTS       = AT_TABLE + "events";
-var AT_TABLE_MODEL        = AT_TABLE + "model";
+
+var AT_TABLE              = PRE + "table";
+var AT_TABLE_PRE          = AT_TABLE + "-";
+var AT_TABLE_LEFT         = AT_TABLE_PRE + "left";
+var AT_TABLE_EVENTS       = AT_TABLE_PRE + "events";
+var AT_TABLE_MODEL        = AT_TABLE_PRE + "model";
+var AT_TABLE_RESULTS       = AT_TABLE_PRE + "results";
 
 var AT_COL                = PRE + "col-";
 var AT_COL_LEFT           = AT_COL + "left";
 var AT_COL_CENTER         = AT_COL + "center";
 var AT_COL_RIGHT          = AT_COL + "right";
 
+var AT_STRING_SUCCESS     = "Correctly predicted"
+var AT_STRING_MISS_FP     = "False positive"
+var AT_STRING_MISS_FN     = "False negative"
 
 var AT_ON   = "on";
 var AT_OFF  = "off";
@@ -105,13 +113,17 @@ var AT_SHOW_ALERTED = 2;
 var atAlertEvents = {}
 var atAlertsSorted = [];
 var atAlertsSortBy = [AT_ORDER_BY_NAME,AT_ORDER_BY_ALERT,AT_ORDER_BY_PREDICTION,AT_ORDER_BY_ORIGIN,AT_ORDER_BY_START_DATE,AT_ORDER_BY_END_DATE];
+if (GLOBAL_DEBUG) {
+    atAlertsSortBy = [AT_ORDER_BY_ALERT,AT_ORDER_BY_NAME,AT_ORDER_BY_PREDICTION,AT_ORDER_BY_ORIGIN,AT_ORDER_BY_START_DATE,AT_ORDER_BY_END_DATE];
+}
 var alertShowed = AT_SHOW_ALL;
 var atAlertsUpdated = true;
 var atEventsUpdated = true;
 
 var atEventsInWindow = {};
 var atEventsInWindowSorted = [];
-var atEventsInWindowSortBy = [AT_ORDER_BY_DATE,AT_ORDER_BY_NAME];
+//var atEventsInWindowSortBy = [AT_ORDER_BY_DATE,AT_ORDER_BY_NAME];
+
 var wss = {}
 var finish = false;
 var dateGranularity = 3; // 1 seconds, 2 minutes, 3 hour, 4 day, 5 month, 6 year
@@ -130,18 +142,47 @@ var registerEvent = function (message,origin) {
     var event;
     switch (message.command) {
         case AT_WS_EVENT :
-            event = newEvent(message,origin);
+            newEvent(message,origin);
             break;
         case AT_WS_MODEL :
-            event = newModel(message,origin);
+            newModel(message,origin);
             break;
         case AT_WS_PREDICTION :
-            event = newPrediction(message,origin);
+            newPrediction(message,origin);
             break;
         case AT_WS_ALERT :
-            event = newAlert(message,origin);
+            newAlert(message,origin);
+            break;
+        case AT_WS_RESULT :
+            newResult(message,origin)
             break;
     }
+}
+
+var newResult = function (message,origin) {
+    at_print(message);
+
+    //result.event = message[AT_WS_EVENT];
+    var result = message[AT_WS_RESULT];
+    var body = $("#"+AT_TABLE_RESULTS+" tbody");
+    var row =  body.find("."+DASHBOARD_TEMPLATES).clone().removeClass(DASHBOARD_TEMPLATES);
+    row.find("."+AT_CELL_EVENT).text(message[AT_WS_EVENT])
+    row.find("."+AT_CELL_TIME).text(formattedDate(Date.now()));
+    switch (result) {
+        case AT_WS_RESULT_HIT :
+            row.addClass(AT_SUCCESS_CLASS)
+            row.attr('title',AT_STRING_SUCCESS)
+            break;
+        case AT_WS_RESULT_MISS_FALSE_NEGATIVE :
+            row.addClass(AT_ALERT_CLASS)
+            row.attr('title',AT_STRING_MISS_FN)
+            break;
+        case AT_WS_RESULT_MISS_FALSE_POSITIVE :
+            row.addClass(AT_ALERT_2_CLASS)
+            row.attr('title',AT_STRING_MISS_FP)
+            break;
+    }
+    body.append(row);
 }
 
 var newEvent = function (message,origin) {
@@ -576,11 +617,33 @@ var countdown = function (time ){
             var a = $("#"+AT_COL_LEFT).position().left + $("#"+AT_COL_LEFT).width()
             var b = $("#"+AT_COL_RIGHT).position().left
             var position = a + ((b-a) - width) / 2;
-            at_print(position);
-            $("#"+AT_COL_CENTER).css('left', position)
+            $("#"+AT_COL_CENTER).css('left', position);
+            // table results
+            {
+                $("."+AT_TABLE).each(function (key,table){
+                    var headHeight = $(table).find("thead").height();
+                    var footHeight = $(table).find("tfoot").height();
+                    var parentHeight= $("#"+AT_TABLE_RESULTS).parent().height();
+                    headHeight = (headHeight)?headHeight:0;
+                    footHeight = (footHeight)?footHeight:0;
+                    parentHeight = (parentHeight)?parentHeight:0;
+                    var tds = $(table).find("thead tr:last th");
+                    tds.each(function(key,td) {
+                        $("."+AT_TABLE+" tbody tr td:nth-child("+(key+1)+")").width($(td).width())
 
-            //$("#"+AT_COL_CENTER).width(centerWight/2)
+                        //$("."+AT_TABLE+" tfoot tr td:nth-child("+(key+1)+")").width($(td).width())
 
+                    })
+
+                    $(table).find("tbody").height(parentHeight-footHeight-headHeight);
+
+                })
+                var thead = $("#"+AT_TABLE_RESULTS+" thead");
+                var tbody = $("#"+AT_TABLE_RESULTS+" tbody");
+                var tfoot = $("#"+AT_TABLE_RESULTS+" tfoot");
+                var div= $("#"+AT_TABLE_RESULTS).parent()
+                tbody.height(div.height() - thead.height() - tfoot.height() )
+            }
         })
     }
 
@@ -708,6 +771,7 @@ var timeOutFunction = function() {
         atRefreshEventTable();
         atEventsUpdated = true;
     }
+
     setTimeout(timeOutFunction, AT_UPDATE_INTERVAL)
 }
 var timeOutCountdown = function () {
@@ -746,4 +810,11 @@ setTimeout(atUpdateHour,0)
 
 if(GLOBAL_DEBUG) {
     setTimeout(atInfoClick,100)
+}
+
+var atClearResults = function () {
+    var body = $("#"+AT_TABLE_RESULTS+" tbody");
+    var templateRow =  body.find("."+DASHBOARD_TEMPLATES).clone().removeClass(DASHBOARD_TEMPLATES);
+    body.empty();
+    body.append(templateRow);
 }
