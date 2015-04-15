@@ -16,18 +16,31 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-<div class="main">
-    <div class="col-lg-6">
+<div class="main row">
+    <div class="col-lg-6 at-col" id="at-col-left">
+        <div id="at-info-icon" onclick="atInfoClick()" class="off"></div>
+        <div id="at-info" class="off row">
+            <div id="at-hour" class="col-lg-6"></div>
+            <div class="col-lg-6">
+                <div class="col-lg-6">Max Window Time</div>
+                <div id="at-window-time" class="col-lg-6"></div>
+                <div class="col-lg-6">Max Prediction Time</div>
+                <div id="at-prediction-time" class="col-lg-6"></div>
+            </div>
+
+        </div>
         <table class="table table-condensed at-table" id="at-table-left">
             <thead>
                 <tr>
                     <th colspan="6" class="at-table-header">
-                        Alerts
+                        Event predictions
                     </th>
                 </tr>
                 <tr>
                     <th class="col-md-3 at-cell-event"><span onclick="atAlertSortByName()">Event</span>
-                        <sub onclick="atShowAlerted()">alerted</sub><sub>|</sub><sub onclick="atShowReceived()">received</sub><sub>|</sub><sub onclick="atShowAll()">all</sub></th>
+                        <sub class="at-hand-icon" onclick="atShowAll()">all</sub>
+                        <sub class="at-hand-icon" onclick="atShowAlerted()">alerted</sub>
+                        <sub class="at-hand-icon" onclick="atShowReceived()">updated</sub></th>
                     <th class="col-md-1 at-cell-origin"><span onclick="atAlertSortByOrigin()">Origin</span></th>
                     <th class="col-md-1 at-cell-alert"><span onclick="atAlertSortByAlert()">Alert</span></th>
                     <th class="col-md-1 at-cell-prediction"><span onclick="atAlertSortByPrediction()">Prediction</span></th>
@@ -37,7 +50,7 @@ under the License.
             </thead>
             <tbody>
                 <tr class="dashboard-templates" onclick="selectAlertRow (event.target)">
-                    <td class="at-cell-event"></td>
+                    <td ><span class="at-hand-icon at-cell-event"></span> </td>
                     <td class="at-cell-origin"></td>
                     <td class="at-cell-alert"></td>
                     <td class="at-cell-prediction"></td>
@@ -47,13 +60,79 @@ under the License.
             </tbody>
         </table>
     </div>
+    <div class="col-lg-3" id="at-col-center">
+        <table class="table table-condensed at-table at-hidden-element" id="at-table-model">
+            <thead>
+            <tr>
+                <th colspan="2" class="at-table-header">
+                    <span id="at-alert-selected-name"></span>
+                </th>
+            </tr>
+            <tr>
+                <th class="col-md-3">Event</th>
+                <th class="col-md-1">Time</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="dashboard-templates">
+                <td class="at-cell-event"></td>
+                <td class="at-cell-time"></td>
+            </tr>
+            </tbody>
+        </table>
+
+    </div>
+    <div class="col-lg-3 row at-col" id="at-col-right">
+        <div>
+            <table class="table table-condensed at-table" id="at-table-events">
+                <thead>
+                <tr>
+                    <th colspan="2" class="at-table-header">
+                        Events currently in the window
+                    </th>
+                </tr>
+                <tr>
+                    <th class="col-md-3">Event</th>
+                    <th class="col-md-1">Time</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="dashboard-templates">
+                    <td class="at-cell-event"></td>
+                    <td class="at-cell-time"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <table class="table table-condensed at-table" id="at-table-results">
+                <thead>
+                <tr>
+                    <th colspan="2" class="at-table-header">
+                        Previous predictions
+                    </th>
+                </tr>
+                <tr>
+                    <th class="col-md-3">Event</th>
+                    <th class="col-md-1">Time</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="dashboard-templates">
+                    <td class="at-cell-event"></td>
+                    <td class="at-cell-time"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 <script>
     $(function(){
         atResizeFunction();
         $(window).resize(atResizeFunction)
         clear = atClearFunction;
-        enableFooter();
+//        enableFooter();
         enableLeftColumn();
         atStartRoutines();
 

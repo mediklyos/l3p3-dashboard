@@ -16,19 +16,42 @@
  under the License.
  */
 /*Constants*/
-var PRE = views[0][6].constantsPrefix;
-var AT_TABLE = PRE + "-table";
-var AT_TABLE_LEFT = AT_TABLE + "-left";
-var AT_CELL_EVENT =      PRE + "-cell-event";
-var AT_CELL_ORIGIN =     PRE + "-cell-origin";
-var AT_CELL_ALERT =      PRE + "-cell-alert";
-var AT_CELL_PREDICTION = PRE + "-cell-prediction";
-var AT_CELL_START =      PRE + "-cell-start";
-var AT_CELL_END =        PRE + "-cell-end";
-var AT_ALERT_CLASS =     "danger";
-var AT_ROW_SELECTED =    PRE + "-selected-row";
+var PRE = views[0][6].constantsPrefix + "-";
+var AT_TABLE              = PRE + "table-";
+var AT_CELL_EVENT         = PRE + "cell-event";
+var AT_CELL_ORIGIN        = PRE + "cell-origin";
+var AT_CELL_ALERT         = PRE + "cell-alert";
+var AT_CELL_PREDICTION    = PRE + "cell-prediction";
+var AT_CELL_START         = PRE + "cell-start";
+var AT_CELL_END           = PRE + "cell-end";
+var AT_CELL_TIME          = PRE + "cell-time";
+var AT_HOUR               = PRE + "hour";
+var AT_WINDOW_TIME        = PRE + "window-time";
+var AT_PREDICTION_TIME    = PRE + "prediction-time";
+var AT_INFO               = PRE + "info";
+var AT_INFO_ICON          = PRE + "info-icon";
+var AT_ALERT_CLASS        = "danger";
+var AT_ROW_SELECTED       = PRE + "selected-row";
+var AT_HIDDEN_ELEMENT     = PRE + "hidden-element";
+var AT_ALERT_SELECTED_NAME= PRE + "alert-selected-name";
 
-var AT_ID_PREFIX_ALERTS = PRE + "-alert-"
+var AT_TABLE_LEFT         = AT_TABLE + "left";
+var AT_TABLE_EVENTS       = AT_TABLE + "events";
+var AT_TABLE_MODEL        = AT_TABLE + "model";
+
+var AT_COL                = PRE + "col-";
+var AT_COL_LEFT           = AT_COL + "left";
+var AT_COL_CENTER         = AT_COL + "center";
+var AT_COL_RIGHT          = AT_COL + "right";
+
+
+var AT_ON   = "on";
+var AT_OFF  = "off";
+
+var AT_UPDATE_INTERVAL = 1000;
+
+var AT_ID_PREFIX_ALERTS = PRE + "alert-"
+var AT_ID_PREFIX_MODEL_EVENT = PRE + "model-event-"
 
 /*WS commands*/
 var AT_WS_EVENT = "event"
@@ -46,25 +69,30 @@ var AT_WS_RESULT_HIT = "hit"
 var AT_WS_RESULT_MISS_FALSE_POSITIVE = "miss-fp"
 var AT_WS_RESULT_MISS_FALSE_NEGATIVE = "miss-fn"
 var AT_WS_RESULT_HIT_CLASS = PRE + "-hit"
-var AT_WS_RESULT_MISS_FALSE_POSITIVE_CLASS = PRE + "-miss-fp"
-var AT_WS_RESULT_MISS_FALSE_NEGATIVE_CLASS = PRE + "-miss-fn"
+var AT_WS_RESULT_MISS_FALSE_POSITIVE_CLASS = PRE + "miss-fp"
+var AT_WS_RESULT_MISS_FALSE_NEGATIVE_CLASS = PRE + "miss-fn"
 var AT_WS_ALERT = "alert"
 var AT_WS_ALERT_TIMEOUT = "timeout"
 var AT_WS_ALERT_ON = "on"
 var AT_WS_ALERT_OFF = "off"
-
 var AT_VISUAL_ON = "on";
 var AT_VISUAL_OFF = "off";
 
-/**/
+/* sorts*/
 var AT_ORDER_BY_NAME = 1;
 var AT_ORDER_BY_ORIGIN = 2;
 var AT_ORDER_BY_ALERT = 3;
 var AT_ORDER_BY_PREDICTION = 4;
 var AT_ORDER_BY_START_DATE = 5;
 var AT_ORDER_BY_END_DATE = 6;
-//var AT_ORDER_BY_NAME = "byName";
+var AT_ORDER_BY_DATE = 7;
 /**/
+
+/* alert showed */
+var AT_SHOW_ALL = 0;
+var AT_SHOW_HAPPEN = 1;
+var AT_SHOW_ALERTED = 2;
+
 /*
  * Alert:
  *  - name: String
@@ -77,9 +105,162 @@ var AT_ORDER_BY_END_DATE = 6;
 var atAlertEvents = {}
 var atAlertsSorted = [];
 var atAlertsSortBy = [AT_ORDER_BY_NAME,AT_ORDER_BY_ALERT,AT_ORDER_BY_PREDICTION,AT_ORDER_BY_ORIGIN,AT_ORDER_BY_START_DATE,AT_ORDER_BY_END_DATE];
+var alertShowed = AT_SHOW_ALL;
+var atAlertsUpdated = true;
+var atEventsUpdated = true;
+
+var atEventsInWindow = {};
+var atEventsInWindowSorted = [];
+var atEventsInWindowSortBy = [AT_ORDER_BY_DATE,AT_ORDER_BY_NAME];
 var wss = {}
 var finish = false;
 var dateGranularity = 3; // 1 seconds, 2 minutes, 3 hour, 4 day, 5 month, 6 year
+
+var atMaxObservationWindow = 0;
+var atMaxPredictionWindow = 0;
+var lastAlertSelected = undefined;
+
+//var
+if (GLOBAL_DEBUG) {
+    var url = "ws://localhost:2345/summary/"
+}
+
+
+var registerEvent = function (message,origin) {
+    var event;
+    switch (message.command) {
+        case AT_WS_EVENT :
+            event = newEvent(message,origin);
+            break;
+        case AT_WS_MODEL :
+            event = newModel(message,origin);
+            break;
+        case AT_WS_PREDICTION :
+            event = newPrediction(message,origin);
+            break;
+        case AT_WS_ALERT :
+            event = newAlert(message,origin);
+            break;
+    }
+}
+
+var newEvent = function (message,origin) {
+    var event = {};
+    event.name = message[AT_WS_EVENT];
+    event.time = message[AT_WS_TIME];
+    event.moment = Date.now();
+    atEventsInWindow[event.name] = event;
+    atEventsInWindowSorted.push(event);
+    atEventsUpdated = false;
+    return event;
+
+}
+
+var newModel = function (message,origin) {
+    var event
+    var eventName = message[AT_WS_EVENT];
+    var before = message[AT_WS_BEFORE];
+    var after = message[AT_WS_AFTER];
+    var eventWeights = message[AT_WS_EVENT_WEIGHTS];
+    var intercept = message[AT_WS_INTERCEPT];
+    event = atAlertEvents [eventName];
+    if (event === undefined){
+        event = {}
+        atAlertEvents[eventName] = event;
+        atAlertsSorted.push(event);
+    }
+    event.name = eventName;
+    atAlertEvents [eventName] = event;
+    event.alertStatus = false;
+    event.before = before;
+    event.after= after;
+    if(atMaxObservationWindow <= before) {
+        atMaxObservationWindow = before;
+        $("#"+AT_WINDOW_TIME).text(countdown(atMaxObservationWindow))
+    }
+    if (atMaxPredictionWindow <= after) {
+        atMaxPredictionWindow = after;
+    }
+    if(atMaxPredictionWindow <= after) {
+        atMaxPredictionWindow = after;
+        $("#"+AT_PREDICTION_TIME).text(countdown(atMaxPredictionWindow))
+    }
+
+    event.intercept = intercept;
+    event.eventWeights = []
+    eventWeights.forEach(function(e) {
+        var eventWeight = {}
+        eventWeight.name = e[AT_WS_EVENT];
+        eventWeight.weight = e[AT_WS_EVENT_WEIGHT];
+        event.eventWeights.push(eventWeight)
+        event.selected = false;
+    })
+    atAlertsUpdated = false;
+    event.moment = Date.now();
+    event.origin = origin;
+    return event;
+}
+
+var newPrediction = function (message,origin) {
+    var event = {}
+    var eventName = message[AT_WS_EVENT];
+    var timeOut = message[AT_WS_ALERT_TIMEOUT]
+    var timeNow = message[AT_WS_TIME];
+    event = atAlertEvents [eventName];
+    var prediction = Math.round(parseFloat(message[AT_WS_PREDICTION]) * 10000) /100.0;
+    if (event === undefined){
+        event = {}
+        event.name = eventName;
+        atAlertsSorted.push(event);
+        atAlertEvents [eventName] = event;
+        event.alertStatus = false;
+        //event.alertStart = timeNow;
+        event.after= 0;
+        event.before = 0;
+        event.intercept = 0;
+        event.eventWeights = []
+        event.selected = false;
+    }
+    event.prediction = prediction;
+    event.reception = Date.now();
+    atAlertsUpdated = false;
+    event.moment = Date.now();
+    event.origin = origin;
+    return event;
+}
+
+var newAlert = function (message,origin) {
+    var event = {}
+    var eventName = message[AT_WS_EVENT];
+    var timeOut = message[AT_WS_ALERT_TIMEOUT]
+    var timeNow = message[AT_WS_TIME];
+    event = atAlertEvents [eventName];
+    if (event === undefined){
+        event = {}
+        event.name = eventName;
+        atAlertsSorted.push(event);
+        atAlertEvents [eventName] = event;
+        event.alertStatus = false;
+        event.alertStart = timeNow;
+        event.after= 0;
+        event.before = 0;
+        event.intercept = 0;
+        event.eventWeights = []
+        event.selected = false;
+    }
+    var alertStatus = message[AT_WS_ALERT] == AT_WS_ALERT_ON;
+    if (alertStatus) {
+        if (event.alertStatus != alertStatus) {
+            event.alertStart = timeNow;
+            event.alertStatus = alertStatus;
+        }
+        event.alertStop = parseInt(timeNow) + parseInt(timeOut);
+        atAlertsUpdated = false;
+    }
+    event.moment = Date.now();
+    event.origin = origin;
+    return event;
+}
 
 
 var atModifySortByList = function (parameter, list) {
@@ -98,52 +279,7 @@ var atModifySortByList = function (parameter, list) {
     return newList;
 }
 /*DEBUG VARS*/
-if (GLOBAL_DEBUG) {
-    var url = "ws://localhost:2345/summary/"
-}
-var drawTableElements = function () {
-    var tableLeft = $("#"+AT_TABLE_LEFT);
-    //var eventTH = tableLeft.find("thead").find("."+AT_CELL_EVENT);
-    //
-    //var divContent = $('<spam/>').appendTo(eventTH);
-    //createSetButtons("visibilityEvents",divContent ,["alerted","received","all"],"","",function(){},true);
-    atEventAlertsSortBy = AT_ORDER_BY_NAME;
-    console.log("here")
 
-
-}
-
-
-var atShowAlerted = function(){
-
-}
-
-var atShowReceived = function (){
-
-}
-
-var atShowAll = function (){
-
-}
-
-var atStartRoutines = function (){
-    console.log("Start Routine");
-    finish = false;
-
-    drawTableElements();
-
-}
-
-var atDebugRoutines = function (){
-
-
-    console.log("Debug Routine");
-    var newWs = {};
-    var origin = "origin1"
-    newWs.origin = origin;
-    newWs.ws = createWS(url,origin);
-    wss[newWs.origin] = newWs;
-}
 
 var createWS = function (url,origin) {
     var ws = new ReconnectingWebSocket(url);
@@ -167,7 +303,7 @@ var createWS = function (url,origin) {
         } else {
             registerEvent(message,ws.wsOrigin);
         }
-        atRefreshAlertTable() ;
+        //atRefreshAlertTable() ;
     }
     ws.onclose = function (e) {
         at_print(e);
@@ -175,113 +311,9 @@ var createWS = function (url,origin) {
     return ws;
 }
 
-var atResizeFunction = function (){
-    at_print("Resize function");
-
-}
-
-var atClearFunction = function (){
-    at_print("Clear function");
-    finish = true;
-    //forEach() eliminar los ws
-
-    $(window).unbind('resize',atResizeFunction)
-
-}
-
-var registerEvent = function (message,origin) {
-    switch (message.command) {
-        case AT_WS_MODEL :
-            var eventName = message[AT_WS_EVENT];
-            var before = message[AT_WS_BEFORE];
-            var after = message[AT_WS_AFTER];
-            var eventWeights = message[AT_WS_EVENT_WEIGHTS];
-            var intercept = message[AT_WS_INTERCEPT];
-            var event = atAlertEvents [eventName];
-            if (event === undefined){
-                event = {}
-                atAlertEvents[eventName] = event;
-                atAlertsSorted.push(event);
-            }
-            event.name = eventName;
-            atAlertEvents [eventName] = event;
-            event.alertStatus = false;
-            event.before = before;
-            event.after= after;
-            event.intercept = intercept;
-            event.eventWeights = []
-            eventWeights.forEach(function(e) {
-                var eventWeight = {}
-                eventWeight.name = e[AT_WS_EVENT];
-                eventWeight.name = e[AT_WS_EVENT_WEIGHT];
-                eventWeights.push(eventWeight)
-                event.selected = false;
-            })
-
-            break;
-        case AT_WS_PREDICTION :
-            var eventName = message[AT_WS_EVENT];
-            var timeOut = message[AT_WS_ALERT_TIMEOUT]
-            var timeNow = message[AT_WS_TIME];
-            var event = atAlertEvents [eventName];
-            var prediction = Math.round(parseFloat(message[AT_WS_PREDICTION]) * 10000) /100.0;
-            if (event === undefined){
-                var event = {}
-                event.name = eventName;
-                atAlertsSorted.push(event);
-                atAlertEvents [eventName] = event;
-                event.alertStatus = false;
-                event.alertStart = timeNow;
-                event.after= 0;
-                event.before = 0;
-                event.intercept = 0;
-                event.eventWeights = []
-                event.selected = false;
-            }
-            event.prediction = prediction;
-            break;
-        case AT_WS_ALERT :
-            var eventName = message[AT_WS_EVENT];
-            var timeOut = message[AT_WS_ALERT_TIMEOUT]
-            var timeNow = message[AT_WS_TIME];
-            var event = atAlertEvents [eventName];
-            if (event === undefined){
-                var event = {}
-                event.name = eventName;
-                atAlertsSorted.push(event);
-                atAlertEvents [eventName] = event;
-                event.alertStatus = false;
-                event.alertStart = timeNow;
-                event.after= 0;
-                event.before = 0;
-                event.intercept = 0;
-                event.eventWeights = []
-                event.selected = false;
-            }
-            var alertStatus = message[AT_WS_ALERT] == AT_WS_ALERT_ON;
-            if (alertStatus) {
-                event.origin = origin;
-                if (event.alertStatus != alertStatus) {
-                    event.alertStart = timeNow;
-                    event.alertStatus = alertStatus;
-                }
-                event.alertStop = parseInt(timeNow) + parseInt(timeOut);
-
-            } else {
-                event.alertStart = "";
-                event.alertStatus = alertStatus;
-                event.alertStop = "";
-            }
-            break;
-    }
-    event.origin = origin;
-
-
-
-}
 
 var sortAlerts = function () {
-    at_print("sort order: "+atAlertsSortBy);
+    //at_print("sort order: "+atAlertsSortBy);
     //atAlertsSortBy = atModifySortByList(atAlertsSortBy,sortBy)
     atAlertsSorted.sort(function (eventA,eventB) {
         for (var key in atAlertsSortBy) {
@@ -356,6 +388,60 @@ var compareAlertsBy = function (eventA,eventB,compareBy) {
 }
 
 
+var atRefreshEventTable = function () {
+    sortEvents();
+    atPaintModel(lastAlertSelected);
+    var eventTable = $("#"+AT_TABLE_EVENTS).find('tbody');
+
+    var templateRow = eventTable.find("."+DASHBOARD_TEMPLATES);
+    templateRow.detach();
+    eventTable.empty();
+    eventTable.append(templateRow)
+    var rows = [];
+
+    atEventsInWindowSorted.forEach(function (event){
+        var row  = createEventRow(templateRow,event)
+        rows.push(row)
+        var timeout = event.time + atMaxObservationWindow - Date.now();
+        setTimeout(function (){
+            //this.detach();
+            ////var eventRemoved = atEventsInWindowSorted.pop();
+            //var removed = atEventsInWindowSorted.splice(atEventsInWindowSorted.indexOf(event),1);
+            //at_print(removed);
+            //
+            atRefreshEventTable();
+            atEventsUpdated = false;
+        }.bind(row),timeout);
+        //at_print("Timeout="+timeout);
+
+
+    })
+    rows.forEach(function (row) {
+        row.appendTo(eventTable);
+    })
+
+}
+
+var createEventRow = function (template, event){
+    var row = template.clone().removeClass(DASHBOARD_TEMPLATES);
+    row.find("."+AT_CELL_EVENT).text(event.name);
+    row.find("."+AT_CELL_TIME).text(formattedDate(event.time));
+    return row;
+}
+var sortEvents = function () {
+    var newArray = [];
+    var newObject = {};
+    atEventsInWindowSorted.forEach(function (event) {
+        var now = Date.now();
+        if (now < (event.time + atMaxObservationWindow)){
+            newArray.push(event);
+            newObject[event.name] = event;
+        }
+    })
+    atEventsInWindowSorted = newArray;
+    atEventsInWindow = newObject;
+
+}
 var atRefreshAlertTable = function () {
     sortAlerts();
     var alertTable = $("#"+AT_TABLE_LEFT).find('tbody');
@@ -365,31 +451,60 @@ var atRefreshAlertTable = function () {
     alertTable.append(templateRow)
     var alerts = []
     atAlertsSorted.forEach(function (event){
-        var alertRow = templateRow.clone().removeClass(DASHBOARD_TEMPLATES);
-        if (event.selected) {
-            alertRow.addClass(AT_ROW_SELECTED);
+        if ((event.selected) ||
+                (alertShowed == AT_SHOW_ALL) ||
+                (alertShowed == AT_SHOW_HAPPEN && event.moment + event.after > Date.now()) ||
+                (alertShowed == AT_SHOW_ALERTED && event.alertStatus)) {
+            alerts.push(atCreateAlertRow(templateRow,event));
         }
-        alertRow.attr('id',AT_ID_PREFIX_ALERTS  + event.name)
-        alertRow.find('.'+AT_CELL_EVENT).text(event.name);
-        alertRow.find('.'+AT_CELL_START).text(formattedDate(event.alertStart));
-        alertRow.find('.'+AT_CELL_END).text(formattedDate(event.alertStop));
-        alertRow.find('.'+AT_CELL_ORIGIN).text(event.origin);
-        if (event.prediction !== undefined) {
-            alertRow.find('.' + AT_CELL_PREDICTION).text(event.prediction);
-        }
-        if (event.alertStatus !== undefined){
-            if (event.alertStatus) {
-                alertRow.find('.'+AT_CELL_ALERT).text(AT_VISUAL_ON);
-                alertRow.addClass(AT_ALERT_CLASS);
-            } else {
-                alertRow.find('.'+AT_CELL_ALERT).text(AT_VISUAL_OFF);
-            }
-        }
-        alerts.push(alertRow);
     })
     alerts.forEach(function (alertRow){
         alertRow.appendTo(alertTable);
     });
+}
+
+var atRefreshSecondsAlertTable = function (){
+    atAlertsSorted.forEach (function (event) {
+        var cell = $("#"+AT_ID_PREFIX_ALERTS+event.name+" ."+AT_CELL_END)
+        if (event.alertStatus) {
+            var myCountdown = countdown(event.alertStop- Date.now());
+            if (!myCountdown || myCountdown == "") {
+                cell.text("");
+                event.alertStatus = false;
+                atAlertsUpdated = false;
+
+            } else {
+                cell.text (myCountdown)
+            }
+        }
+    })
+}
+
+var atCreateAlertRow = function (templateRow, event){
+    var alertRow = templateRow.clone().removeClass(DASHBOARD_TEMPLATES);
+    if (event.selected) {
+        alertRow.addClass(AT_ROW_SELECTED);
+        alertRow.find('.' + AT_CELL_EVENT).text("* " + event.name);
+    } else {
+        alertRow.find('.' + AT_CELL_EVENT).text(event.name);
+
+    }
+    alertRow.attr('id', AT_ID_PREFIX_ALERTS + event.name)
+    alertRow.find('.' + AT_CELL_START).text(formattedDate(event.alertStart));
+    alertRow.find('.' + AT_CELL_END).text(countdown(event.alertStop- Date.now()));
+    alertRow.find('.' + AT_CELL_ORIGIN).text(event.origin);
+    if (event.prediction !== undefined) {
+        alertRow.find('.' + AT_CELL_PREDICTION).text(event.prediction);
+    }
+    if (event.alertStatus !== undefined) {
+        if (event.alertStatus) {
+            alertRow.find('.' + AT_CELL_ALERT).text(AT_VISUAL_ON);
+            alertRow.addClass(AT_ALERT_CLASS);
+        } else {
+            alertRow.find('.' + AT_CELL_ALERT).text(AT_VISUAL_OFF);
+        }
+    }
+    return alertRow;
 }
 
 var at_print = function (string,info){
@@ -403,41 +518,122 @@ var formattedDate = function (dateLong) {
         return "";
     }
     switch (dateGranularity) {
-        case 6: return moment(dateLong).format("hh:mm:ss - DD/MM/YYYY");
-        case 5: return moment(dateLong).format("hh:mm:ss - DD/MM");
-        case 4: return moment(dateLong).format("hh:mm:ss - DD");
-        case 3: return moment(dateLong).format("hh:mm:ss");
+        case 6: return moment(dateLong).format("HH:mm:ss - DD/MM/YYYY");
+        case 5: return moment(dateLong).format("HH:mm:ss - DD/MM");
+        case 4: return moment(dateLong).format("HH:mm:ss - DD");
+        case 3: return moment(dateLong).format("HH:mm:ss");
         case 2: return moment(dateLong).format("mm:ss");
         case 1: return moment(dateLong).format("ss");
         default: return "";
     }
 }
 
-var atAlertSortByAlert = function () {
-    atAlertsSortBy = atModifySortByList(AT_ORDER_BY_ALERT, atAlertsSortBy);
-    atRefreshAlertTable();
-}
-var atAlertSortByEndDate = function () {
-    atAlertsSortBy = atModifySortByList(AT_ORDER_BY_END_DATE, atAlertsSortBy);
-    atRefreshAlertTable();
-}
-var atAlertSortByName = function () {
-    atAlertsSortBy = atModifySortByList(AT_ORDER_BY_NAME, atAlertsSortBy);
-    atRefreshAlertTable();
-}
-var atAlertSortByOrigin = function () {
-    atAlertsSortBy = atModifySortByList(AT_ORDER_BY_ORIGIN, atAlertsSortBy);
-    atRefreshAlertTable();
-}
-var atAlertSortByPrediction = function () {
-    atAlertsSortBy = atModifySortByList(AT_ORDER_BY_PREDICTION, atAlertsSortBy);
-    atRefreshAlertTable();
-}
-var atAlertSortByStartDate = function () {
-    atAlertsSortBy = atModifySortByList(AT_ORDER_BY_START_DATE, atAlertsSortBy);
-    atRefreshAlertTable();
+var countdown = function (time ){
+    if (!time || time == "" || time < 0) {
+        return "";
+    }
+    var myTime = parseInt(time / 1000);
+    var seconds = myTime % 60;
+    if (seconds == 0) {
+        seconds = "00";
+    } else if (seconds < 10) {
+        seconds = "0"+seconds;
+    }
+    if (myTime >= 60) {
+        var minutes = parseInt (myTime / 60);
+        return minutes+"m "+seconds+"s"
+    } else {
+        return seconds+"s"
+    }
+
 }
 
+
+/*Buttons functions */
+{
+    var atStartRoutines = function (){
+        console.log("Start Routine");
+        finish = false;
+    }
+
+    var atDebugRoutines = function (){
+        console.log("Debug Routine");
+        var newWs = {};
+        var origin = "origin1"
+        newWs.origin = origin;
+        newWs.ws = createWS(url,origin);
+        wss[newWs.origin] = newWs;
+    }
+
+
+    var atResizeFunction = function (){
+        at_print("Resize function");
+        $(function (){
+            var centerWight = $("#"+AT_COL_LEFT).width();
+            var width = centerWight / 2;
+            $("#"+AT_COL_RIGHT).width(width)
+            $("#"+AT_COL_CENTER).width(width)
+            var a = $("#"+AT_COL_LEFT).position().left + $("#"+AT_COL_LEFT).width()
+            var b = $("#"+AT_COL_RIGHT).position().left
+            var position = a + ((b-a) - width) / 2;
+            at_print(position);
+            $("#"+AT_COL_CENTER).css('left', position)
+
+            //$("#"+AT_COL_CENTER).width(centerWight/2)
+
+        })
+    }
+
+    var atClearFunction = function (){
+        at_print("Clear function");
+        finish = true;
+        //forEach() eliminar los ws
+
+        $(window).unbind('resize',atResizeFunction)
+
+    }
+
+
+    var atAlertSortByAlert = function () {
+        atAlertsSortBy = atModifySortByList(AT_ORDER_BY_ALERT, atAlertsSortBy);
+        atRefreshAlertTable();
+    }
+    var atAlertSortByEndDate = function () {
+        atAlertsSortBy = atModifySortByList(AT_ORDER_BY_END_DATE, atAlertsSortBy);
+        atRefreshAlertTable();
+    }
+    var atAlertSortByName = function () {
+        atAlertsSortBy = atModifySortByList(AT_ORDER_BY_NAME, atAlertsSortBy);
+        atRefreshAlertTable();
+    }
+    var atAlertSortByOrigin = function () {
+        atAlertsSortBy = atModifySortByList(AT_ORDER_BY_ORIGIN, atAlertsSortBy);
+        atRefreshAlertTable();
+    }
+    var atAlertSortByPrediction = function () {
+        atAlertsSortBy = atModifySortByList(AT_ORDER_BY_PREDICTION, atAlertsSortBy);
+        atRefreshAlertTable();
+    }
+    var atAlertSortByStartDate = function () {
+        atAlertsSortBy = atModifySortByList(AT_ORDER_BY_START_DATE, atAlertsSortBy);
+        atRefreshAlertTable();
+    }
+
+    var atShowAlerted = function(){
+        alertShowed = AT_SHOW_ALERTED;
+        atRefreshAlertTable();
+    }
+
+    var atShowReceived = function (){
+        alertShowed = AT_SHOW_HAPPEN;
+        atRefreshAlertTable();
+    }
+
+    var atShowAll = function (){
+        alertShowed = AT_SHOW_ALL;
+        atRefreshAlertTable();
+    }
+}
 
 var selectAlertRow = function (target){
     while (target.nodeName != "TR") {
@@ -450,19 +646,104 @@ var selectAlertRow = function (target){
     //var oldEvent = oldElement[0].id;
     var oldElement = $("#"+AT_TABLE_LEFT).find("."+AT_ROW_SELECTED)
     var id = target.id.replace(AT_ID_PREFIX_ALERTS,"");
-    if (atAlertEvents[id]) {
-        atAlertEvents[id].selected = true;
-    }
+
     target = $(target);
-    target.addClass(AT_ROW_SELECTED)
-    oldElement.removeClass(AT_ROW_SELECTED)
-    oldElement.each(function(key,value) {
-        var oldId = value.id.replace(AT_ID_PREFIX_ALERTS,"");
-        if (atAlertEvents[oldId]) {
-            atAlertEvents[oldId].selected = false;
-        }
+
+    if (atAlertEvents[id] && !atAlertEvents[id].selected) {
+        atAlertEvents[id].selected = true;
+        atPaintModel(atAlertEvents[id])
+        //$('#id').animate({height : "0%" },1000,"swing",function(){
+    } else {
+        atPaintModel()
+    }
+    target.hide(200,function () {
+        target.remove();
+        oldElement.removeClass(AT_ROW_SELECTED)
+        oldElement.each(function(key,value) {
+            var oldId = value.id.replace(AT_ID_PREFIX_ALERTS,"");
+            if (atAlertEvents[oldId]) {
+                atAlertEvents[oldId].selected = false;
+            }
+        })
+        atRefreshAlertTable();
     })
-    atRefreshAlertTable();
+    //atRefreshAlertTable();
+}
+
+var atPaintModel = function (alertEvent){
+
+    var body = $("#"+AT_TABLE_MODEL+" tbody");
+    var templateRow =  body.find("."+DASHBOARD_TEMPLATES);
+    //templateRow.detach();
+    body.empty();
+    templateRow.appendTo(body);
+    lastAlertSelected= alertEvent;
+    if (alertEvent) {
+        $("#"+AT_ALERT_SELECTED_NAME).text(alertEvent.name)
+        alertEvent.eventWeights.forEach(function (eventWeight) {
+            var row = templateRow.clone().removeClass(DASHBOARD_TEMPLATES);
+            row.attr('id',AT_ID_PREFIX_MODEL_EVENT+eventWeight.name);
+            row.find("."+AT_CELL_EVENT).text(eventWeight.name);
+            if (atEventsInWindow[eventWeight.name]) {
+                row.addClass("info")
+                row.find("."+AT_CELL_TIME).text(formattedDate(atEventsInWindow[eventWeight.name].time));
+            }
+            row.appendTo(body);
+
+        });
+        $("#"+AT_TABLE_MODEL).removeClass(AT_HIDDEN_ELEMENT)
+    } else {
+        $("#"+AT_TABLE_MODEL).addClass(AT_HIDDEN_ELEMENT)
+    }
+}
+
+var timeOutFunction = function() {
+
+    if (!atAlertsUpdated){
+        atRefreshAlertTable();
+        atAlertsUpdated = true;
+    }
+
+    if (!atEventsUpdated) {
+        atRefreshEventTable();
+        atEventsUpdated = true;
+    }
+    setTimeout(timeOutFunction, AT_UPDATE_INTERVAL)
+}
+var timeOutCountdown = function () {
+    atRefreshSecondsAlertTable();
+    setTimeout(timeOutCountdown,10)
+}
+setTimeout(timeOutCountdown,0)
+setTimeout(timeOutFunction,AT_UPDATE_INTERVAL)
+
+var atInfoClick = function (){
+    var divClick = $("#"+AT_INFO_ICON)
+    var divInfo  = $("#"+AT_INFO);
+    if (divClick.hasClass(AT_OFF)){
+        divClick.removeClass(AT_OFF);
+        divInfo.removeClass(AT_OFF);
+        divClick.addClass(AT_ON);
+        divInfo.addClass(AT_ON);
+    } else {
+        divClick.removeClass(AT_ON);
+        divInfo.removeClass(AT_ON);
+        divClick.addClass(AT_OFF);
+        divInfo.addClass(AT_OFF);
+
+    }
+}
 
 
+var atUpdateHour = function () {
+    var now = moment(Date.now()).format("HH:mm:ss");
+    if (GLOBAL_DEBUG) {
+        $("#"+AT_HOUR).text(now)
+    }
+    setTimeout(atUpdateHour,1000);
+}
+setTimeout(atUpdateHour,0)
+
+if(GLOBAL_DEBUG) {
+    setTimeout(atInfoClick,100)
 }

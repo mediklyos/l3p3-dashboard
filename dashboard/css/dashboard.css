@@ -826,9 +826,88 @@ thead {
 #at-table-left * th span
 {
 /*, th.at-cell-alert, th.at-cell-start, th.at-cell-end {*/
-    cursor: help;
+    cursor: row-resize;
 }
 
 .at-selected-row {
     font-weight: bold;
+    /*border: solid ;*/
 }
+
+
+
+#at-table-left .at-cell-event {
+    cursor: hand;
+}
+
+.at-hand-icon {
+    cursor: hand;
+}
+
+
+#at-table-left tbody .at-cell-end {
+    text-align: right;
+}
+
+#at-info {
+    /*display: inline;*/
+}
+
+#at-hour {
+    text-align: left;
+    font-size: x-large;
+}
+#at-info-icon {
+    position: absolute;
+    float:left;
+    right: 0px;
+    z-index: 1;
+    width: 11px;
+    height: 11px;
+    /*margin-left: -11px;*/
+}
+
+#at-info {
+    border-bottom: 1px solid grey;
+
+}
+
+#at-info-icon.off{
+    background-image: url(../icons/plus.png);
+
+}
+#at-info-icon.on{
+    background-image: url(../icons/minus.png);
+}
+
+#at-info.on {
+    display: inherit;
+}
+
+#at-info.off {
+    display: none;
+}
+
+.at-hidden-element {
+    display: none;
+}
+
+#at-col-center {
+    position: absolute;
+    right: calc(25vw);
+    height: 96%;
+    overflow-y: auto;
+
+}
+
+#at-col-right {
+    position: absolute;
+    right: 20px;
+    height: 96%;
+    overflow-y: auto;
+}
+#at-col-right div {
+    height: 50%;
+    overflow-y: auto;
+}
+
