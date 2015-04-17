@@ -943,13 +943,7 @@ thead {
     text-align: center;
 }
 
-.at-table thead tr th {
+.at-table thead tr:first-child {
     width: 25vw;
 }
-/*#at-table-results thead,*/
-/*#at-table-results tbody,*/
-/*#at-table-results tfoot{*/
-    /*display: block;*/
-/*}*/
-
 

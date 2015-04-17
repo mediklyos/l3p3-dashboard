@@ -24,6 +24,8 @@ var AT_CELL_PREDICTION    = PRE + "cell-prediction";
 var AT_CELL_START         = PRE + "cell-start";
 var AT_CELL_END           = PRE + "cell-end";
 var AT_CELL_TIME          = PRE + "cell-time";
+var AT_CELL_WEIGHT        = PRE + "cell-weight";
+var AT_CELL_RESULT        = PRE + "cell-result";
 var AT_HOUR               = PRE + "hour";
 var AT_WINDOW_TIME        = PRE + "window-time";
 var AT_PREDICTION_TIME    = PRE + "prediction-time";
@@ -50,9 +52,13 @@ var AT_COL_CENTER         = AT_COL + "center";
 var AT_COL_RIGHT          = AT_COL + "right";
 
 var AT_STRING_SUCCESS     = "Correctly predicted"
+var AT_STRING_SUCCESS_2   = "HIT"
 var AT_STRING_MISS_FP     = "False positive"
+var AT_STRING_MISS_FP_2   = "MISS-FP"
 var AT_STRING_MISS_FN     = "False negative"
+var AT_STRING_MISS_FN_2   = "MISS-FN"
 
+var AT_PREFIX_SELECETD    = "* "
 var AT_ON   = "on";
 var AT_OFF  = "off";
 
@@ -134,7 +140,7 @@ var lastAlertSelected = undefined;
 
 //var
 if (GLOBAL_DEBUG) {
-    var url = "ws://localhost:2345/summary/"
+    var url = "ws://localhost:2346/summary/"
 }
 
 
@@ -172,17 +178,20 @@ var newResult = function (message,origin) {
         case AT_WS_RESULT_HIT :
             row.addClass(AT_SUCCESS_CLASS)
             row.attr('title',AT_STRING_SUCCESS)
+            row.find('.'+AT_CELL_RESULT).text(AT_STRING_SUCCESS_2);
             break;
         case AT_WS_RESULT_MISS_FALSE_NEGATIVE :
             row.addClass(AT_ALERT_CLASS)
             row.attr('title',AT_STRING_MISS_FN)
+            row.find('.'+AT_CELL_RESULT).text(AT_STRING_MISS_FN_2);
             break;
         case AT_WS_RESULT_MISS_FALSE_POSITIVE :
             row.addClass(AT_ALERT_2_CLASS)
             row.attr('title',AT_STRING_MISS_FP)
+            row.find('.'+AT_CELL_RESULT).text(AT_STRING_MISS_FP_2);
             break;
     }
-    body.append(row);
+    body.prepend(row);
 }
 
 var newEvent = function (message,origin) {
@@ -232,7 +241,7 @@ var newModel = function (message,origin) {
     eventWeights.forEach(function(e) {
         var eventWeight = {}
         eventWeight.name = e[AT_WS_EVENT];
-        eventWeight.weight = e[AT_WS_EVENT_WEIGHT];
+        eventWeight.weight = parseInt(e[AT_WS_EVENT_WEIGHT]*100)/100;
         event.eventWeights.push(eventWeight)
         event.selected = false;
     })
@@ -525,7 +534,7 @@ var atCreateAlertRow = function (templateRow, event){
     var alertRow = templateRow.clone().removeClass(DASHBOARD_TEMPLATES);
     if (event.selected) {
         alertRow.addClass(AT_ROW_SELECTED);
-        alertRow.find('.' + AT_CELL_EVENT).text("* " + event.name);
+        alertRow.find('.' + AT_CELL_EVENT).text(AT_PREFIX_SELECETD + event.name);
     } else {
         alertRow.find('.' + AT_CELL_EVENT).text(event.name);
 
@@ -629,7 +638,7 @@ var countdown = function (time ){
                     parentHeight = (parentHeight)?parentHeight:0;
                     var tds = $(table).find("thead tr:last th");
                     tds.each(function(key,td) {
-                        $("."+AT_TABLE+" tbody tr td:nth-child("+(key+1)+")").width($(td).width())
+                        $(table).find("tbody tr td:nth-child("+(key+1)+")").width($(td).width())
 
                         //$("."+AT_TABLE+" tfoot tr td:nth-child("+(key+1)+")").width($(td).width())
 
@@ -709,18 +718,21 @@ var selectAlertRow = function (target){
     //var oldEvent = oldElement[0].id;
     var oldElement = $("#"+AT_TABLE_LEFT).find("."+AT_ROW_SELECTED)
     var id = target.id.replace(AT_ID_PREFIX_ALERTS,"");
+    var alertTable = $("#"+AT_TABLE_LEFT).find('tbody');
 
     target = $(target);
 
     if (atAlertEvents[id] && !atAlertEvents[id].selected) {
         atAlertEvents[id].selected = true;
         atPaintModel(atAlertEvents[id])
+        atResizeFunction();
+
         //$('#id').animate({height : "0%" },1000,"swing",function(){
     } else {
         atPaintModel()
     }
-    target.hide(200,function () {
-        target.remove();
+
+    oldElement.hide(100,function () {
         oldElement.removeClass(AT_ROW_SELECTED)
         oldElement.each(function(key,value) {
             var oldId = value.id.replace(AT_ID_PREFIX_ALERTS,"");
@@ -728,7 +740,20 @@ var selectAlertRow = function (target){
                 atAlertEvents[oldId].selected = false;
             }
         })
-        atRefreshAlertTable();
+
+    });
+    target.hide(100,function () {
+        if (atAlertEvents[id].selected) {
+            target.addClass(AT_ROW_SELECTED);
+            target.find("."+AT_CELL_EVENT).text(AT_PREFIX_SELECETD + atAlertEvents[id].name)
+            target.prependTo(alertTable)
+            target.show(100,atRefreshAlertTable);
+            // TODO esto es a lo burro
+        } else {
+            atRefreshAlertTable();
+
+        }
+        //target.remove();
     })
     //atRefreshAlertTable();
 }
@@ -747,6 +772,7 @@ var atPaintModel = function (alertEvent){
             var row = templateRow.clone().removeClass(DASHBOARD_TEMPLATES);
             row.attr('id',AT_ID_PREFIX_MODEL_EVENT+eventWeight.name);
             row.find("."+AT_CELL_EVENT).text(eventWeight.name);
+            row.find("."+AT_CELL_WEIGHT).text(eventWeight.weight);
             if (atEventsInWindow[eventWeight.name]) {
                 row.addClass("info")
                 row.find("."+AT_CELL_TIME).text(formattedDate(atEventsInWindow[eventWeight.name].time));
@@ -814,7 +840,7 @@ if(GLOBAL_DEBUG) {
 
 var atClearResults = function () {
     var body = $("#"+AT_TABLE_RESULTS+" tbody");
-    var templateRow =  body.find("."+DASHBOARD_TEMPLATES).clone().removeClass(DASHBOARD_TEMPLATES);
+    var templateRow =  body.find("."+DASHBOARD_TEMPLATES).clone()//.removeClass(DASHBOARD_TEMPLATES);
     body.empty();
     body.append(templateRow);
 }
