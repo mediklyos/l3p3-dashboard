@@ -104,6 +104,7 @@ var PV_WS_TIME = "time"
 var PV_WS_BEFORE = "before"
 var PV_WS_AFTER = "after"
 var PV_WS_RESULT = "result"
+var PV_WS_MODEL = "model"
 var PV_WS_RESULT_HIT = "hit"
 var PV_WS_RESULT_MISS_FALSE_POSITIVE = "miss-fp"
 var PV_WS_RESULT_MISS_FALSE_NEGATIVE = "miss-fn"
@@ -1126,10 +1127,10 @@ var _pvLoadSource = function (url) {
 
         if (message instanceof Array) {
             message.forEach(function (aMessage){
-                registerMessage(aMessage)
+                registerMessage(aMessage,ws)
             })
         } else {
-            registerMessage(message)
+            registerMessage(message,ws)
         }
 
 //        console.log(e)
@@ -1145,7 +1146,7 @@ var _pvLoadSource = function (url) {
 
 }
 
-var registerMessage = function (message) {
+var registerMessage = function (message,ws) {
     switch (message.command) {
         case PV_WS_EVENT:
             if (message[PV_WS_EVENT] === undefined){
@@ -1166,6 +1167,9 @@ var registerMessage = function (message) {
             }
             break;
         case PV_WS_TIME:
+            pv_changeGraphRange(ws.canvas,message[PV_WS_BEFORE],message[PV_WS_AFTER])
+            break;
+        case PV_WS_MODEL:
             pv_changeGraphRange(ws.canvas,message[PV_WS_BEFORE],message[PV_WS_AFTER])
             break;
         case PV_WS_RESULT:
@@ -1393,13 +1397,13 @@ var debugRoutines = function (){
     activeSmoothie = 0;
     $($("canvas")[1]).parent().find("."+PV_SELECT_CHART_BUTTON).addClass('active')
     //_pvLoadSource("localhost:10082")
-    _pvLoadSource("localhost:3345/channel1/")
+    //_pvLoadSource("localhost:2346/charts/")
     setTimeout(function() {
         activeSmoothie = 1;
         $($("."+PV_SELECT_CHART_BUTTON)[1]).trigger("click")
-        _pvLoadSource("localhost:10082")
+        _pvLoadSource("localhost:2346/charts/")
         $($("."+PV_SELECT_CHART_BUTTON)[2]).trigger("click")
-        _pvLoadSource("localhost:10082")
+        //_pvLoadSource("localhost:2346/charts/")
         $($("."+PV_SELECT_CHART_BUTTON)[1]).trigger("click")
     },100);
 //    $()
