@@ -515,8 +515,9 @@ var atRefreshAlertTable = function () {
 
 var atRefreshSecondsAlertTable = function (){
     atAlertsSorted.forEach (function (event) {
-        var cell = $("#"+AT_ID_PREFIX_ALERTS+event.name+" ."+AT_CELL_END)
-        if (event.alertStatus) {
+        //var cell = $("#"+AT_ID_PREFIX_ALERTS+event.name+" ."+AT_CELL_END)
+        var cell = $(document.getElementById(AT_ID_PREFIX_ALERTS+event.name)).find("."+AT_CELL_END)
+        if (event.alertStatus || cell.text() != "") {
             var myCountdown = countdown(event.alertStop- Date.now());
             if (!myCountdown || myCountdown == "") {
                 cell.text("");
@@ -769,15 +770,17 @@ var atPaintModel = function (alertEvent){
     if (alertEvent) {
         $("#"+AT_ALERT_SELECTED_NAME).text(alertEvent.name)
         alertEvent.eventWeights.forEach(function (eventWeight) {
-            var row = templateRow.clone().removeClass(DASHBOARD_TEMPLATES);
-            row.attr('id',AT_ID_PREFIX_MODEL_EVENT+eventWeight.name);
-            row.find("."+AT_CELL_EVENT).text(eventWeight.name);
-            row.find("."+AT_CELL_WEIGHT).text(eventWeight.weight);
-            if (atEventsInWindow[eventWeight.name]) {
-                row.addClass("info")
-                row.find("."+AT_CELL_TIME).text(formattedDate(atEventsInWindow[eventWeight.name].time));
+            if (eventWeight.weight != 0) {
+                var row = templateRow.clone().removeClass(DASHBOARD_TEMPLATES);
+                row.attr('id', AT_ID_PREFIX_MODEL_EVENT + eventWeight.name);
+                row.find("." + AT_CELL_EVENT).text(eventWeight.name);
+                row.find("." + AT_CELL_WEIGHT).text(eventWeight.weight);
+                if (atEventsInWindow[eventWeight.name]) {
+                    row.addClass("info")
+                    row.find("." + AT_CELL_TIME).text(formattedDate(atEventsInWindow[eventWeight.name].time));
+                }
+                row.appendTo(body);
             }
-            row.appendTo(body);
 
         });
         $("#"+AT_TABLE_MODEL).removeClass(AT_HIDDEN_ELEMENT)
