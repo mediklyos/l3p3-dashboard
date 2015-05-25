@@ -71,7 +71,7 @@ var d3pStartRoutine = function () {
         $(window).unbind('resize',d3plusDemoResizeFunction)
     }
     if (GLOBAL_DEBUG){
-        changeExample(0)
+        changeExample(1)
     }
     initLeftColumn();
 
@@ -127,7 +127,7 @@ var d3pExample0 = function (){
         .draw()
     d3plusSetFooter('<p>This visualization accompanies <a href="http://d3plus.org/blog/advanced/2014/09/28/new-visualization-guide/">this blog post</a> by Alexander Simoes, which is a guide to creating new visualization types. It is a table, or more descriptively, a visual representation of a table.</p>');
 }
-
+var datad3p1;
  var d3pExample1 = function (){
     var data = [
         {"year": 1991, "name":"alpha", "value": 15},
@@ -145,8 +145,26 @@ var d3pExample0 = function (){
         {"year": 1991, "name":"delta", "value": 50},
         {"year": 1992, "name":"delta", "value": 43},
         {"year": 1991, "name":"delta2", "value": 17},
-        {"year": 1992, "name":"delta2", "value": 35}
+        {"year": 1992, "name":"delta2", "value": 35},
+
+        {"year": 1990, "name":"alpha", "value": 15},
+        {"year": 1993, "name":"alpha", "value": 45},
+        {"year": 1990, "name":"alpha2", "value": 15},
+        {"year": 1993, "name":"alpha2", "value": 68},
+        {"year": 1990, "name":"beta", "value": 23},
+        {"year": 1993, "name":"beta", "value": 33},
+        {"year": 1990, "name":"beta2", "value": 10},
+        {"year": 1993, "name":"beta2", "value": 38},
+        {"year": 1990, "name":"gamma", "value": 32},
+        {"year": 1993, "name":"gamma", "value": 25},
+        {"year": 1990, "name":"gamma2", "value": 44},
+        {"year": 1993, "name":"gamma2", "value": 43},
+        {"year": 1990, "name":"delta", "value": 10},
+        {"year": 1993, "name":"delta", "value": 33},
+        {"year": 1990, "name":"delta2", "value": 17},
+        {"year": 1993, "name":"delta2", "value": 30}
     ]
+     datad3p1 = data;
 
     var visualization = d3plus.viz()
         .container("#viz")

@@ -37,6 +37,12 @@ var AT_SUCCESS_CLASS      = "success";
 var AT_ROW_SELECTED       = PRE + "selected-row";
 var AT_HIDDEN_ELEMENT     = PRE + "hidden-element";
 var AT_ALERT_SELECTED_NAME= PRE + "alert-selected-name";
+var AT_CONNECTIONS        = PRE + "connections"
+var AT_CONNECTION_ROW     = PRE + "connection-row"
+var AT_CONNECTION_BUTTON  = PRE + "connection-button"
+var AT_CONNECTION_DIV_ID  = PRE + "connection-"
+var AT_LEFT_CONTENT       = PRE + "left-content";
+var AT_NAT_ACTIVATED      = PRE + "nat-activated"
 
 
 var AT_TABLE              = PRE + "table";
@@ -89,6 +95,8 @@ var AT_WS_ALERT = "alert"
 var AT_WS_ALERT_TIMEOUT = "timeout"
 var AT_WS_ALERT_ON = "on"
 var AT_WS_ALERT_OFF = "off"
+var AT_WS_NAT_NAME = "atName"
+
 var AT_VISUAL_ON = "on";
 var AT_VISUAL_OFF = "off";
 
@@ -141,6 +149,7 @@ var lastAlertSelected = undefined;
 //var
 if (GLOBAL_DEBUG) {
     var url = "ws://localhost:2346/summary/"
+    var url = "ws://192.168.122.131:2346/summary/"
 }
 
 
@@ -148,24 +157,24 @@ var registerEvent = function (message,origin) {
     var event;
     switch (message.command) {
         case AT_WS_EVENT :
-            newEvent(message,origin);
+            atNewEvent(message,origin);
             break;
         case AT_WS_MODEL :
-            newModel(message,origin);
+            atNewModel(message,origin);
             break;
         case AT_WS_PREDICTION :
-            newPrediction(message,origin);
+            atNewPrediction(message,origin);
             break;
         case AT_WS_ALERT :
-            newAlert(message,origin);
+            atNewAlert(message,origin);
             break;
         case AT_WS_RESULT :
-            newResult(message,origin)
+            atNewResult(message,origin)
             break;
     }
 }
 
-var newResult = function (message,origin) {
+var atNewResult = function (message,origin) {
     at_print(message);
 
     //result.event = message[AT_WS_EVENT];
@@ -173,7 +182,7 @@ var newResult = function (message,origin) {
     var body = $("#"+AT_TABLE_RESULTS+" tbody");
     var row =  body.find("."+DASHBOARD_TEMPLATES).clone().removeClass(DASHBOARD_TEMPLATES);
     row.find("."+AT_CELL_EVENT).text(message[AT_WS_EVENT])
-    row.find("."+AT_CELL_TIME).text(formattedDate(Date.now()));
+    row.find("."+AT_CELL_TIME).text(atFormattedDate(Date.now()));
     switch (result) {
         case AT_WS_RESULT_HIT :
             row.addClass(AT_SUCCESS_CLASS)
@@ -194,7 +203,7 @@ var newResult = function (message,origin) {
     body.prepend(row);
 }
 
-var newEvent = function (message,origin) {
+var atNewEvent = function (message,origin) {
     var event = {};
     event.name = message[AT_WS_EVENT];
     event.time = message[AT_WS_TIME];
@@ -206,13 +215,21 @@ var newEvent = function (message,origin) {
 
 }
 
-var newModel = function (message,origin) {
+
+var atCountNat = 0;
+var atNewModel = function (message,origin) {
     var event
     var eventName = message[AT_WS_EVENT];
     var before = message[AT_WS_BEFORE];
     var after = message[AT_WS_AFTER];
     var eventWeights = message[AT_WS_EVENT_WEIGHTS];
     var intercept = message[AT_WS_INTERCEPT];
+    var nat_name = message[AT_WS_NAT_NAME];
+    if (nat_name == undefined) {
+        if (GLOBAL_DEBUG) {
+            nat_name = "PERSONALIZADO_"+atCountNat++;
+        }
+    }
     event = atAlertEvents [eventName];
     if (event === undefined){
         event = {}
@@ -220,20 +237,21 @@ var newModel = function (message,origin) {
         atAlertsSorted.push(event);
     }
     event.name = eventName;
+    event.natName = nat_name;
     atAlertEvents [eventName] = event;
     event.alertStatus = false;
     event.before = before;
     event.after= after;
     if(atMaxObservationWindow <= before) {
         atMaxObservationWindow = before;
-        $("#"+AT_WINDOW_TIME).text(countdown(atMaxObservationWindow))
+        $("#"+AT_WINDOW_TIME).text(atCountdown(atMaxObservationWindow))
     }
     if (atMaxPredictionWindow <= after) {
         atMaxPredictionWindow = after;
     }
     if(atMaxPredictionWindow <= after) {
         atMaxPredictionWindow = after;
-        $("#"+AT_PREDICTION_TIME).text(countdown(atMaxPredictionWindow))
+        $("#"+AT_PREDICTION_TIME).text(atCountdown(atMaxPredictionWindow))
     }
 
     event.intercept = intercept;
@@ -251,7 +269,7 @@ var newModel = function (message,origin) {
     return event;
 }
 
-var newPrediction = function (message,origin) {
+var atNewPrediction = function (message,origin) {
     var event = {}
     var eventName = message[AT_WS_EVENT];
     var timeOut = message[AT_WS_ALERT_TIMEOUT]
@@ -279,7 +297,7 @@ var newPrediction = function (message,origin) {
     return event;
 }
 
-var newAlert = function (message,origin) {
+var atNewAlert = function (message,origin) {
     var event = {}
     var eventName = message[AT_WS_EVENT];
     var timeOut = message[AT_WS_ALERT_TIMEOUT]
@@ -330,9 +348,19 @@ var atModifySortByList = function (parameter, list) {
 }
 /*DEBUG VARS*/
 
-
-var createWS = function (url,origin) {
+/**
+ * Crea una conexión mediante web socket a una url concreta.
+ * @param url
+ * @param origin
+ * @returns {ReconnectingWebSocket}
+ */
+var atCreateWS = function (url,origin) {
     var ws = new ReconnectingWebSocket(url);
+    ws.inheritOnClose = ws.onclose;
+    ws.onclose = function (event) {
+        this.inheritOnClose(event);
+        // limpiar el contenido
+    }
     ws.wsOrigin = origin;
     ws.onopen = function (e) {
         at_print(e);
@@ -343,14 +371,14 @@ var createWS = function (url,origin) {
         try {
             message = eval('('+ e.data+')');
         } catch (e) {
-            at_print("Incorrect message format, Use JSON format." + messageReceived)
+            at_print("Incorrect message format, Use JSON format." + e.data)
             return;
         }
         if (message instanceof Array) {
             message.forEach(function (event) {
                 registerEvent(event,ws.wsOrigin);
             })
-        } else {
+        } else {                                                       +
             registerEvent(message,ws.wsOrigin);
         }
         //atRefreshAlertTable() ;
@@ -374,7 +402,7 @@ var sortAlerts = function () {
                 }
                 return 1;
             }
-            var result = compareAlertsBy(eventA,eventB,atAlertsSortBy[key]);
+            var result = atCompareAlertsBy(eventA,eventB,atAlertsSortBy[key]);
             if (result != 0) {
                 return result;
             }
@@ -391,7 +419,7 @@ var sortAlerts = function () {
  * - prediction: float
  * - alertStatus: boolean
  */
-var compareAlertsBy = function (eventA,eventB,compareBy) {
+var atCompareAlertsBy = function (eventA,eventB,compareBy) {
     switch (compareBy) {
         case AT_ORDER_BY_ALERT :
         case -AT_ORDER_BY_ALERT :
@@ -450,7 +478,7 @@ var atRefreshEventTable = function () {
     var rows = [];
 
     atEventsInWindowSorted.forEach(function (event){
-        var row  = createEventRow(templateRow,event)
+        var row  = atCreateEventRow(templateRow,event)
         rows.push(row)
         var timeout = event.time + atMaxObservationWindow - Date.now();
         setTimeout(function (){
@@ -472,10 +500,10 @@ var atRefreshEventTable = function () {
 
 }
 
-var createEventRow = function (template, event){
+var atCreateEventRow = function (template, event){
     var row = template.clone().removeClass(DASHBOARD_TEMPLATES);
     row.find("."+AT_CELL_EVENT).text(event.name);
-    row.find("."+AT_CELL_TIME).text(formattedDate(event.time));
+    row.find("."+AT_CELL_TIME).text(atFormattedDate(event.time));
     return row;
 }
 var sortEvents = function () {
@@ -518,7 +546,7 @@ var atRefreshSecondsAlertTable = function (){
         //var cell = $("#"+AT_ID_PREFIX_ALERTS+event.name+" ."+AT_CELL_END)
         var cell = $(document.getElementById(AT_ID_PREFIX_ALERTS+event.name)).find("."+AT_CELL_END)
         if (event.alertStatus || cell.text() != "") {
-            var myCountdown = countdown(event.alertStop- Date.now());
+            var myCountdown = atCountdown(event.alertStop- Date.now());
             if (!myCountdown || myCountdown == "") {
                 cell.text("");
                 event.alertStatus = false;
@@ -537,12 +565,17 @@ var atCreateAlertRow = function (templateRow, event){
         alertRow.addClass(AT_ROW_SELECTED);
         alertRow.find('.' + AT_CELL_EVENT).text(AT_PREFIX_SELECETD + event.name);
     } else {
-        alertRow.find('.' + AT_CELL_EVENT).text(event.name);
+        if ($("#"+AT_NAT_ACTIVATED)[0].checked && event.natName != undefined){
+            alertRow.find('.' + AT_CELL_EVENT).text(event.natName);
+        } else {
+
+            alertRow.find('.' + AT_CELL_EVENT).text(event.name);
+        }
 
     }
     alertRow.attr('id', AT_ID_PREFIX_ALERTS + event.name)
-    alertRow.find('.' + AT_CELL_START).text(formattedDate(event.alertStart));
-    alertRow.find('.' + AT_CELL_END).text(countdown(event.alertStop- Date.now()));
+    alertRow.find('.' + AT_CELL_START).text(atFormattedDate(event.alertStart));
+    alertRow.find('.' + AT_CELL_END).text(atCountdown(event.alertStop- Date.now()));
     alertRow.find('.' + AT_CELL_ORIGIN).text(event.origin);
     if (event.prediction !== undefined) {
         alertRow.find('.' + AT_CELL_PREDICTION).text(event.prediction);
@@ -564,7 +597,7 @@ var at_print = function (string,info){
     }
 }
 
-var formattedDate = function (dateLong) {
+var atFormattedDate = function (dateLong) {
     if (dateLong === undefined || dateLong == ""){
         return "";
     }
@@ -579,7 +612,7 @@ var formattedDate = function (dateLong) {
     }
 }
 
-var countdown = function (time ){
+var atCountdown = function (time ){
     if (!time || time == "" || time < 0) {
         return "";
     }
@@ -604,16 +637,39 @@ var countdown = function (time ){
 {
     var atStartRoutines = function (){
         console.log("Start Routine");
+
+        // paint left column
         finish = false;
+        var connections = $("#"+AT_LEFT_CONTENT).detach()
+
+        $("#"+LEFT_COLUMN_CONTENT).append(connections)
+        $("#"+AT_NAT_ACTIVATED).switchButton({switcherClick: function () {
+            atRefreshAlertTable();
+            console.log("hola mundo")
+        }});
+        //click(function () {
+        //    atRefreshAlertTable();
+        //})
     }
 
     var atDebugRoutines = function (){
         console.log("Debug Routine");
-        var newWs = {};
-        var origin = "origin1"
-        newWs.origin = origin;
-        newWs.ws = createWS(url,origin);
-        wss[newWs.origin] = newWs;
+        var origins = []
+        origins[0] = ["origin1","ws://192.168.122.131:2346/summary/"]
+        origins[1] = ["origin2","ws://localhost:2346/summary/"]
+        for (var i = 0; i < origins.length;i++){
+            atAddConnection(origins[i][0],origins[i][1]);
+
+        }
+        atEstablishConnection(origins[0][0],origins[0][1])
+        $("#"+AT_CONNECTION_DIV_ID+origins[0][0]).find("a").addClass("active")
+
+        //atEstablishConnection()
+        //var newWs = {};
+        //var origin = "origin1"
+        //newWs.origin = origin;
+        //newWs.ws = atCreateWS(url,origin);
+        //wss[newWs.origin] = newWs;
     }
 
 
@@ -715,7 +771,7 @@ var selectAlertRow = function (target){
             return;
         }
     }
-    //var newEvent = target.id.replace(AT_ID_PREFIX_ALERTS,"");
+    //var atNewEvent = target.id.replace(AT_ID_PREFIX_ALERTS,"");
     //var oldEvent = oldElement[0].id;
     var oldElement = $("#"+AT_TABLE_LEFT).find("."+AT_ROW_SELECTED)
     var id = target.id.replace(AT_ID_PREFIX_ALERTS,"");
@@ -727,8 +783,6 @@ var selectAlertRow = function (target){
         atAlertEvents[id].selected = true;
         atPaintModel(atAlertEvents[id])
         atResizeFunction();
-
-        //$('#id').animate({height : "0%" },1000,"swing",function(){
     } else {
         atPaintModel()
     }
@@ -777,7 +831,7 @@ var atPaintModel = function (alertEvent){
                 row.find("." + AT_CELL_WEIGHT).text(eventWeight.weight);
                 if (atEventsInWindow[eventWeight.name]) {
                     row.addClass("info")
-                    row.find("." + AT_CELL_TIME).text(formattedDate(atEventsInWindow[eventWeight.name].time));
+                    row.find("." + AT_CELL_TIME).text(atFormattedDate(atEventsInWindow[eventWeight.name].time));
                 }
                 row.appendTo(body);
             }
@@ -809,7 +863,9 @@ var timeOutCountdown = function () {
 }
 setTimeout(timeOutCountdown,0)
 setTimeout(timeOutFunction,AT_UPDATE_INTERVAL)
-
+/**
+ * Esta funcion abre y cierra el panel de información, el que contiene la hora
+ */
 var atInfoClick = function (){
     var divClick = $("#"+AT_INFO_ICON)
     var divInfo  = $("#"+AT_INFO);
@@ -830,9 +886,9 @@ var atInfoClick = function (){
 
 var atUpdateHour = function () {
     var now = moment(Date.now()).format("HH:mm:ss");
-    if (GLOBAL_DEBUG) {
-        $("#"+AT_HOUR).text(now)
-    }
+    //if (GLOBAL_DEBUG) {
+    $("#"+AT_HOUR).text(now);
+    //}
     setTimeout(atUpdateHour,1000);
 }
 setTimeout(atUpdateHour,0)
@@ -846,4 +902,87 @@ var atClearResults = function () {
     var templateRow =  body.find("."+DASHBOARD_TEMPLATES).clone()//.removeClass(DASHBOARD_TEMPLATES);
     body.empty();
     body.append(templateRow);
+}
+
+var atClearAlerts = function () {
+    var body = $("#"+AT_TABLE_LEFT+" tbody");
+    var templateRow =  body.find("."+DASHBOARD_TEMPLATES).clone()//.removeClass(DASHBOARD_TEMPLATES);
+    body.empty();
+    body.append(templateRow);
+}
+
+var atClearModelDescription = function () {
+    atPaintModel();
+}
+
+var atClearWindowEvents = function () {
+    atEventsInWindowSorted = [];
+    atEventsInWindow = {};
+    atRefreshEventTable();
+    //var body = $("#"+AT_TABLE_EVENTS+" tbody");
+}
+
+var atResetConnections = function () {
+    for (var key in wss) {
+        atRemoveConnection(key);
+    }
+}
+
+var atRemoveConnection = function (id){
+    var ws = wss[id].ws;
+    if (ws) {
+        ws.forcedClose = true;
+        ws.close();
+    }
+}
+
+var atAddConnection = function (id, addr) {
+    var connections = $("#"+AT_CONNECTIONS);
+    var template = connections.find("."+AT_CONNECTION_ROW+"."+DASHBOARD_TEMPLATES)
+    var newConnection = template.clone().removeClass(DASHBOARD_TEMPLATES);
+    newConnection.attr("id",AT_CONNECTION_DIV_ID+id);
+    var button = newConnection.find("."+AT_CONNECTION_BUTTON);
+    button.text(id);
+    button.click(atClickConnection.bind(button,id,addr));
+    connections.append(newConnection);
+}
+
+var atEstablishConnection = function (id, addr) {
+    var newWs = {};
+    var origin = id;
+    newWs.origin = origin;
+    newWs.ws = atCreateWS(addr,origin);
+    wss[newWs.origin] = newWs;
+
+}
+
+var atClickConnection = function (id,addr) {
+    atResetView();
+    this.addClass("active");
+    atEstablishConnection(id,addr);
+}
+
+var atResetView = function () {
+    // remove button clicked
+    $("#"+AT_CONNECTIONS).find("."+AT_CONNECTION_BUTTON).removeClass("active");
+
+    // Quitar los eventos de la vista, de momento todos, en una iteracción posterior quitar solos los del origen del ws
+    atClearAlerts()
+    // Quitar los eventos de la ventana de observación
+    atClearWindowEvents();
+    // Limpiar las últimas predicciones
+    atClearResults();
+    // Limpiar / Ocular información del modelo
+    atClearModelDescription();
+    // cerrar las conexiones
+    atResetConnections()
+    atAlertEvents = {}
+    atAlertsSorted = []
+    wss = {}
+    atMaxObservationWindow = 0;
+    atMaxPredictionWindow = 0;
+    lastAlertSelected = undefined;
+    $("#"+AT_WINDOW_TIME).text(atCountdown(atMaxObservationWindow))
+    $("#"+AT_PREDICTION_TIME).text(atCountdown(atMaxPredictionWindow))
+
 }

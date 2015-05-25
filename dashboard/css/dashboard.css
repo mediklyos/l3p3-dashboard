@@ -947,3 +947,16 @@ thead {
     width: 25vw;
 }
 
+#at-left-content {
+    margin-top: 10px;
+}
+
+.at-switcher {
+    display: inline-block;
+    position: relative;
+    top: 5px;
+}
+
+#at-switcher-nat {
+    border-bottom: 1px solid black;
+}
