@@ -563,7 +563,13 @@ var atCreateAlertRow = function (templateRow, event){
     var alertRow = templateRow.clone().removeClass(DASHBOARD_TEMPLATES);
     if (event.selected) {
         alertRow.addClass(AT_ROW_SELECTED);
-        alertRow.find('.' + AT_CELL_EVENT).text(AT_PREFIX_SELECETD + event.name);
+        if (event.natName){
+            alertRow.find("."+AT_CELL_EVENT).text(AT_PREFIX_SELECETD + event.natName)
+        } else {
+            alertRow.find("."+AT_CELL_EVENT).text(AT_PREFIX_SELECETD + event.name)
+        }
+
+        //alertRow.find('.' + AT_CELL_EVENT).text(AT_PREFIX_SELECETD + event.name);
     } else {
         if ($("#"+AT_NAT_ACTIVATED)[0].checked && event.natName != undefined){
             alertRow.find('.' + AT_CELL_EVENT).text(event.natName);
@@ -645,7 +651,6 @@ var atCountdown = function (time ){
         $("#"+LEFT_COLUMN_CONTENT).append(connections)
         $("#"+AT_NAT_ACTIVATED).switchButton({switcherClick: function () {
             atRefreshAlertTable();
-            console.log("hola mundo")
         }});
         //click(function () {
         //    atRefreshAlertTable();
@@ -661,8 +666,10 @@ var atCountdown = function (time ){
             atAddConnection(origins[i][0],origins[i][1]);
 
         }
-        atEstablishConnection(origins[0][0],origins[0][1])
-        $("#"+AT_CONNECTION_DIV_ID+origins[0][0]).find("a").addClass("active")
+        //atEstablishConnection(origins[0][0],origins[0][1])
+        //$("#"+AT_CONNECTION_DIV_ID+origins[0][0]).find("a").addClass("active")
+        atEstablishConnection(origins[1][0],origins[1][1])
+        $("#"+AT_CONNECTION_DIV_ID+origins[1][0]).find("a").addClass("active")
 
         //atEstablishConnection()
         //var newWs = {};
@@ -764,7 +771,7 @@ var atCountdown = function (time ){
     }
 }
 
-var selectAlertRow = function (target){
+var atClickAlertRow = function (target){
     while (target.nodeName != "TR") {
         target = target.parentNode;
         if (target == undefined) {
@@ -800,7 +807,11 @@ var selectAlertRow = function (target){
     target.hide(100,function () {
         if (atAlertEvents[id].selected) {
             target.addClass(AT_ROW_SELECTED);
-            target.find("."+AT_CELL_EVENT).text(AT_PREFIX_SELECETD + atAlertEvents[id].name)
+            if (atAlertEvents[id].natName){
+                target.find("."+AT_CELL_EVENT).text(AT_PREFIX_SELECETD + atAlertEvents[id].natName)
+            } else {
+                target.find("."+AT_CELL_EVENT).text(AT_PREFIX_SELECETD + atAlertEvents[id].name)
+            }
             target.prependTo(alertTable)
             target.show(100,atRefreshAlertTable);
             // TODO esto es a lo burro
