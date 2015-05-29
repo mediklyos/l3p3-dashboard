@@ -895,9 +895,14 @@ thead {
 #at-col-center {
     position: absolute;
     height: 96%;
-    overflow-y: auto;
+    overflow-y: hidden;
 
 }
+#at-col-center div {
+    height: 50%;
+    /*overflow-y: auto;*/
+}
+
 
 #at-col-right {
     position: absolute;
@@ -957,6 +962,6 @@ thead {
     top: 5px;
 }
 
-#at-switcher-nat {
+#at-switcher-alias {
     border-bottom: 1px solid black;
 }
