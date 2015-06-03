@@ -137,8 +137,6 @@ if (GLOBAL_DEBUG) {
     atAlertsSortBy = [AT_ORDER_BY_ALERT,AT_ORDER_BY_NAME,AT_ORDER_BY_PREDICTION,AT_ORDER_BY_ORIGIN,AT_ORDER_BY_START_DATE,AT_ORDER_BY_END_DATE];
 }
 var alertShowed = AT_SHOW_ALL;
-var atAlertsUpdated = true;
-var atEventsUpdated = true;
 
 var atEventsInWindow = {};
 var atEventsInWindowSorted = [];
@@ -154,6 +152,13 @@ var dateGranularity = 3; // 1 seconds, 2 minutes, 3 hour, 4 day, 5 month, 6 year
 
 var atMaxObservationWindow = 0;
 var atMaxPredictionWindow = 0;
+
+
+var AT_REFRESH_TIME = 100;
+var atRefreshEventTableNeeded = true;
+var atRefreshAlertsTableNeeded = true;
+var atRefreshPredictionResultNeeded = true;
+
 var lastAlertSelected = undefined;
 
 //var
@@ -232,43 +237,7 @@ var atNewAlias = function (message,origin) {
     atAliasTable[event].alias = alias
     atAliasTable[event].description = description
 }
-var atRefreshPredictionResult = function () {
-    var body = $("#"+AT_TABLE_RESULTS+" tbody");
-    var template = body.find("."+DASHBOARD_TEMPLATES);
-    body.empty();
-    body.append(template);
-    for (var key in atResults) {
-        var message = atResults[key];
-        var result = message[AT_WS_RESULT];
-        var row =  template.clone().removeClass(DASHBOARD_TEMPLATES);
 
-        if ($("#"+AT_ALIAS_ACTIVATED)[0].checked && atAliasTable[message[AT_WS_EVENT]]){
-            row.find("."+AT_CELL_EVENT).text(atAliasTable[message[AT_WS_EVENT]].alias)
-        } else {
-            row.find("."+AT_CELL_EVENT).text(message[AT_WS_EVENT])
-        }
-        row.find("."+AT_CELL_TIME).text(atFormattedDate(message[AT_WS_TIME]));
-        switch (result) {
-            case AT_WS_RESULT_HIT :
-                row.addClass(AT_SUCCESS_CLASS)
-                row.attr('title',AT_STRING_SUCCESS)
-                row.find('.'+AT_CELL_RESULT).text(AT_STRING_SUCCESS_2);
-                break;
-            case AT_WS_RESULT_MISS_FALSE_NEGATIVE :
-                row.addClass(AT_ALERT_CLASS)
-                row.attr('title',AT_STRING_MISS_FN)
-                row.find('.'+AT_CELL_RESULT).text(AT_STRING_MISS_FN_2);
-                break;
-            case AT_WS_RESULT_MISS_FALSE_POSITIVE :
-                row.addClass(AT_ALERT_2_CLASS)
-                row.attr('title',AT_STRING_MISS_FP)
-                row.find('.'+AT_CELL_RESULT).text(AT_STRING_MISS_FP_2);
-                break;
-        }
-        body.prepend(row);
-    }
-
-}
 var atNewResult = function (message,origin) {
     if (!message[AT_WS_TIME]) {
         message[AT_WS_TIME] = Date.now();
@@ -284,7 +253,7 @@ var atNewEvent = function (message,origin) {
     event.moment = Date.now();
     atEventsInWindow[event.name] = event;
     atEventsInWindowSorted.push(event);
-    atEventsUpdated = false;
+    atRefreshEventTable();
     return event;
 
 }
@@ -305,7 +274,6 @@ var atNewModel = function (message,origin) {
         atAlertsSorted.push(event);
     }
     event.name = eventName;
-    //event.natName = nat_name;
 
     atAlertEvents [eventName] = event;
     event.alertStatus = false;
@@ -336,7 +304,7 @@ var atNewModel = function (message,origin) {
         event.eventWeights.push(eventWeight)
         event.selected = false;
     })
-    atAlertsUpdated = false;
+    atRefreshAlertTable();
     event.moment = Date.now();
     event.origin = origin;
     return event;
@@ -355,7 +323,6 @@ var atNewPrediction = function (message,origin) {
         atAlertsSorted.push(event);
         atAlertEvents [eventName] = event;
         event.alertStatus = false;
-        //event.alertStart = timeNow;
         event.after= 0;
         event.before = 0;
         event.intercept = 0;
@@ -364,7 +331,7 @@ var atNewPrediction = function (message,origin) {
     }
     event.prediction = prediction;
     event.reception = Date.now();
-    atAlertsUpdated = false;
+    atRefreshAlertTable();
     event.moment = Date.now();
     event.origin = origin;
     return event;
@@ -396,7 +363,7 @@ var atNewAlert = function (message,origin) {
             event.alertStatus = alertStatus;
         }
         event.alertStop = parseInt(timeNow) + parseInt(timeOut);
-        atAlertsUpdated = false;
+        atRefreshAlertTable();
     }
     event.moment = Date.now();
     event.origin = origin;
@@ -432,7 +399,6 @@ var atCreateWS = function (url,origin) {
     ws.inheritOnClose = ws.onclose;
     ws.onclose = function (event) {
         this.inheritOnClose(event);
-        // limpiar el contenido
     }
     ws.wsOrigin = origin;
     ws.onopen = function (e) {
@@ -454,7 +420,6 @@ var atCreateWS = function (url,origin) {
         } else {                                                       +
             registerEvent(message,ws.wsOrigin);
         }
-        //atRefreshAlertTable() ;
     }
     ws.onclose = function (e) {
         at_print(e);
@@ -464,8 +429,6 @@ var atCreateWS = function (url,origin) {
 
 
 var sortAlerts = function () {
-    //at_print("sort order: "+atAlertsSortBy);
-    //atAlertsSortBy = atModifySortByList(atAlertsSortBy,sortBy)
     atAlertsSorted.sort(function (eventA,eventB) {
         for (var key in atAlertsSortBy) {
             /*First, selected sort!*/
@@ -538,40 +501,7 @@ var atCompareAlertsBy = function (eventA,eventB,compareBy) {
 
 }
 
-/*Actualiza la tabla de eventos en la ventana*/
-var atRefreshEventTable = function () {
-    sortEvents();
-    atPaintModel(lastAlertSelected);
-    var eventTable = $("#"+AT_TABLE_EVENTS).find('tbody');
 
-    var templateRow = eventTable.find("."+DASHBOARD_TEMPLATES);
-    templateRow.detach();
-    eventTable.empty();
-    eventTable.append(templateRow)
-    var rows = [];
-
-    atEventsInWindowSorted.forEach(function (event){
-        var row  = atCreateEventRow(templateRow,event)
-        rows.push(row)
-        var timeout = event.time + atMaxObservationWindow - Date.now();
-        setTimeout(function (){
-            //this.detach();
-            ////var eventRemoved = atEventsInWindowSorted.pop();
-            //var removed = atEventsInWindowSorted.splice(atEventsInWindowSorted.indexOf(event),1);
-            //at_print(removed);
-            //
-            atRefreshEventTable();
-            atEventsUpdated = false;
-        }.bind(row),timeout);
-        //at_print("Timeout="+timeout);
-
-
-    })
-    rows.forEach(function (row) {
-        row.appendTo(eventTable);
-    })
-
-}
 
 var atCreateEventRow = function (template, event){
     var row = template.clone().removeClass(DASHBOARD_TEMPLATES);
@@ -597,37 +527,38 @@ var sortEvents = function () {
     atEventsInWindow = newObject;
 
 }
-var atRefreshAlertTable = function () {
+var _atRefreshAlertTableRoutine = function () {
     sortAlerts();
-    var alertTable = $("#"+AT_TABLE_LEFT).find('tbody');
-    var templateRow = alertTable.find("."+DASHBOARD_TEMPLATES);
+    var alertTable = $("#" + AT_TABLE_LEFT).find('tbody');
+    var templateRow = alertTable.find("." + DASHBOARD_TEMPLATES);
     templateRow.detach();
     alertTable.empty();
     alertTable.append(templateRow)
     var alerts = []
-    atAlertsSorted.forEach(function (event){
+    atAlertsSorted.forEach(function (event) {
         if ((event.selected) ||
-                (alertShowed == AT_SHOW_ALL) ||
-                (alertShowed == AT_SHOW_HAPPEN && event.moment + event.after > Date.now()) ||
-                (alertShowed == AT_SHOW_ALERTED && event.alertStatus)) {
-            alerts.push(atCreateAlertRow(templateRow,event));
+            (alertShowed == AT_SHOW_ALL) ||
+            (alertShowed == AT_SHOW_HAPPEN && event.moment + event.after > Date.now()) ||
+            (alertShowed == AT_SHOW_ALERTED && event.alertStatus)) {
+            alerts.push(atCreateAlertRow(templateRow, event));
         }
     })
-    alerts.forEach(function (alertRow){
+    alerts.forEach(function (alertRow) {
         alertRow.appendTo(alertTable);
     });
 }
 
-var atRefreshSecondsAlertTable = function (){
+var _atRefreshSecondsAlertTableRoutine= function (){
     atAlertsSorted.forEach (function (event) {
-        //var cell = $("#"+AT_ID_PREFIX_ALERTS+event.name+" ."+AT_CELL_END)
         var cell = $(document.getElementById(AT_ID_PREFIX_ALERTS+event.name)).find("."+AT_CELL_END)
         if (event.alertStatus || cell.text() != "") {
             var myCountdown = atCountdown(event.alertStop- Date.now());
             if (!myCountdown || myCountdown == "") {
                 cell.text("");
                 event.alertStatus = false;
-                atAlertsUpdated = false;
+                atRefreshAlertTable();
+                var dateCell = $(document.getElementById(AT_ID_PREFIX_ALERTS+event.name)).find("."+AT_CELL_START)
+                dateCell.text= ("");
 
             } else {
                 cell.text (myCountdown)
@@ -635,6 +566,115 @@ var atRefreshSecondsAlertTable = function (){
         }
     })
 }
+
+/*Actualiza la tabla de eventos en la ventana*/
+var _atRefreshEventTableRoutine = function () {
+    atRefreshEventTableNeeded = false;
+    sortEvents();
+    atPaintModel(lastAlertSelected);
+    var eventTable = $("#" + AT_TABLE_EVENTS).find('tbody');
+
+    var templateRow = eventTable.find("." + DASHBOARD_TEMPLATES);
+    templateRow.detach();
+    eventTable.empty();
+    eventTable.append(templateRow)
+    var rows = [];
+
+    atEventsInWindowSorted.forEach(function (event) {
+        var row = atCreateEventRow(templateRow, event)
+        rows.push(row)
+        var timeout = event.time + atMaxObservationWindow - Date.now();
+        setTimeout(function () {
+            atRefreshEventTable();
+        }.bind(row), timeout);
+    })
+    rows.forEach(function (row) {
+        row.appendTo(eventTable);
+    })
+
+}
+
+
+var _atRefreshPredictionResultRoutine = function () {
+    var body = $("#"+AT_TABLE_RESULTS+" tbody");
+    var template = body.find("."+DASHBOARD_TEMPLATES);
+    body.empty();
+    body.append(template);
+    for (var key in atResults) {
+        var message = atResults[key];
+        var result = message[AT_WS_RESULT];
+        var row =  template.clone().removeClass(DASHBOARD_TEMPLATES);
+
+        if ($("#"+AT_ALIAS_ACTIVATED)[0].checked && atAliasTable[message[AT_WS_EVENT]]){
+            row.find("."+AT_CELL_EVENT).text(atAliasTable[message[AT_WS_EVENT]].alias)
+        } else {
+            row.find("."+AT_CELL_EVENT).text(message[AT_WS_EVENT])
+        }
+        row.find("."+AT_CELL_TIME).text(atFormattedDate(message[AT_WS_TIME]));
+        switch (result) {
+            case AT_WS_RESULT_HIT :
+                row.addClass(AT_SUCCESS_CLASS)
+                row.attr('title',AT_STRING_SUCCESS)
+                row.find('.'+AT_CELL_RESULT).text(AT_STRING_SUCCESS_2);
+                break;
+            case AT_WS_RESULT_MISS_FALSE_NEGATIVE :
+                row.addClass(AT_ALERT_CLASS)
+                row.attr('title',AT_STRING_MISS_FN)
+                row.find('.'+AT_CELL_RESULT).text(AT_STRING_MISS_FN_2);
+                break;
+            case AT_WS_RESULT_MISS_FALSE_POSITIVE :
+                row.addClass(AT_ALERT_2_CLASS)
+                row.attr('title',AT_STRING_MISS_FP)
+                row.find('.'+AT_CELL_RESULT).text(AT_STRING_MISS_FP_2);
+                break;
+        }
+        body.prepend(row);
+    }
+
+}
+
+var atRefreshAlertTable = function () {
+    atRefreshAlertsTableNeeded = true;
+}
+var atRefreshEventTable = function () {
+    atRefreshEventTableNeeded = true;
+}
+
+var atRefreshPredictionResult = function () {
+    atRefreshPredictionResultNeeded = true;
+}
+
+var _atRefreshTablesRoutine = function () {
+    if (atRefreshEventTableNeeded){
+        _atRefreshEventTableRoutine();
+        atRefreshEventTableNeeded= false;
+    }
+    if (atRefreshAlertsTableNeeded) {
+        _atRefreshAlertTableRoutine();
+        atRefreshAlertsTableNeeded= false;
+    }
+    if(atRefreshPredictionResultNeeded){
+        _atRefreshPredictionResultRoutine();
+        atRefreshPredictionResultNeeded= false;
+    }
+    setTimeout(_atRefreshTablesRoutine,AT_REFRESH_TIME);
+}
+
+
+var _atUpdateHour = function () {
+    var now = moment(Date.now()).format("HH:mm:ss");
+    $("#"+AT_HOUR).text(now);
+    setTimeout(_atUpdateHour,AT_REFRESH_TIME/10);
+}
+
+var _timeOutCountdown = function () {
+    _atRefreshSecondsAlertTableRoutine();
+    setTimeout(_timeOutCountdown,10)
+}
+
+setTimeout(_timeOutCountdown,0)
+setTimeout(_atRefreshTablesRoutine,AT_REFRESH_TIME);
+setTimeout(_atUpdateHour,0)
 
 var atCreateAlertRow = function (templateRow, event){
     var alertRow = templateRow.clone().removeClass(DASHBOARD_TEMPLATES);
@@ -645,8 +685,6 @@ var atCreateAlertRow = function (templateRow, event){
         } else {
             alertRow.find("."+AT_CELL_EVENT).text(AT_PREFIX_SELECTED + event.name)
         }
-
-        //alertRow.find('.' + AT_CELL_EVENT).text(AT_PREFIX_SELECTED + event.name);
     } else {
         if ($("#"+AT_ALIAS_ACTIVATED)[0].checked && atAliasTable[event.name] != undefined){
             alertRow.find('.' + AT_CELL_EVENT).text(atAliasTable[event.name].alias);
@@ -657,8 +695,7 @@ var atCreateAlertRow = function (templateRow, event){
 
     }
     alertRow.attr('id', AT_ID_PREFIX_ALERTS + event.name)
-    alertRow.find('.' + AT_CELL_START).text(atFormattedDate(event.alertStart));
-    alertRow.find('.' + AT_CELL_END).text(atCountdown(event.alertStop- Date.now()));
+    //alertRow.find('.' + AT_CELL_END).text(atCountdown(event.alertStop- Date.now()));
     alertRow.find('.' + AT_CELL_ORIGIN).text(event.origin);
     if (event.prediction !== undefined) {
         alertRow.find('.' + AT_CELL_PREDICTION).text(event.prediction);
@@ -667,8 +704,10 @@ var atCreateAlertRow = function (templateRow, event){
         if (event.alertStatus) {
             alertRow.find('.' + AT_CELL_ALERT).text(AT_VISUAL_ON);
             alertRow.addClass(AT_ALERT_CLASS);
+            alertRow.find('.' + AT_CELL_START).text(atFormattedDate(event.alertStart));
         } else {
             alertRow.find('.' + AT_CELL_ALERT).text(AT_VISUAL_OFF);
+            alertRow.find('.' + AT_CELL_START).text("");
         }
     }
     return alertRow;
@@ -733,9 +772,7 @@ var atCountdown = function (time ){
             atRefreshPredictionResult();
             atResizeFunction();
         }});
-        //click(function () {
-        //    atRefreshAlertTable();
-        //})
+
     }
 
     var atDebugRoutines = function (){
@@ -747,17 +784,8 @@ var atCountdown = function (time ){
             atAddConnection(origins[i][0],origins[i][1]);
 
         }
-        //atEstablishConnection(origins[0][0],origins[0][1])
-        //$("#"+AT_CONNECTION_DIV_ID+origins[0][0]).find("a").addClass("active")
         atEstablishConnection(origins[1][0],origins[1][1])
         $("#"+AT_CONNECTION_DIV_ID+origins[1][0]).find("a").addClass("active")
-
-        //atEstablishConnection()
-        //var newWs = {};
-        //var origin = "origin1"
-        //newWs.origin = origin;
-        //newWs.ws = atCreateWS(url,origin);
-        //wss[newWs.origin] = newWs;
     }
 
 
@@ -784,9 +812,6 @@ var atCountdown = function (time ){
                     var tds = $(table).find("thead tr:last th");
                     tds.each(function(key,td) {
                         $(table).find("tbody tr td:nth-child("+(key+1)+")").width($(td).width())
-
-                        //$("."+AT_TABLE+" tfoot tr td:nth-child("+(key+1)+")").width($(td).width())
-
                     })
 
                     $(table).find("tbody").height(parentHeight-footHeight-headHeight);
@@ -804,7 +829,7 @@ var atCountdown = function (time ){
     var atClearFunction = function (){
         at_print("Clear function");
         finish = true;
-        //forEach() eliminar los ws
+        //TODO eliminar los ws
 
         $(window).unbind('resize',atResizeFunction)
 
@@ -859,8 +884,6 @@ var atClickAlertRow = function (target){
             return;
         }
     }
-    //var atNewEvent = target.id.replace(AT_ID_PREFIX_ALERTS,"");
-    //var oldEvent = oldElement[0].id;
     var oldElement = $("#"+AT_TABLE_LEFT).find("."+AT_ROW_SELECTED)
     var id = target.id.replace(AT_ID_PREFIX_ALERTS,"");
     var alertTable = $("#"+AT_TABLE_LEFT).find('tbody');
@@ -895,21 +918,17 @@ var atClickAlertRow = function (target){
             }
             target.prependTo(alertTable)
             target.show(100,atRefreshAlertTable);
-            // TODO esto es a lo burro
         } else {
             atRefreshAlertTable();
 
         }
-        //target.remove();
     })
-    //atRefreshAlertTable();
 }
 
 var atPaintModel = function (alertEvent){
 
     var body = $("#"+AT_TABLE_MODEL+" tbody");
     var templateRow =  body.find("."+DASHBOARD_TEMPLATES);
-    //templateRow.detach();
     body.empty();
     templateRow.appendTo(body);
     lastAlertSelected= alertEvent;
@@ -953,26 +972,8 @@ var atPaintModel = function (alertEvent){
     }
 }
 
-var timeOutFunction = function() {
 
-    if (!atAlertsUpdated){
-        atRefreshAlertTable();
-        atAlertsUpdated = true;
-    }
 
-    if (!atEventsUpdated) {
-        atRefreshEventTable();
-        atEventsUpdated = true;
-    }
-
-    setTimeout(timeOutFunction, AT_UPDATE_INTERVAL)
-}
-var timeOutCountdown = function () {
-    atRefreshSecondsAlertTable();
-    setTimeout(timeOutCountdown,10)
-}
-setTimeout(timeOutCountdown,0)
-setTimeout(timeOutFunction,AT_UPDATE_INTERVAL)
 /**
  * Esta funcion abre y cierra el panel de información, el que contiene la hora
  */
@@ -994,14 +995,6 @@ var atInfoClick = function (){
 }
 
 
-var atUpdateHour = function () {
-    var now = moment(Date.now()).format("HH:mm:ss");
-    //if (GLOBAL_DEBUG) {
-    $("#"+AT_HOUR).text(now);
-    //}
-    setTimeout(atUpdateHour,1000);
-}
-setTimeout(atUpdateHour,0)
 
 if(GLOBAL_DEBUG) {
     setTimeout(atInfoClick,100)
@@ -1009,7 +1002,7 @@ if(GLOBAL_DEBUG) {
 
 var atClearResults = function () {
     var body = $("#"+AT_TABLE_RESULTS+" tbody");
-    var templateRow =  body.find("."+DASHBOARD_TEMPLATES).clone()//.removeClass(DASHBOARD_TEMPLATES);
+    var templateRow =  body.find("."+DASHBOARD_TEMPLATES).clone()
     atResults = []
     body.empty();
     body.append(templateRow);
@@ -1017,7 +1010,7 @@ var atClearResults = function () {
 
 var atClearAlerts = function () {
     var body = $("#"+AT_TABLE_LEFT+" tbody");
-    var templateRow =  body.find("."+DASHBOARD_TEMPLATES).clone()//.removeClass(DASHBOARD_TEMPLATES);
+    var templateRow =  body.find("."+DASHBOARD_TEMPLATES).clone()
     body.empty();
     body.append(templateRow);
 }
@@ -1030,7 +1023,6 @@ var atClearWindowEvents = function () {
     atEventsInWindowSorted = [];
     atEventsInWindow = {};
     atRefreshEventTable();
-    //var body = $("#"+AT_TABLE_EVENTS+" tbody");
 }
 
 var atResetConnections = function () {

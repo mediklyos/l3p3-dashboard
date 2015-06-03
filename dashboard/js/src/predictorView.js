@@ -1147,6 +1147,7 @@ var _pvLoadSource = function (url) {
 }
 
 var registerMessage = function (message,ws) {
+    pv_print(message)
     switch (message.command) {
         case PV_WS_EVENT:
             if (message[PV_WS_EVENT] === undefined){
