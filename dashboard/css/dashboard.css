@@ -965,3 +965,251 @@ thead {
 #at-switcher-alias {
     border-bottom: 1px solid black;
 }
+
+
+
+/*Centering the content of slider in pv view*/
+
+.dap-canvas {
+    width: 100%;
+    margin-bottom: 3px;
+}
+
+#dap-threshold-slider-panel div, #odv-velocity-slider-panel div, .odv-chart-slider .ui-slider{
+    display: inline-block;
+}
+
+.dap-chart-slider-label{
+    display: inline;
+}
+
+#dap-velocity-slider-panel .ui-slider-range, .odv-chart .controls  *.ui-slider-range  {
+    background: #ef2929;
+}
+#dap-velocity-slider-panel .ui-slider-handle, .odv-chart .controls *.ui-slider-handle {
+    border-color: #ef2929;
+}
+
+#dap-charts {
+}
+
+.dap-chart {
+    border: black 1px groove;
+    padding: 2px;
+    /*border-width: 1px;*/
+    /*border-style: groove;*/
+    /*padding : 2px;*/
+    margin: 4px;
+    /*margin: -5px;*/
+    display: inline-block;
+
+}
+
+.dap-int-chart {
+    border-top: black 2px groove;
+    /*border-top-width: 2px;*/
+    /*border-top-style: groove;*/
+    padding-top : 2px;
+    margin-top: 4px;
+    /*border: black;*/
+    /*border-width: 1px;*/
+    /*border-style: groove;*/
+    /*padding : 2px;*/
+    /*margin: 4px;*/
+
+}
+
+#dap-main {
+    max-height: 100%;
+}
+
+#dap-tool-bar {
+    margin: 5px;
+}
+
+
+#dap-input-url {
+    width: 150px;
+}
+#dap-tool-bar>div {
+    margin: 2px 0px;
+    display: block;
+}
+
+.dap-canvas {
+    width: 100%;
+    margin-bottom: 3px;
+}
+
+.dap-select-graph {
+    width: 40px;
+    height: 32px;
+    background: url('../icons/minigraph_3.png') no-repeat;
+}
+
+.dap-select-graph.active {
+    background: url('../icons/minigraph_3.png') no-repeat;
+    background-color: #e6e6e6;
+}
+
+.dap-svg-up-canvas {
+    position: absolute;
+}
+
+.dap-events-count {
+    width: 100%;
+}
+
+.dap-events-count span {
+    /*float: right;*/
+    /*margin-left: 3px;*/
+}
+.dap-events-count-parent {
+    overflow-y: auto;
+    overflow-x: hidden;
+
+}
+.dap-events-count {
+    /*height: 100px;*/
+}
+.dap-events-count>div {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    /*float: right;*/
+    /*margin-left: 3px;*/
+}
+
+.dap-events-count>div.tooltip {
+    white-space: inherit;
+}
+
+.dap-events-count .tooltip {
+    background: red;
+    /*position: static;*/
+}
+
+.dap-tooltip-events-occurred-internal {
+    border: 1px solid;
+    border-radius: 4px;
+    padding: 2px;
+}
+.dap-tooltip-events-occurred-internal>span {
+
+}
+
+div.dap-table-graph-footer {
+    width: 100%;
+}
+div.dap-table-graph-footer>.dap-prediction-table {
+    width: 24%;
+    display: inline-table;
+    border: 1px solid;
+    border-radius: 5px;
+    margin: 5px;
+}
+.dap-my-stats {
+    vertical-align: top;
+    width: 50px;
+    display: inline-block;
+}
+.dap-controls div{
+    margin: 1px auto;
+    display: table;
+
+}
+.dap-canvas-graph {
+    width: calc(100% - 310px);
+    display: inline-block;
+}
+.dap-events-count-parent {
+    width: 250px;
+    display: inline-block;
+}
+div.dap-table-graph-footer>.dap-prediction-table th {
+    width: 50%;
+}
+div.dap-table-graph-footer>.dap-prediction-table.dap-table-evens-prediction-result th {
+    width: 33%;
+}
+
+div.dap-table-graph-footer>.dap-prediction-table thead tr:first-child th{
+    text-align: center;
+    font-size: 120%;
+}
+div.dap-table-graph-footer>.dap-prediction-table thead tr:not(:first-child) th{
+    border-bottom: 1px solid #000
+}
+
+.dap-table-title {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.dap-pause-graph, .dap-pause-graph.active{
+    height: 32px;
+    width: 40px;
+    background: url('../icons/pause_4.png') no-repeat;
+}
+.dap-pause-graph.active {
+    background-color: #e6e6e6;
+}
+
+.dap-miss {
+
+}
+.dap-hit, .dap-miss-fp, .dap-miss-fn{
+    height: 20px;
+    width: 20px;
+    margin: auto
+
+}
+
+/* Data Analysis prediction*/
+.dap-miss-fp {
+    background-image: url('../icons/orange_cross.png');
+}
+
+.dap-miss-fn {
+    background-image: url('../icons/red_cross.png');
+}
+.dap-hit {
+    background-image: url('../icons/green_check.png');
+}
+
+.dap-events-count {
+    width: 100%;
+}
+.dap-events-count .dap-td-1 {
+    width: 70%;
+    text-align: left;
+}
+.dap-events-count .dap-td-2{
+    width: 20%;
+    text-align: right;
+
+}
+.dap-events-count .dap-td-3 {
+    width: 10%;
+    text-align: left;
+}
+
+.dap-alert-box{
+    background:red;
+    width:10px;
+    height:10px;
+    border: 0px solid white;
+    border-radius: 2px;
+    color: red;
+
+    animation: parpadeo 2s;
+    -webkit-animation: parpadeo 2s;
+    -moz-animation: parpadeo 2s;
+    /*animation-iteration-count:infinite;*/
+    -webkit-animation-iteration-count:infinite;
+    -moz-animation-iteration-count:infinite;
+}
+
+.dap-svg-up-canvas {
+    border: 1px solid gainsboro;
+}

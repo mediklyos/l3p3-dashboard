@@ -272,11 +272,11 @@ var atNewModel = function (message,origin) {
         event = {}
         atAlertEvents[eventName] = event;
         atAlertsSorted.push(event);
+        event.alertStatus = false;
     }
     event.name = eventName;
 
     atAlertEvents [eventName] = event;
-    event.alertStatus = false;
     event.before = before;
     event.after= after;
     if(atMaxObservationWindow <= before) {
@@ -349,7 +349,6 @@ var atNewAlert = function (message,origin) {
         atAlertsSorted.push(event);
         atAlertEvents [eventName] = event;
         event.alertStatus = false;
-        event.alertStart = timeNow;
         event.after= 0;
         event.before = 0;
         event.intercept = 0;
@@ -357,7 +356,7 @@ var atNewAlert = function (message,origin) {
         event.selected = false;
     }
     var alertStatus = message[AT_WS_ALERT] == AT_WS_ALERT_ON;
-    if (alertStatus) {
+    if (alertStatus && (event.alertStart == undefined || event.alertStart <= timeNow)) {
         if (event.alertStatus != alertStatus) {
             event.alertStart = timeNow;
             event.alertStatus = alertStatus;
@@ -477,7 +476,17 @@ var atCompareAlertsBy = function (eventA,eventB,compareBy) {
             return compareBy * (eventA.alertStop - eventB.alertStop)
         case -AT_ORDER_BY_NAME :
         case AT_ORDER_BY_NAME :
-            return compareBy * (eventA.name.localeCompare(eventB.name))
+            var nameA = eventA.name;
+            var nameB = eventB.name;
+            if ($("#"+AT_ALIAS_ACTIVATED)[0].checked) {
+                if (atAliasTable[eventA.name]) {
+                    nameA = atAliasTable[eventA.name].alias;
+                }
+                if (atAliasTable[eventB.name]) {
+                    nameB = atAliasTable[eventB.name].alias;
+                }
+            }
+            return compareBy * (nameA.localeCompare(nameB))
         case -AT_ORDER_BY_ORIGIN :
         case AT_ORDER_BY_ORIGIN :
             return compareBy * (eventA.origin.localeCompare(eventB.origin))
@@ -962,6 +971,9 @@ var atPaintModel = function (alertEvent){
         if (atAliasTable[alertEvent.name] != undefined) {
             $("#"+AT_TABLE_SUMMARY).find("."+AT_CELL_ALIAS).text(atAliasTable[alertEvent.name].alias)
             $("#"+AT_TABLE_SUMMARY).find("."+AT_CELL_DESCRIPTION).text(atAliasTable[alertEvent.name].description)
+        } else {
+            $("#"+AT_TABLE_SUMMARY).find("."+AT_CELL_ALIAS).text("")
+            $("#"+AT_TABLE_SUMMARY).find("."+AT_CELL_DESCRIPTION).text("")
         }
 
         $("#"+AT_TABLE_MODEL).removeClass(AT_HIDDEN_ELEMENT)

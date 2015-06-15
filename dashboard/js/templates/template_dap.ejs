@@ -1,0 +1,254 @@
+<!--  Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
+<div id="dap-main" class="main">
+    <!-- Everything must be inside a div so that the ejs works -->
+    <div class="dashboard-templates">
+        <div class="dap-footer-chart-stats" class="col-lg-12">
+            <div class="dap-table-graph-footer">
+                <div class="dap-table-title"></div>
+                <div class="dap-table-evens-occurrence dap-prediction-table">
+                    <table class="table table-condensed dap-table-evens-occurrence">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Events</th>
+                            </tr>
+                            <tr>
+                                <th>Event</th>
+                                <th>Timestamp</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="dashboard-templates">
+                                <td class="dap-td-1"></td><td class="dap-td-2"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="dap-table-evens-prediction dap-prediction-table">
+                    <table class="table table-condensed">
+                        <thead>
+                            <tr>
+                                <th colspan="2">Event predictions</th>
+                            </tr>
+                            <tr>
+                                <th>Event</th>
+                                <th>Prediction</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="dashboard-templates">
+                            <td class="dap-td-1"></td><td class="dap-td-2"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="dap-table-evens-prediction-result dap-prediction-table">
+                    <table class="table table-condensed">
+                        <thead>
+                        <tr>
+                            <th colspan="3">
+                                Prediction results
+                                <span style="float: right">
+                                <button class="btn btn-default footer-button" onclick="cleanPredictionResults()"><span class="glyphicon glyphicon-trash"></span></button>
+                                    </span>
+                            </th>
+
+
+                        </tr>
+                        <tr>
+                            <th>Event</th>
+                            <th>Timestamp</th>
+                            <th>Prediction result</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="dashboard-templates">
+                            <td class="dap-td-1"></td><td class="dap-td-2"></td><td class="dap-td-3"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="dap-table-evens-alerts dap-prediction-table">
+                    <table class="table table-condensed">
+                        <thead>
+                        <tr>
+                            <th colspan="2">
+                                Alerts
+                            </th>
+
+
+                        </tr>
+                        <tr>
+                            <th>Event</th>
+                            <th>Alert Type</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="dashboard-templates">
+                            <td class="dap-td-1"></td>
+                            <td class="dap-td-2"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="hr"></div>
+            </div>
+            <!--<div id="dap-footer-chart-stats-events">-->
+
+            <!--</div>-->
+
+        </div>
+
+        <table class="table table-condensed">
+            <thead>
+            <tr>
+                <td>Id</td>
+            </tr>
+            <tr>
+                <td>Time</td><td>Event</td>
+            </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+        <!-- template dap-tool-bar-->
+        <div id="dap-tool-bar" class="form-inline" role="form">
+            <div class="form-group">
+                <div class="input-group">
+                    <input id="dap-input-url" type="text" class="form-control my-form" placeholder="url" onkeydown="dapLoadSource(event)">
+                </div>
+                <button class="btn btn-default" id="dap-upload-button" onclick="dapLoadSource_click()">Load</button>
+            </div>
+
+            <div class="form-group">
+                <button class="btn btn-default" id="dap-add-graph" onclick="dapAddGraph()">Add Graph</button>
+                <div class="btn-group btn-toggle" data-toggle="buttons" id="dap-columns-click" onclick="dapColumnsClick(event)">
+                    <label class="btn btn-primary active">
+                        <input name="dap-columns" value="1" type="radio">1</label>
+                    <label class="btn btn-default ">
+                        <input name="dap-columns" value="2" type="radio">2</label>
+                    <label class="btn btn-default">
+                        <input name="dap-columns" value="3" type="radio">3</label>
+                    <label class="btn btn-default">
+                        <input name="dap-columns" value="4" type="radio">4</label>
+                </div>
+            </div>
+
+            <!--<div class="form-group">
+                <div id="dap-threshold-slider-panel" class="div-border center-content-panel">
+                </div>
+            </div>-->
+            <div class="form-group">
+                <button class="btn btn-default" id="dap-increment-charts-height" onclick="dapIncrementChartsHeight()">+Height</button>
+                <button class="btn btn-default" id="dap-decrement-charts-height" onclick="dapDecrementChartsHeight()">-Height</button>
+            </div>
+        </div>
+
+        <!-- template dap-chart-->
+        <div class="dap-chart col-lg-12">
+                <div class="dap-my-stats">
+                    <div class="dap-controls">
+                        <div class="center-content-panel">
+                            <button type="button" class="btn btn-default dap-select-graph" onclick="DAPSelectChart(event)"></button>
+                        </div>
+                        <div class="center-content-panel">
+                            <button type="button" class="btn btn-default" id="" onclick="dapActiveNames(event)"><span class="glyphicon glyphicon-eye-open"></span></button>
+                        </div>
+                        <div class="center-content-panel">
+                            <button type="button" class="btn btn-default dap-pause-graph" onclick="dapPause(event)"></button>
+                        </div>
+                        <div class="center-content-panel">
+                            <button type="button" class="btn btn-default dap-delete-graph" onclick="dapDeleteGraph(event.target)"><span class="glyphicon glyphicon-trash"></span></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="dap-canvas-graph">
+                    <canvas height="80"  class="dap-canvas"></canvas>
+                    <svg class="dap-svg-footer-class"></svg>
+                </div>
+                <div class="div-border dap-events-count-parent">
+                    <table class="dap-events-count">
+                        <thead>
+                            <tr>
+                                <th class="dap-td-3">!</th>
+                                <th class="dap-td-1">Event</th>
+                                <th class="dap-td-2">#</th>
+                            </tr>
+
+                        </thead>
+                        <tbody >
+                            <tr class="dashboard-templates">
+                                <td class="dap-td-3"></td>
+                                <td class="dap-td-1"></td>
+                                <td class="dap-td-2"></td>
+                            </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+        </div> <!-- dap-chart-->
+    </div> <!-- END TEMPLATES-->
+    <div class="" id="dap-charts">
+
+    </div>
+    </div>
+    <script>
+        $(function(){
+//            var DAP_CLEARED = false;
+            dapResizeFunction();
+            $(window).resize(dapResizeFunction)
+            clear = function() {
+                // Este clear es limpiar las conexiones
+                dap_clear(true)
+
+                $(window).unbind('resize',dapResizeFunction)
+            }
+
+
+            $("#"+DAP_THRESHOLD_SLIDER_PANEL).append('<div style="padding-right: 15px;width: 130px" >Threshold: <span id='+DAP_SPAN_THRESHOLD_VALUE+'>100%</span></div>')
+            var slider2 = jQuery('<div/>').slider({
+                range: 'min',
+                min: 0,
+                max: 100,
+                value: 100,
+                step: 1,
+                slide: function (event,ui){
+                    $('#'+DAP_SPAN_THRESHOLD_VALUE).text(ui.value+"%")
+                },
+                stop : function (event, ui){
+                    setThreshold(ui.value);
+                }
+            }).appendTo("#"+DAP_THRESHOLD_SLIDER_PANEL);
+            slider2.width(100);
+            // Altura dinamica
+        })
+        $(document).ready(function(){
+            $("#dap-prefix-url").tooltip({
+                placement : 'left'
+            });
+        });
+        enableFooter()
+        enableLeftColumn()
+        dapStartRoutines();
+
+        if (GLOBAL_DEBUG){
+            dapDebugRoutine ();
+        }
+    </script>
+</div>

@@ -270,7 +270,7 @@ generateInteractiveMenus();
 $(function(){
     if (GLOBAL_DEBUG){
         //changeView(demoViews[0][0]);
-        changeView(views[0][6]);
+        changeView(debugView);
     } else {
         $("#content").html(new EJS ({url: "js/templates/template_overview.ejs"}).render());
     }
