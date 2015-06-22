@@ -47,7 +47,3 @@ demoViews[0][0] = {id: "d3plusDemo",constantsPrefix: "d3p",ref: "js/templates/te
 if (GLOBAL_DEBUG){
     var debugView = views[0][7];
 }
-
-
-
-

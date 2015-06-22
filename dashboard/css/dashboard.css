@@ -25,7 +25,27 @@ body {
   padding-top: 50px;
 }
 
+#l3p3-loading-screen {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    border: 0;
+    right: 0;
+    top: 0;
+    z-index: 10;
+    display: none;
+    background-color: #ffffff;
+    opacity: 0.6;
+    filter: alpha(opacity=60);
+}
 
+#l3p3-loading-screen-image {
+    background: url(../icons/loading.gif) no-repeat center;
+    display: block;
+    height: 100%;
+    z-index: 11;
+    width: 100%;
+}
 /*
  * Global add-ons
  */
@@ -970,7 +990,7 @@ thead {
 
 /*Centering the content of slider in pv view*/
 
-.dap-canvas {
+.dap-svg-up {
     width: 100%;
     margin-bottom: 3px;
 }
@@ -1036,7 +1056,7 @@ thead {
     display: block;
 }
 
-.dap-canvas {
+.dap-svg-up {
     width: 100%;
     margin-bottom: 3px;
 }
@@ -1067,10 +1087,14 @@ thead {
 .dap-events-count-parent {
     overflow-y: auto;
     overflow-x: hidden;
-
+    padding: 2px;
 }
 .dap-events-count {
     /*height: 100px;*/
+}
+
+.dap-events-count>thead {
+    border-bottom: solid 1px;
 }
 .dap-events-count>div {
     white-space: nowrap;
@@ -1194,6 +1218,7 @@ div.dap-table-graph-footer>.dap-prediction-table thead tr:not(:first-child) th{
     text-align: left;
 }
 
+
 .dap-alert-box{
     background:red;
     width:10px;
@@ -1210,6 +1235,65 @@ div.dap-table-graph-footer>.dap-prediction-table thead tr:not(:first-child) th{
     -moz-animation-iteration-count:infinite;
 }
 
-.dap-svg-up-canvas {
+.dap-svg-up {
     border: 1px solid gainsboro;
+}
+
+.dap-highlight-text {
+    text-shadow : 1px 0px 0px;
+}
+
+.dap-sliderControls-time-slider, .dap-sliderControls-window-factor {
+    display: inline-flex;
+    /*width: 100%;*/
+    margin: 10px;
+}
+
+.dap-sliderControls-time-slider {
+    width: calc(100% - 550px);
+}
+
+.dap-sliderControls-window-factor {
+    width: calc(100% - 200px);
+}
+
+
+.dap-sliderControls-time-slider-container, .dap-sliderControls-window-factor-container {
+    display: inline-block;
+    border: solid 1px black;
+    padding: 0px 5px;
+    margin-bottom: 3px;
+
+}
+
+.dap-sliderControls-start-date {
+    float:right;
+}
+
+.dap-slider-window-factor-min {
+    float: right;
+}
+
+.dap-sliderControls-time-slider-container {
+    width: 69%;
+}
+.dap-sliderControls-window-factor-container {
+    width: 30%;
+}
+.dap-sliderControls-time-slider-pre {
+    display: inline-block;
+    width: 350px;
+
+}
+
+.dap-sliderControls-window-factor-pre {
+    display: inline-block;
+    width: 125px;
+
+}
+
+.dav-tooltip {
+    display: none;
+    position: absolute;
+    z-index: 150;
 }

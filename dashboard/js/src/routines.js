@@ -396,3 +396,39 @@ var printDate = function (date) {
     }
     return hour+":"+minutes+":"+seconds+"-"+day+"/"+month+"/"+year
 }
+
+var changeLoadingScreen = function (active) {
+    if (active == undefined) {
+        active = ($("#"+LOADING_SCREEN).css('display') =='none');
+    }
+    if (active){
+        $("#"+LOADING_SCREEN).css('display','inline')
+    } else {
+        $("#"+LOADING_SCREEN).css('display','none')
+    }
+
+
+}
+
+var alternativeAddClass = function (jElements, className) {
+    alternativeSwitchClass(jElements,className,true);
+    //jElements.attr('class',elements.attr('class').replace(className,"").replace(/\s\s+/g, ' ').trim()+" "+className);
+}
+
+var alternativeRemoveClass = function (jElements, className) {
+    alternativeSwitchClass(jElements,className,false);
+    //jElements.attr('class',elements.attr('class').replace(className,"").replace(/\s\s+/g, ' ').trim());
+}
+
+var alternativeSwitchClass = function (jElement, className,status) {
+    $.each(jElement, function (){
+        if (status== undefined) {
+            this.classList.toggle(className)
+        } else if (status) {
+            this.classList.add(className)
+        } else {
+            this.classList.remove(className)
+        }
+    })
+}
+

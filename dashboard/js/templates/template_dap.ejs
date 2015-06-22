@@ -67,8 +67,6 @@ under the License.
                                 <button class="btn btn-default footer-button" onclick="cleanPredictionResults()"><span class="glyphicon glyphicon-trash"></span></button>
                                     </span>
                             </th>
-
-
                         </tr>
                         <tr>
                             <th>Event</th>
@@ -108,10 +106,6 @@ under the License.
                 </div>
                 <div class="hr"></div>
             </div>
-            <!--<div id="dap-footer-chart-stats-events">-->
-
-            <!--</div>-->
-
         </div>
 
         <table class="table table-condensed">
@@ -162,6 +156,25 @@ under the License.
 
         <!-- template dap-chart-->
         <div class="dap-chart col-lg-12">
+            <div class="dap-sliderControls">
+                <div class="dap-sliderControls-time-slider-container">
+                    <div class="dap-sliderControls-time-slider-pre">
+                        Time:
+                        <span class="dap-sliderControls-current-date">2001-01-01T00:00:00</span>
+                        <span class="dap-sliderControls-start-date">2001-01-01T00:00:00</span>
+                    </div>
+                    <div class="dap-sliderControls-time-slider"/>
+                    <span class="dap-sliderControls-time-slider-post"><span class="dap-sliderControls-end-date">2001-01-01T23:59:59</span></span>
+                </div>
+                <div class="dap-sliderControls-window-factor-container">
+                    <div class="dap-sliderControls-window-factor-pre">Window:
+                        <span class="dap-slider-window-factor-current">100</span>%
+                        <span class="dap-slider-window-factor-min">50%</span>
+                    </div>
+                    <div class="dap-sliderControls-window-factor"/>
+                    <span class="dap-sliderControls-window-factor-post">200%</span>
+                </div>
+            </div>
                 <div class="dap-my-stats">
                     <div class="dap-controls">
                         <div class="center-content-panel">
@@ -179,14 +192,14 @@ under the License.
                     </div>
                 </div>
                 <div class="dap-canvas-graph">
-                    <canvas height="80"  class="dap-canvas"></canvas>
+                    <svg height="80" class="dap-svg-up"></svg>
                     <svg class="dap-svg-footer-class"></svg>
                 </div>
                 <div class="div-border dap-events-count-parent">
                     <table class="dap-events-count">
                         <thead>
                             <tr>
-                                <th class="dap-td-3">!</th>
+                                <th class="dap-td-3"><input type="checkbox" name="select" value="dap-checkbox-all" class="dap-events-checkbox dap-checkbox-all" checked onclick="dapEventCheckboxClick(event)"/></th>
                                 <th class="dap-td-1">Event</th>
                                 <th class="dap-td-2">#</th>
                             </tr>
@@ -194,11 +207,10 @@ under the License.
                         </thead>
                         <tbody >
                             <tr class="dashboard-templates">
-                                <td class="dap-td-3"></td>
+                                <td class="dap-td-3"><input type="checkbox" name="select" value="dap-template" class="dap-events-checkbox" checked onclick="dapEventCheckboxClick(event)"/></td>
                                 <td class="dap-td-1"></td>
                                 <td class="dap-td-2"></td>
                             </tr>
-
                         </tbody>
                     </table>
                 </div>
@@ -210,6 +222,7 @@ under the License.
     </div>
     <script>
         $(function(){
+            changeLoadingScreen(true);
 //            var DAP_CLEARED = false;
             dapResizeFunction();
             $(window).resize(dapResizeFunction)
@@ -220,22 +233,8 @@ under the License.
                 $(window).unbind('resize',dapResizeFunction)
             }
 
+            $("body").append('<div id="dav-tooltip"/>')
 
-            $("#"+DAP_THRESHOLD_SLIDER_PANEL).append('<div style="padding-right: 15px;width: 130px" >Threshold: <span id='+DAP_SPAN_THRESHOLD_VALUE+'>100%</span></div>')
-            var slider2 = jQuery('<div/>').slider({
-                range: 'min',
-                min: 0,
-                max: 100,
-                value: 100,
-                step: 1,
-                slide: function (event,ui){
-                    $('#'+DAP_SPAN_THRESHOLD_VALUE).text(ui.value+"%")
-                },
-                stop : function (event, ui){
-                    setThreshold(ui.value);
-                }
-            }).appendTo("#"+DAP_THRESHOLD_SLIDER_PANEL);
-            slider2.width(100);
             // Altura dinamica
         })
         $(document).ready(function(){
@@ -250,5 +249,6 @@ under the License.
         if (GLOBAL_DEBUG){
             dapDebugRoutine ();
         }
+
     </script>
 </div>

@@ -20,14 +20,14 @@
  */
 
 var getCookie = function(cname) {
- var name = cname + "=";
- var ca = document.cookie.split(';');
- for(var i=0; i<ca.length; i++) {
-  var c = ca[i];
-  while (c.charAt(0)==' ') c = c.substring(1);
-  if (c.indexOf(name) != -1) return c.substring(name.length, c.length);
- }
- return undefined;
+    var name = cname + "=";
+    var ca = document.cookie.split(';');
+    for(var i=0; i<ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0)==' ') c = c.substring(1);
+            if (c.indexOf(name) != -1) return c.substring(name.length, c.length);
+        }
+    return undefined;
 }
 
 var COOKIE_DEBUG="debug";
@@ -45,6 +45,7 @@ var FULL_SCREEN_KEY = 17 //f
 
 /*Dashboard classes*/
 var DASHBOARD_TEMPLATES = "dashboard-templates"
+var LOADING_SCREEN = "l3p3-loading-screen";
 var CONTENT_LINK_CLASS_NAME = "contentLink"
 var LEFT_COLUMN_BUTTON_OPEN = "left-column-button"
 var LEFT_COLUMN = "left-column"
@@ -85,6 +86,74 @@ ORIGINAL_COLORS [2] = 'black';
 //ORIGINAL_COLORS[0] = 'blue'
 //ORIGINAL_COLORS[1] = 'green'
 //ORIGINAL_COLORS[2] = 'orange'
+
+ORIGINAL_COLORS = []
+var i = 0;
+
+ORIGINAL_COLORS.push('lightgreen')
+ORIGINAL_COLORS.push('orange')
+ORIGINAL_COLORS.push('navy')
+
+ORIGINAL_COLORS.push('aquamarine')
+ORIGINAL_COLORS.push('coral')
+ORIGINAL_COLORS.push('darkolivegreen')
+
+
+ORIGINAL_COLORS.push('cyan')
+ORIGINAL_COLORS.push('maroon')
+ORIGINAL_COLORS.push('greenyellow')
+
+
+ORIGINAL_COLORS.push('blue')
+ORIGINAL_COLORS.push('chocolate')
+ORIGINAL_COLORS.push('forestgreen')
+
+
+ORIGINAL_COLORS.push('mediumturquoise')
+ORIGINAL_COLORS.push('brown')
+ORIGINAL_COLORS.push('springgreen')
+
+
+ORIGINAL_COLORS.push('lightseagreen')
+ORIGINAL_COLORS.push('orangered')
+ORIGINAL_COLORS.push('limegreen')
+
+
+ORIGINAL_COLORS.push('mediumblue')
+ORIGINAL_COLORS.push('tomato')
+ORIGINAL_COLORS.push('lawngreen')
+
+
+ORIGINAL_COLORS.push('aqua')
+ORIGINAL_COLORS.push('red')
+ORIGINAL_COLORS.push('green')
+
+
+ORIGINAL_COLORS.push('darkblue')
+ORIGINAL_COLORS.push('crimson')
+ORIGINAL_COLORS.push('lime')
+
+
+/**/
+ORIGINAL_COLORS.push('darkgreen')
+ORIGINAL_COLORS.push('firebrick')
+
+ORIGINAL_COLORS.push('chartreuse')
+ORIGINAL_COLORS.push('darkred')
+
+ORIGINAL_COLORS.push('seagreen')
+
+
+
+
+
+
+
+
+
+
+
+
 
 var web_colors
 //var web_colors = []chroma.brewer['Dark2'];

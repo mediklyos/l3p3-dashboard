@@ -210,7 +210,6 @@ var pvStartRoutines = function (){
     var bundle = {}
     pvInitLeftColumnAndFooter();
     bundle.target = $("#"+PV_COLUMNS_CLICK).find("input[value="+PV_COLS+"]")[0]
-    bundle.target
     pvColumnsClick(bundle)
 }
 
@@ -665,7 +664,7 @@ var paintEventsInADiv = function (jQCanvas) {
 //            title: this,
 //            text: this + " (#"+events[this].count+")"+alerted
 //        })
-//        div.addClass(PV_EVENT_TYPE_CLASS+getIndexOfCanvas(canvas)+"-"+this).addClass(PV_EVENT_CLASS_SUMMARY)
+//        div.addClass(PV_EVENT_TYPE_CLASS+getIndexOfSvg(canvas)+"-"+this).addClass(PV_EVENT_CLASS_SUMMARY)
         newLine.mouseenter(function (canvas){
             this.isSumaryHover = true;
             markText(canvas,{type:SYSTEM_EVENT_ORIGIN_SUMMARY,event:this});
