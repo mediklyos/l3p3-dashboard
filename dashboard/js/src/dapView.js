@@ -57,7 +57,9 @@ var DAP_EVENT_CHECKBOX = PRE + "-events-checkbox"
 var DAP_EVENT_CHECKBOX_ALL = PRE + "-checkbox-all"
 var DAP_EVENT_CHECKBOX_PREFIX_EVENT = PRE + "-"
 var DAP_TEMPLATE = PRE + "-template"
-
+var DAP_TOOLTIP = PRE + "-tooltip"
+var DAP_TOOLTIP_CONTENT = PRE + "-tooltip-content"
+var DAP_TOOLTIP_X = PRE + "-tooltip-x"
 
 var DAP_Z_INDEX_LVL_1 = 20;
 
@@ -93,6 +95,11 @@ var DAP_ZERO_POS = 0.5
 //var DAP_TIMEOUT = -( DAP_CHARTS_DEFAULT_TIME * DAP_ZERO_POS)
 var DAP_TIMEOUT = 200
 
+var DAP_COLOR_TEXT_NORMAL = 1
+var DAP_COLOR_TEXT_LEGIBLE_BLANK = 2
+var DAP_COLOR_TEXT_LEGIBLE_SELF = 3
+var DAP_COLOR_TEXT_BACKGROUND_SELF = 4
+
 var SYSTEM_EVENT_ORIGIN_PREDICTION = "prediction";
 var SYSTEM_EVENT_ORIGIN_SUMMARY = "event";
 var SYSTEM_EVENT_ORIGIN_PREDICTION_RESULT = "prediction_result";
@@ -120,7 +127,11 @@ var DAP_WS_ALERT_OFF = "off"
 var DAP_SECOND = 1000;
 var DAP_MINUTE = 60 * DAP_SECOND
 var DAP_HOUR = 60 * DAP_MINUTE ;
+var DAP_DRAWN_LAPSE = 0;
+var DAP_DRAWN_LAPSE_EVENTS = 0;
 
+var dapRequiredDrawnFooter = false;
+var dapRequiredDrawnEvents = new Set();
 
 
 /*DEBUG vars*/
@@ -199,7 +210,7 @@ var dapAddGraph= function () {
     svg.currentFactor = 1;
     section.find("."+DAP_SLIDER_TIME).slider({
         slide: dapRepaintSlider.bind(svg),
-        stop: dapPaintFooter
+        stop: dapDrawFooter
 
     });
     //section.find("."+DAP_SLIDER_FACTOR).slider();
@@ -244,7 +255,21 @@ var dapAddEventToSmoothie = function (svg,eventName){
             smoothie.actualColor = 0;
         }
         smoothie.events[eventName] = {}
-        smoothie.events[eventName].color = web_colors[color];
+        smoothie.events[eventName].color = function (type) {
+            switch (type) {
+                case DAP_COLOR_TEXT_LEGIBLE_BLANK:
+                    return d3plus.color.legible(web_colors[color])
+                    break;
+                case DAP_COLOR_TEXT_LEGIBLE_SELF:
+                    return d3plus.color.text(web_colors[color]);
+                    break;
+                case DAP_COLOR_TEXT_BACKGROUND_SELF:
+                    return web_colors[color];
+                    break;
+                default:
+                    return web_colors[color];
+            }
+        }
         smoothie.events[eventName].id = eventName
         smoothie.events[eventName].timeSeries = new TimeSeries();
         smoothie.events[eventName].occurrences = [];
@@ -297,7 +322,7 @@ var drawOnSvgEvents = function (jQSvg) {
     var eventsToDelete = []
     var predictinoResultToDelete = [];
     var count = 1;
-    jQSvg.find("."+DAP_TOOLTIP_EVENTS_OCCURRED).remove();
+    //jQSvg.find("."+DAP_TOOLTIP_EVENTS_OCCURRED).remove();
 
     if (svg.wss != undefined) {
         $.each(svg.wss, function () {
@@ -314,23 +339,39 @@ var drawOnSvgEvents = function (jQSvg) {
             svg.predictionResults.splice(predictinoResultToDelete[i],1);
         }
         dapPaintEventsList(jQSvg)
-        dapPaintFooter();
+        dapDrawFooter();
 
     }
 
 
 }
 
-var dapPaintFooter = function (){
-    var jQSvg = getActiveGraph();
+var dapDrawFooter = function (){
+    dapRequiredDrawnFooter = true;
+    if (DAP_DRAWN_LAPSE == 0) {
+        _dapDrawFooter();
+    }
 
-        paintFooterPredictions(jQSvg)
-        paintFooterEvents(jQSvg)
-        paintFooterPredictionResult(jQSvg)
-        paintFooterAlerts(jQSvg);
+}
+var _dapDrawFooter = function (){
+    if (dapRequiredDrawnFooter) {
+        dapRequiredDrawnFooter = false;
+        var jQSvg = getActiveGraph();
+        dapDrawFooterPredictions(jQSvg)
+        dapDrawFooterEvents(jQSvg)
+        dapDrawFooterPredictionResult(jQSvg)
+        dapDrawFooterAlerts(jQSvg);
+    }
+    if (DAP_DRAWN_LAPSE != 0) {
+        setTimeout (_dapDrawFooter,DAP_DRAWN_LAPSE);
+    }
+}
+if (DAP_DRAWN_LAPSE != 0) {
+    setTimeout (_dapDrawFooter,DAP_DRAWN_LAPSE);
 }
 
-var paintFooterAlerts = function (jQSvg){
+
+var dapDrawFooterAlerts = function (jQSvg){
     var tbody =$("#"+FOOTER_CONTENT_ID).find("."+DAP_TABLE_EVENTS_ALERTS).find('tbody');
     var genericLine = tbody.find("tr."+DASHBOARD_TEMPLATES)
     tbody.empty()
@@ -343,7 +384,7 @@ var paintFooterAlerts = function (jQSvg){
             var event = dapAddEventToSmoothie(svg, key);
             var className = DAP_EVENT_TYPE_CLASS + svgIndex + "-" + key
             var newLine = genericLine.clone().removeClass(DASHBOARD_TEMPLATES).addClass(className).addClass(DAP_EVENT_CLASS_ALERT)
-            newLine.css('color', event.color)
+            newLine.css('color', event.color(DAP_COLOR_TEXT_LEGIBLE_BLANK))
             newLine.find("." + DAP_CELL_1).text(key);
             newLine.find("." + DAP_CELL_2).text(this.type);
             newLine.mouseenter(function (svg) {
@@ -363,7 +404,7 @@ var paintFooterAlerts = function (jQSvg){
     }
 
 }
-var paintFooterPredictions = function (jQSvg) {
+var dapDrawFooterPredictions = function (jQSvg) {
     var tbody =$("#"+FOOTER_CONTENT_ID).find("."+DAP_TABLE_EVENTS_PREDICTION ).find('tbody');
     var genericLine = tbody.find("tr."+DASHBOARD_TEMPLATES)
     tbody.empty()
@@ -379,8 +420,8 @@ var paintFooterPredictions = function (jQSvg) {
             var line = genericLine.clone().removeAttr('class')
 
             var className = DAP_EVENT_TYPE_CLASS + svgIndex + "-" + this.id
-            var spanEvent = $('<span>' + this.id + '</span>').css('color', this.color)
-            var spanPrediction = $('<span>' + this.timeSeries.data[this.timeSeries.data.length - 1][1] + '</span>').css('color', this.color)
+            var spanEvent = $('<span>' + this.id + '</span>').css('color', this.color(DAP_COLOR_TEXT_LEGIBLE_BLANK))
+            var spanPrediction = $('<span>' + this.timeSeries.data[this.timeSeries.data.length - 1][1] + '</span>').css('color', this.color(DAP_COLOR_TEXT_LEGIBLE_BLANK))
             line.find('.' + DAP_CELL_1).removeAttr('class').addClass(className).addClass(DAP_EVENT_CLASS_PREDICTION).append(spanEvent);
             line.find('.' + DAP_CELL_2).removeAttr('class').addClass(className).addClass(DAP_EVENT_CLASS_PREDICTION).append(spanPrediction);
             tbody.append(line)
@@ -404,7 +445,7 @@ var paintFooterPredictions = function (jQSvg) {
     }
 }
 
-var paintFooterEvents = function (jQSvg){
+var dapDrawFooterEvents = function (jQSvg){
     var tbody = $("#" + FOOTER_CONTENT_ID).find("." + DAP_TABLE_EVENTS_OCCURRENCE).find('tbody');
     var genericLine = tbody.find("tr." + DASHBOARD_TEMPLATES)
     tbody.empty()
@@ -415,33 +456,35 @@ var paintFooterEvents = function (jQSvg){
         var svgIndex = getIndexOfSvg(svg)
         for (var i = svg.smoothie.eventsHappend.length - 1; i >= 0; i--) {
             var eventOccurrence = svg.smoothie.eventsHappend[i];
-            var line = genericLine.clone().removeAttr('class')
-            var className1 = DAP_EVENT_CLASS_OCCURRENCE_PREFIX + svgIndex + "-" + eventOccurrence.event.id + "-" + eventOccurrence.time
-            var className2 = DAP_EVENT_TYPE_CLASS + svgIndex + "-" + eventOccurrence.event.id;
-            var spanEvent = $('<span>' + eventOccurrence.event.id + '</span>').css('color', eventOccurrence.event.color)
-            var spanTime = $('<span>' + printDate(eventOccurrence.time) + '</span>').css('color', eventOccurrence.event.color)
-            line.find('.' + DAP_CELL_1).removeAttr('class').addClass(className1).addClass(className2).append(spanEvent);
-            line.find('.' + DAP_CELL_2).removeAttr('class').addClass(className1).addClass(className2).append(spanTime);
-            tbody.append(line);
-            line.mouseenter(function (svg) {
-                this.isHover = true;
-                dapMarkText(svg, {type: SYSTEM_EVENT_ORIGIN_OCCURRENCE, event: this})
-            }.bind(eventOccurrence, svg))
+            if (eventOccurrence.event.filter) {
+                var line = genericLine.clone().removeAttr('class')
+                var className1 = DAP_EVENT_CLASS_OCCURRENCE_PREFIX + svgIndex + "-" + eventOccurrence.event.id + "-" + eventOccurrence.time
+                var className2 = DAP_EVENT_TYPE_CLASS + svgIndex + "-" + eventOccurrence.event.id;
+                var spanEvent = $('<span>' + eventOccurrence.event.id + '</span>').css('color', eventOccurrence.event.color(DAP_COLOR_TEXT_LEGIBLE_BLANK))
+                var spanTime = $('<span>' + printDate(eventOccurrence.time) + '</span>').css('color', eventOccurrence.event.color(DAP_COLOR_TEXT_LEGIBLE_BLANK))
+                line.find('.' + DAP_CELL_1).removeAttr('class').addClass(className1).addClass(className2).append(spanEvent);
+                line.find('.' + DAP_CELL_2).removeAttr('class').addClass(className1).addClass(className2).append(spanTime);
+                tbody.append(line);
+                line.mouseenter(function (svg) {
+                    this.isHover = true;
+                    dapMarkText(svg, {type: SYSTEM_EVENT_ORIGIN_OCCURRENCE, event: this})
+                }.bind(eventOccurrence, svg))
 
-            line.mouseleave(function (svg) {
-                this.isHover = false;
-                dapMarkText(svg, {type: SYSTEM_EVENT_ORIGIN_OCCURRENCE, event: this})
-            }.bind(eventOccurrence, svg))
+                line.mouseleave(function (svg) {
+                    this.isHover = false;
+                    dapMarkText(svg, {type: SYSTEM_EVENT_ORIGIN_OCCURRENCE, event: this})
+                }.bind(eventOccurrence, svg))
 
-            line.click(function (svg) {
-                this.isClicked = !this.isClicked;
-                dapMarkText(svg, {type: SYSTEM_EVENT_ORIGIN_OCCURRENCE, event: this})
-            }.bind(eventOccurrence, svg))
+                line.click(function (svg) {
+                    this.isClicked = !this.isClicked;
+                    dapMarkText(svg, {type: SYSTEM_EVENT_ORIGIN_OCCURRENCE, event: this})
+                }.bind(eventOccurrence, svg))
+            }
         }
     }
 }
 
-var paintFooterPredictionResult = function (jQSvg){
+var dapDrawFooterPredictionResult = function (jQSvg){
     var tbody =$("#"+FOOTER_CONTENT_ID).find("."+DAP_TABLE_EVENTS_PREDICTION_RESULT).find('tbody');
     var genericLine = tbody.find("tr."+DASHBOARD_TEMPLATES)
     tbody.empty().append(genericLine);
@@ -453,8 +496,8 @@ var paintFooterPredictionResult = function (jQSvg){
             var className = DAP_EVENT_TYPE_CLASS + svgIndex + "-" + event.id
             var newLine = genericLine.clone().removeClass(DASHBOARD_TEMPLATES);
             newLine.addClass(className).addClass(DAP_EVENT_CLASS_PREDICTION_RESULT + svgIndex + "-" + event.id + "-" + this.time)
-            newLine.find("." + DAP_CELL_1).text(this.event.id).css('color', event.color)
-            newLine.find("." + DAP_CELL_2).text(printDate(this.time)).css('color', event.color)
+            newLine.find("." + DAP_CELL_1).text(this.event.id).css('color', event.color(DAP_COLOR_TEXT_LEGIBLE_BLANK))
+            newLine.find("." + DAP_CELL_2).text(printDate(this.time)).css('color', event.color(DAP_COLOR_TEXT_LEGIBLE_BLANK))
             var img;
             if (this.result === DAP_WS_RESULT_MISS_FALSE_POSITIVE) {
                 img = $('<div/>').addClass(DAP_WS_RESULT_MISS_FALSE_POSITIVE_CLASS)//.addClass(DAP_EVENT_TYPE_CLASS+this.event)
@@ -496,7 +539,7 @@ var dapPaintEventsList = function (jQSvg){
         /*Paint in the left*/
         dapPaintEventsInADiv(jQSvg);
         if (isActiveGraph(dapGetGraphParent(jQSvg))) {
-            paintFooterEvents(jQSvg)
+            dapDrawFooterEvents(jQSvg)
         }
     }
 }
@@ -561,16 +604,17 @@ var dapPaintEventsInADiv = function (jQSvg) {
         newLine.find("."+DAP_CELL_2).text(events[this].count)
         newLine.find("."+DAP_CELL_3+" input")[0].value = this;
         newLine.find("."+DAP_CELL_3+" input").prop("checked",event.filter)
-        if (svg.alerts[this] !== undefined){
-            if (svg.alerts[this].type === DAP_WS_ALERT_ON){
-                newLine.find("."+DAP_CELL_3).append($('<div class="dap-alert-box"/>').css('color',event.color).css('background',event.color))
-                alertedLines.push(newLine)
-            } else {
-                normalLines.push(newLine)
-            }
-        } else {
-            normalLines.push(newLine)
-        }
+        //if (svg.alerts[this] !== undefined){
+        //    if (svg.alerts[this].type === DAP_WS_ALERT_ON){
+        //        newLine.find("."+DAP_CELL_3).append($('<div class="dap-alert-box"/>').css('color',event.color).css('background',event.color))
+        //        alertedLines.push(newLine)
+        //    } else {
+        //        normalLines.push(newLine)
+        //    }
+        //} else {
+        //    normalLines.push(newLine)
+        //}
+        normalLines.push(newLine)
         newLine.find("."+DAP_CELL_1).mouseenter(function (svg){
             this.isSumaryHover = true;
             dapMarkText(svg,{type:SYSTEM_EVENT_ORIGIN_SUMMARY,event:this});
@@ -583,7 +627,7 @@ var dapPaintEventsInADiv = function (jQSvg) {
             this.isSumaryClicked = !this.isSumaryClicked;
             dapMarkText(svg, {type:SYSTEM_EVENT_ORIGIN_SUMMARY,event:this});
         }.bind(event,svg))
-        newLine.css('color',event.color)
+        newLine.css('color',event.color(DAP_COLOR_TEXT_LEGIBLE_BLANK))
 //        container.append(newLine)
     })
 
@@ -930,7 +974,7 @@ var DAPSelectChart = function (event) {
     $("#"+DAP_FOOTER_CHART_EVENTS).empty()
     var activeSvg = getActiveGraph();
     dapPaintEventsList(activeSvg)
-    dapPaintFooter();
+    dapDrawFooter();
 }
 var dapResizingCols = function () {
 
@@ -1156,11 +1200,11 @@ var dapSetAlert = function (svg,event,alert,timeout) {
             svg.alerts[event].timeoutFunction = setTimeout(function (svg,event) {
                 delete svg.alerts[event];
                 dapPaintEventsInADiv($(svg));
-                dapPaintFooter()
+                dapDrawFooter()
             }.bind(this,svg,event),timeout)
         }
         dapPaintEventsInADiv($(svg));
-        dapPaintFooter()
+        dapDrawFooter()
     }
 }
 
@@ -1177,7 +1221,7 @@ var dapAddPredictionResult = function (svg,event,timestapm,result){
     var predictionResult = {event:objectEvent,time:timestapm,result:result}
     svg.predictionResults.push(predictionResult)
     dapPaintEventsInADiv($(svg));
-    dapPaintFooter();
+    dapDrawFooter();
     setTimeout(refreshPredictions.bind(undefined,svg),/*DAP_TIMEOUT + */svg.smoothie.graphTime * svg.smoothie.zero)
 
     return true;
@@ -1188,13 +1232,13 @@ var dapAddPrediction = function (svg, eventName, prediction,moment) {
      * the last value*/
     dapAddEventToSmoothie(svg,eventName)
     dapPaintEventsInADiv($(svg));
-    dapPaintFooter();
+    dapDrawFooter();
 }
 var refreshPredictions = function (svg) {
     var now = Date.now()
     var isDelete = false;
     if (isDelete){
-        dapPaintFooter();
+        dapDrawFooter();
 
     }
 }
@@ -1299,6 +1343,7 @@ var dapDebugRoutine = function () {
                 myws.svg.startDate = myws.eventsInBuffer[myws.eventsInBuffer.length-1].time;
                 myws.svg.endDate = myws.eventsInBuffer[0].time;
                 myws.svg.currentDate = myws.svg.endDate;
+                myws.svg.playing = false;
 
                 dap_changeGraphRange(myws.svg,600000,600000)
                 var newDate = parseInt(myws.svg.startDate + (myws.svg.endDate-myws.svg.startDate) * Math.random());
@@ -1306,8 +1351,33 @@ var dapDebugRoutine = function () {
                 drawOnSvgBase(myws.svg);
                 dapDebugSetTime(myws.svg,newDate)
                 changeLoadingScreen(false);
+                dapPlayGraph($("svg."+DAP_SVG_UP)[1]);
             }
         }
+    }
+}
+
+var dapNextStep = function (svg) {
+
+    svg.currentDate+=1000;
+    dapDebugSetTime(svg,svg.currentDate)
+
+}
+
+var dapPlayGraph = function (chartDiv) {
+    var parent = dapGetGraphParent(chartDiv);
+    var svg = parent.find("."+DAP_SVG_UP)[0];
+    if (!svg.playing) {
+        svg.playing = true;
+        _dapPlayGraph(svg);
+    }
+
+}
+
+var _dapPlayGraph = function (svg) {
+    dapNextStep(svg);
+    if (svg.playing) {
+        setTimeout(_dapPlayGraph.bind(this,svg),DAP_SECOND);
     }
 }
 
@@ -1315,6 +1385,7 @@ var dapDebugSetTime = function (svg,date) {
     var parent = dapGetGraphParent(svg)
     svg.currentDate = date;
     svg.smoothie.zeroTime = svg.currentDate;
+    parent.find("."+DAP_SLIDER_CURRENT_ID).text(dapParseDate(svg.currentDate));
     parent.find("."+DAP_SLIDER_TIME).slider('option',{value:date})
     dapDrawEventsInGraph(svg);
 }
@@ -1353,79 +1424,133 @@ var dapGetWindowEvents = function (events, window, date){
 }
 
 var dapDrawEventsInGraph = function (svg ) {
-    var jQSvg = $(svg)
-    jQSvg.find("."+DAP_OCCURRENCE_CLASS).remove();
-    svg.d3svg= d3.select(jQSvg[0]);
-    var circleWidth = 3
+    if (DAP_DRAWN_LAPSE_EVENTS == 0) {
+        dapRequiredDrawnEvents.add(svg);
+        _dapDrawEventsInGraph();
+    } else {
+        if (dapRequiredDrawnEvents.size == 0) {
+            dapRequiredDrawnEvents.add(svg);
+            setTimeout(_dapDrawEventsInGraph,DAP_DRAWN_LAPSE_EVENTS)
+        } else {
+            dapRequiredDrawnEvents.add(svg);
+        }
+    }
 
+}
+var _dapDrawEventsInGraph = function ( ) {
+    var thisSvgs = dapRequiredDrawnEvents;
+    dapRequiredDrawnEvents = new Set();
+    thisSvgs.forEach(function (svg) {
+        var jQSvg = $(svg)
+        jQSvg.find("." + DAP_OCCURRENCE_CLASS).remove();
+        svg.d3svg = d3.select(jQSvg[0]);
+        var circleWidth = 3
 
-    svg.smoothie.eventsHappend = []
-    $.each(svg.wss , function () {
-        var windowEvents = dapGetWindowEvents(this.eventsInBuffer,svg.smoothie.graphTime,this.svg.currentDate + parseInt(svg.smoothie.graphTime / 2));
-        windowEvents.forEach(function (value) {
-            switch (value.command) {
-                case DAP_WS_EVENT:
-                    dapPaintEvent(svg,value);
-                    break;
-                default:
+        svg.smoothie.eventsHappend = []
+        $.each(svg.wss, function () {
+            var windowEvents = dapGetWindowEvents(this.eventsInBuffer, svg.smoothie.graphTime, this.svg.currentDate + parseInt(svg.smoothie.graphTime / 2));
+            windowEvents.forEach(function (value) {
+                switch (value.command) {
+                    case DAP_WS_EVENT:
+                        dapPaintEvent(svg, value);
+                        break;
+                    default:
                     //dap_print(value);
 
 
-            }
+                }
+            })
         })
+        dapPaintEventsInADiv($(svg));
     })
-    dapPaintEventsInADiv($(svg));
-
-    //dapPaintEventsList($(svg));
-
 
 }
 
 var dapPaintEvent = function(svg,event) {
-    var smoothieEvent = dapAddEventToSmoothie(svg,event[DAP_WS_EVENT]);
-    var occurrenceEvent = {event:smoothieEvent,time: event.time}
+    var smoothieEvent = dapAddEventToSmoothie(svg, event[DAP_WS_EVENT]);
+    var occurrenceEvent = {event: smoothieEvent, time: event.time}
     smoothieEvent.occurrences.push(occurrenceEvent)
-    svg.smoothie.eventsHappend.push(occurrenceEvent )
+    svg.smoothie.eventsHappend.push(occurrenceEvent)
     if (smoothieEvent.filter) {
         var stringOccurrenceClass = DAP_EVENT_CLASS_OCCURRENCE_PREFIX + getIndexOfSvg(svg) + "-" + event.event + "-" + event.time
-        var eventClass = DAP_EVENT_TYPE_CLASS + getIndexOfSvg(svg) +"-" + event.event;
+        var eventClass = DAP_EVENT_TYPE_CLASS + getIndexOfSvg(svg) + "-" + event.event;
 
-        var x = dapGetXPixel(svg.smoothie.graphTime,svg.smoothie.zeroTime - event.time - svg.smoothie.delay,$(svg).width());
+        var x = dapGetXPixel(svg.smoothie.graphTime, svg.smoothie.zeroTime - event.time - svg.smoothie.delay, $(svg).width());
 
-        var y = smoothieEvent.position* $(svg).height();
+        var y = smoothieEvent.position * $(svg).height();
         var highlighted = smoothieEvent.isSumaryHover || smoothieEvent.isSumaryClicked
         //var className =
         var circle = svg.d3svg.append('circle')
-            .attr('cx',x)
-            .attr('cy',y)
-            .attr('r',(highlighted)?DAP_EVENT_CIRCLE_RADIUS_HIGHLIGHT:DAP_EVENT_CIRCLE_RADIUS)
-            .attr('fill',smoothieEvent.color)
-            .attr('class',stringOccurrenceClass + " " +eventClass+ " "+DAP_OCCURRENCE_CLASS);
-        circle.on("click",function () {
-            this.isClicked = !this.isSumaryClicked;
-            dapMarkText(svg, {type:SYSTEM_EVENT_ORIGIN_OCCURRENCE,event:this});
-        }.bind(occurrenceEvent,svg));
-        circle.on("mouseenter",function () {
+            .attr('cx', x)
+            .attr('cy', y)
+            .attr('r', (highlighted) ? DAP_EVENT_CIRCLE_RADIUS_HIGHLIGHT : DAP_EVENT_CIRCLE_RADIUS)
+            .attr('fill', smoothieEvent.color)
+            .attr('class', stringOccurrenceClass + " " + eventClass + " " + DAP_OCCURRENCE_CLASS);
+        circle.on("click", function () {
+            this.isClicked = !this.isClicked;
+            dapMarkText(svg, {type: SYSTEM_EVENT_ORIGIN_OCCURRENCE, event: this});
+            if (this.isClicked) {
+                dapFillAndShowTooltip(this,SYSTEM_EVENT_ORIGIN_OCCURRENCE)
+            } else {
+                dapHideTooltip();
+            }
+        }.bind(occurrenceEvent, svg));
+        circle.on("mouseenter", function () {
             this.isHover = true;
-            dapMarkText(svg, {type:SYSTEM_EVENT_ORIGIN_OCCURRENCE,event:this});
-        }.bind(occurrenceEvent,svg));
-        circle.on("mouseleave",function () {
+            dapMarkText(svg, {type: SYSTEM_EVENT_ORIGIN_OCCURRENCE, event: this});
+        }.bind(occurrenceEvent, svg));
+        circle.on("mouseleave", function () {
             this.isHover = false;
-            dapMarkText(svg, {type:SYSTEM_EVENT_ORIGIN_OCCURRENCE,event:this});
-        }.bind(occurrenceEvent,svg));
+            dapMarkText(svg, {type: SYSTEM_EVENT_ORIGIN_OCCURRENCE, event: this});
+        }.bind(occurrenceEvent, svg));
         svg.d3svg.append('line')
             .attr('x1', x)
             .attr('x2', x)
             .attr('y1', 0)
             .attr('y2', $(svg).height())
-            .attr('stroke-width',(highlighted)?  DAP_SVG_FOOTER_STROKE_VERTICAL_LINE:DAP_SVG_FOOTER_STROKE_VERTICAL_LINE_HIDDEN)
+            .attr('stroke-width', (highlighted) ? DAP_SVG_FOOTER_STROKE_VERTICAL_LINE : DAP_SVG_FOOTER_STROKE_VERTICAL_LINE_HIDDEN)
             .attr('stroke', smoothieEvent.color)
-            .attr('class',stringOccurrenceClass + " " +eventClass+ " "+DAP_OCCURRENCE_CLASS);
+            .attr('class', stringOccurrenceClass + " " + eventClass + " " + DAP_OCCURRENCE_CLASS);
     }
 }
 
 var dapGetXPixel= function (graphTime,delayInGraph,width) {
     return (1-(delayInGraph / graphTime)) * width;
+
+}
+
+var dapHideTooltip = function (){
+    $("#"+DAP_TOOLTIP).css('display','none');
+
+}
+
+var dapFillAndShowTooltip = function (content,type) {
+    var tooltipDiv = $("#"+DAP_TOOLTIP);
+    var innerDiv = tooltipDiv.find("#"+DAP_TOOLTIP_CONTENT);
+    var colorBackground;
+    var colorText;
+
+    var innerHTML;
+
+    switch (type) {
+        case SYSTEM_EVENT_ORIGIN_OCCURRENCE :
+            var eventOccurrence = content;
+            var event = eventOccurrence.event;
+            innerHTML =  "<span class='"+DAP_TEXT_HIGHLIGHT+"'>Event ID:</span><br>";
+            innerHTML += " · "+event.id+"<br>";
+            innerHTML += "<span class='"+DAP_TEXT_HIGHLIGHT+"'>Date:</span><br>";
+            innerHTML += " · "+dapParseDate(eventOccurrence.time);
+
+            colorText = event.color(DAP_COLOR_TEXT_LEGIBLE_SELF);
+            colorBackground = event.color(DAP_COLOR_TEXT_BACKGROUND_SELF)
+            break;
+    }
+    innerDiv.empty();
+    innerDiv.append(innerHTML);
+    tooltipDiv.css('background-color',colorBackground);
+    tooltipDiv.css('color',colorText);
+    tooltipDiv.css('display','block')
+    tooltipDiv.find("#"+DAP_TOOLTIP_X).css('color',colorText);
 
 }
 
@@ -1439,6 +1564,8 @@ var dapHighlightSvg = function (jElements, highlight) {
 
     }
 }
+
+
 
 var dapParseDate = function (date) {
     if (parseInt(date) == date) {
@@ -1485,7 +1612,6 @@ var dapRedrawGraph = function (svg) {
 var dapEventCheckboxClick = function (event) {
     var jElement = dapGetGraphParent(event.target);
     var svg = jElement.find("svg."+DAP_SVG_UP)[0];
-    var allEvents = jElement.find("tbody input[value!="+DAP_TEMPLATE+"]");
     switch (event.target.value) {
         case DAP_EVENT_CHECKBOX_ALL:
             var allChecked = $(event.target).is(':checked')

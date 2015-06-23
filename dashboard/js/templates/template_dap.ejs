@@ -232,10 +232,6 @@ under the License.
 
                 $(window).unbind('resize',dapResizeFunction)
             }
-
-            $("body").append('<div id="dav-tooltip"/>')
-
-            // Altura dinamica
         })
         $(document).ready(function(){
             $("#dap-prefix-url").tooltip({
@@ -251,4 +247,8 @@ under the License.
         }
 
     </script>
+</div>
+<div id="dap-tooltip">
+    <div id="dap-tooltip-x" onclick='dapHideTooltip()'>x</div>
+    <div id="dap-tooltip-content"/>
 </div>

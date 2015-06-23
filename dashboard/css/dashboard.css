@@ -1292,8 +1292,26 @@ div.dap-table-graph-footer>.dap-prediction-table thead tr:not(:first-child) th{
 
 }
 
-.dav-tooltip {
+#dap-tooltip {
+    background: blue;
     display: none;
     position: absolute;
     z-index: 150;
+    width: 200px;
+    min-height: 100px;
+    top: 2px;
+    right: 2px;
+    opacity: 0.8;
+    padding: 2px;
+}
+
+#dap-tooltip-content {
+
+}
+
+#dap-tooltip-x {
+    text-shadow: 1px 1px 1px #000;
+    position: absolute;
+    top: 1px;
+    right: 3px;
 }
