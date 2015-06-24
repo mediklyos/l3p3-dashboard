@@ -1173,9 +1173,11 @@ div.dap-table-graph-footer>.dap-prediction-table thead tr:not(:first-child) th{
 .dap-pause-graph, .dap-pause-graph.active{
     height: 32px;
     width: 40px;
-    background: url('../icons/pause_4.png') no-repeat;
+    background: url('../icons/play_4.png') no-repeat;
 }
+
 .dap-pause-graph.active {
+    background: url('../icons/pause_4.png') no-repeat;
     background-color: #e6e6e6;
 }
 
