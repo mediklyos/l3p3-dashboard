@@ -74,7 +74,7 @@ body {
 
 .hr {
     width: 100%;
-    height: 0px;
+    height: 0;
     border-top: solid;
     border-top-width: 1px;
     border-color: #000000;
@@ -179,7 +179,7 @@ body {
     z-index: 10;
     background-image: url('../icons/rightArrow.png');
     position: absolute;
-    margin-left: 0px;
+    margin-left: 0;
 }
 
 #left-column-button:hover {
@@ -208,10 +208,10 @@ body {
 
 #framework-main {
     position: relative;
-    top: 0px;
-    bottom: 0px;
-    right: 0px;
-    left: 0px;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
 }
 /*
  * Placeholder dashboard ideas
@@ -232,9 +232,9 @@ body {
 }
 
 #footer {
-    bottom: 0px;
+    bottom: 0;
     background-color: #f0f0f0;
-    border-top: 0px;
+    border-top: 0;
     position: relative;
     display: none;
 }
@@ -254,8 +254,8 @@ body {
     border-top: 3px double dimgrey;
     display: inherit;
     height: 100%;
-    bottom: 0px;
-    top: 0px;
+    bottom: 0;
+    top: 0;
 }
 
 #footer-content {
@@ -269,7 +269,7 @@ body {
 }
 #footer-button {
     position: absolute;
-    right: 0px;
+    right: 0;
     background: url('../icons/topArrow.png');
     width: 15px;
     height: 15px;
@@ -287,7 +287,7 @@ body {
     background: url('../icons/maximize_normal.png');
     width: 15px;
     height: 15px;
-    top: 0px;
+    top: 0;
     z-index: 10;
 
 }
@@ -312,7 +312,7 @@ body {
 
 }
 #footer-button.footer-show {
-    top:0px;
+    top:0;
     background: url('../icons/bottonArrow.png');
 }
 
@@ -354,7 +354,7 @@ body {
     border-radius: 2px;
 }
 .my-color-box:hover {
-    border: 0px;
+    border: 0;
 }
 .my-color-box:hover>img {
     display: inherit;
@@ -394,7 +394,7 @@ body {
 }
 .slider-panel div{
     display: inline-block;
-    margin: 0px 5px
+    margin: 0 5px
 }
 
 .slider-panel div.ui-slider {
@@ -526,7 +526,7 @@ body {
     width: 150px;
 }
 #pv-tool-bar>div {
-    margin: 2px 0px;
+    margin: 2px 0;
     display: block;
 }
 
@@ -691,7 +691,7 @@ div.pv-table-graph-footer>.pv-prediction-table thead tr:not(:first-child) th{
     background:red;
     width:10px;
     height:10px;
-    border: 0px solid white;
+    border: 0 solid white;
     border-radius: 2px;
     color: red;
 
@@ -704,15 +704,15 @@ div.pv-table-graph-footer>.pv-prediction-table thead tr:not(:first-child) th{
 }
 
 @keyframes parpadeo {
-    0%	{-webkit-box-shadow: 0px 0px 5px }
-    50%	{-webkit-box-shadow: 0px 0px 10px }
-    100%{-webkit-box-shadow: 0px 0px 5px }
+    0%	{-webkit-box-shadow: 0 0 5px }
+    50%	{-webkit-box-shadow: 0 0 10px }
+    100%{-webkit-box-shadow: 0 0 5px }
 }
 
 @-webkit-keyframes parpadeo{
-    0%	{-webkit-box-shadow: 0px 0px 5px }
-    50%	{-webkit-box-shadow: 0px 0px 10px }
-    100%{-webkit-box-shadow: 0px 0px 5px }
+    0%	{-webkit-box-shadow: 0 0 5px }
+    50%	{-webkit-box-shadow: 0 0 10px }
+    100%{-webkit-box-shadow: 0 0 5px }
 }
 
 #dd-filters-row {
@@ -805,7 +805,7 @@ div.pv-table-graph-footer>.pv-prediction-table thead tr:not(:first-child) th{
 }
 .left-divider {
     border-right: 1px solid #ccc;
-    padding: 0px 5px;
+    padding: 0 5px;
 }
 
 #d3p-buttons-list {
@@ -880,7 +880,7 @@ thead {
 #at-info-icon {
     position: absolute;
     float:left;
-    right: 0px;
+    right: 0;
     z-index: 1;
     width: 11px;
     height: 11px;
@@ -1052,7 +1052,7 @@ thead {
     width: 150px;
 }
 #dap-tool-bar>div {
-    margin: 2px 0px;
+    margin: 2px 0;
     display: block;
 }
 
@@ -1131,15 +1131,24 @@ div.dap-table-graph-footer>.dap-prediction-table {
     border-radius: 5px;
     margin: 5px;
 }
+div.dap-left-tables>.dap-prediction-table {
+    display: inline-table;
+    border: 1px solid;
+    border-radius: 5px;
+    width: 100%;
+}
+
 .dap-my-stats {
     vertical-align: top;
     width: 50px;
     display: inline-block;
 }
+.dap-controls {
+    text-align: center;
+}
 .dap-controls div{
     margin: 1px auto;
-    display: table;
-
+    align-content: center;
 }
 .dap-canvas-graph {
     width: calc(100% - 310px);
@@ -1149,19 +1158,28 @@ div.dap-table-graph-footer>.dap-prediction-table {
     width: 250px;
     display: inline-block;
 }
+div.dap-left-tables>.dap-prediction-table th,
 div.dap-table-graph-footer>.dap-prediction-table th {
     width: 50%;
 }
+div.dap-left-tables>.dap-prediction-table.dap-table-evens-prediction-result th ,
 div.dap-table-graph-footer>.dap-prediction-table.dap-table-evens-prediction-result th {
     width: 33%;
 }
 
+div.dap-left-tables>.dap-prediction-table thead tr:first-child th,
 div.dap-table-graph-footer>.dap-prediction-table thead tr:first-child th{
     text-align: center;
     font-size: 120%;
 }
+div.dap-left-tables>.dap-prediction-table thead tr:not(:first-child) th,
 div.dap-table-graph-footer>.dap-prediction-table thead tr:not(:first-child) th{
     border-bottom: 1px solid #000
+}
+
+div.dap-left-tables>.dap-prediction-table tr ,
+div.dap-table-graph-footer>.dap-prediction-table tr {
+    font-size: small;
 }
 
 .dap-table-title {
@@ -1225,7 +1243,7 @@ div.dap-table-graph-footer>.dap-prediction-table thead tr:not(:first-child) th{
     background:red;
     width:10px;
     height:10px;
-    border: 0px solid white;
+    border: 0 solid white;
     border-radius: 2px;
     color: red;
 
@@ -1242,7 +1260,7 @@ div.dap-table-graph-footer>.dap-prediction-table thead tr:not(:first-child) th{
 }
 
 .dap-highlight-text {
-    text-shadow : 1px 0px 0px;
+    text-shadow : 1px 0 0;
 }
 
 .dap-sliderControls-time-slider, .dap-sliderControls-window-factor {
@@ -1263,7 +1281,7 @@ div.dap-table-graph-footer>.dap-prediction-table thead tr:not(:first-child) th{
 .dap-sliderControls-time-slider-container, .dap-sliderControls-window-factor-container {
     display: inline-block;
     border: solid 1px black;
-    padding: 0px 5px;
+    padding: 0 5px;
     margin-bottom: 3px;
 
 }
@@ -1305,6 +1323,7 @@ div.dap-table-graph-footer>.dap-prediction-table thead tr:not(:first-child) th{
     right: 2px;
     opacity: 0.8;
     padding: 2px;
+    border-radius: 5px;
 }
 
 #dap-tooltip-content {
@@ -1317,3 +1336,51 @@ div.dap-table-graph-footer>.dap-prediction-table thead tr:not(:first-child) th{
     top: 1px;
     right: 3px;
 }
+
+.dap-button-velocity-content {
+    height: 33px;
+    width: 40px;
+    border: solid 1px #ccc;
+    border-radius: 4px;
+    text-align: left;
+    padding: 0;
+}
+
+.dap-button-velocity-content>div>button,
+.dap-button-velocity-content>div {
+    position: relative;
+    margin: 0;
+    display: block;
+
+}
+
+.dap-button-velocity-content>div {
+    display: inherit;
+}
+
+.dap-button-velocity-plus {
+    height: 17px;
+    width: 17px;
+    top: -1px;
+    left:-1px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+    padding: 0;
+    background-image: url('../icons/plus_2.png');
+}
+.dap-button-velocity-minus {
+    height: 17px;
+    width: 17px;
+    top: -2px;
+    left:-1px;
+    border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+    border-top-left-radius: 0;
+    padding: 0;
+    background-image: url('../icons/minus_2.png');
+}
+.dap-button-velocity-factor {
+    top: -12px;
+}
+

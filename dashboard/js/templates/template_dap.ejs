@@ -21,24 +21,6 @@ under the License.
         <div class="dap-footer-chart-stats" class="col-lg-12">
             <div class="dap-table-graph-footer">
                 <div class="dap-table-title"></div>
-                <div class="dap-table-evens-occurrence dap-prediction-table">
-                    <table class="table table-condensed dap-table-evens-occurrence">
-                        <thead>
-                            <tr>
-                                <th colspan="2">Events</th>
-                            </tr>
-                            <tr>
-                                <th>Event</th>
-                                <th>Timestamp</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="dashboard-templates">
-                                <td class="dap-td-1"></td><td class="dap-td-2"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
                 <div class="dap-table-evens-prediction dap-prediction-table">
                     <table class="table table-condensed">
                         <thead>
@@ -123,14 +105,14 @@ under the License.
         </table>
         <!-- template dap-tool-bar-->
         <div id="dap-tool-bar" class="form-inline" role="form">
-            <div class="form-group">
+            <div class="form-group" style="display:none">
                 <div class="input-group">
                     <input id="dap-input-url" type="text" class="form-control my-form" placeholder="url" onkeydown="dapLoadSource(event)">
                 </div>
                 <button class="btn btn-default" id="dap-upload-button" onclick="dapLoadSource_click()">Load</button>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" style="display:none">
                 <button class="btn btn-default" id="dap-add-graph" onclick="dapAddGraph()">Add Graph</button>
                 <div class="btn-group btn-toggle" data-toggle="buttons" id="dap-columns-click" onclick="dapColumnsClick(event)">
                     <label class="btn btn-primary active">
@@ -148,9 +130,29 @@ under the License.
                 <div id="dap-threshold-slider-panel" class="div-border center-content-panel">
                 </div>
             </div>-->
-            <div class="form-group">
+            <div class="form-group" >
                 <button class="btn btn-default" id="dap-increment-charts-height" onclick="dapIncrementChartsHeight()">+Height</button>
                 <button class="btn btn-default" id="dap-decrement-charts-height" onclick="dapDecrementChartsHeight()">-Height</button>
+            </div>
+            <div class="dap-left-tables">
+                <div class="dap-table-evens-occurrence dap-prediction-table">
+                    <table class="table table-condensed dap-table-evens-occurrence">
+                        <thead>
+                        <tr>
+                            <th colspan="2">Events</th>
+                        </tr>
+                        <tr>
+                            <th>Event</th>
+                            <th>Timestamp</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr class="dashboard-templates">
+                            <td class="dap-td-1"></td><td class="dap-td-2"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -178,16 +180,28 @@ under the License.
                 <div class="dap-my-stats">
                     <div class="dap-controls">
                         <div class="center-content-panel">
-                            <button type="button" class="btn btn-default dap-select-graph" onclick="DAPSelectChart(event)"></button>
-                        </div>
-                        <div class="center-content-panel">
-                            <button type="button" class="btn btn-default" id="" onclick="dapActiveNames(event)"><span class="glyphicon glyphicon-eye-open"></span></button>
-                        </div>
-                        <div class="center-content-panel">
                             <button type="button" class="btn btn-default dap-pause-graph" onclick="dapPlayPauseClick(event)"></button>
+                        </div>
+                        <div class="center-content-panel dap-button-velocity-content">
+                            <div>
+                                <button type="button" class="btn btn-default dap-button-velocity-plus" onclick="dapButtonPlus(event)"></button>
+                                <button type="button" class="btn btn-default dap-button-velocity-minus" onclick="dapButtonMinus(event)"></button>
+                            </div>
+                            <div class="dap-button-velocity-factor">
+                                x1
+                            </div>
+                        </div>
+                        <div class="center-content-panel">
+                            <button type="button" class="btn btn-default" onclick="dapActiveNames(event)"><span class="glyphicon glyphicon-eye-open"></span></button>
+                        </div>
+                        <div class="center-content-panel">
+                            <button type="button" class="btn btn-default dap-remove-highlight" onclick="dapClearClicks(event)"><span class="glyphicon glyphicon-eye-close"></span></button>
                         </div>
                         <div class="center-content-panel">
                             <button type="button" class="btn btn-default dap-delete-graph" onclick="dapDeleteGraph(event.target)"><span class="glyphicon glyphicon-trash"></span></button>
+                        </div>
+                        <div class="center-content-panel">
+                            <button type="button" class="btn btn-default dap-select-graph" onclick="DAPSelectChart(event)"></button>
                         </div>
                     </div>
                 </div>
@@ -249,6 +263,6 @@ under the License.
     </script>
 </div>
 <div id="dap-tooltip">
-    <div id="dap-tooltip-x" onclick='dapHideTooltip()'>x</div>
+    <div id="dap-tooltip-x" onclick='dapHideTooltip()'><span class="glyphicon glyphicon-remove"></span></div>
     <div id="dap-tooltip-content"/>
 </div>
