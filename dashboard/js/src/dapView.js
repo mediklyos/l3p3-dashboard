@@ -1098,11 +1098,11 @@ var dapAddAlert = function (svg,event) {
     _dapAddAlert(array,alert);
     if (alert.type == DAP_WS_ALERT_ON) {
         if (event[DAP_WS_ALERT_TIMEOUT] != undefined) {
-            var newAlert = {};
-            newAlert.type = DAP_WS_ALERT_OFF
-            newAlert.event = objectEvent;
-            newAlert.time = event[DAP_WS_TIME] + event[DAP_WS_ALERT_TIMEOUT];
-            _dapAddAlert(array,newAlert);
+            //var newAlert = {};
+            //newAlert.type = DAP_WS_ALERT_OFF
+            //newAlert.event = objectEvent;
+            //newAlert.time = event[DAP_WS_TIME] + event[DAP_WS_ALERT_TIMEOUT];
+            //_dapAddAlert(array,newAlert);
         }
     }
 }
@@ -1414,7 +1414,7 @@ var _dapDrawEventsInGraph = function (force ) {
                     var prevWindow = svg.windowEvents;
                     svg.windowEvents = dapGetWindowEvents(this.eventsInBuffer, svg.smoothie.graphTime, this.svg.currentDate + parseInt(svg.smoothie.graphTime / 2));
                     if (force) {
-                        /*Clean previous event ocurrences*/
+                        /*Clean previous event occurrences*/
                         for (var i = 0; i < this.eventsInBuffer.length ; i++) {
                             if (this.eventsInBuffer[i].circle) {
                                 $(this.eventsInBuffer[i].circle).remove();
@@ -1476,6 +1476,8 @@ var _dapDrawEventsInGraph = function (force ) {
 
 }
 
+
+
 var dapReduceAlerts = function (array,svg) {
     for (var i = 0; i < array.length-1  ; i++){
         if (array[i].type == array[i+1].type) {
@@ -1489,42 +1491,113 @@ var dapReduceAlerts = function (array,svg) {
     }
     var firstEvent = array[0]
     var lastEvent = array[array.length-1]
-    if (firstEvent.type == DAP_WS_ALERT_OFF) {
-        //for (var i = svg.windowEvents.end+1;i <  svg.wss[0].eventsInBuffer.length;i++) {
-        for (var i = svg.windowEvents.start-1;i >0;i--) {
-            // XXX ONLY 1 WSS
-            var event = svg.wss[0].eventsInBuffer[i];
-            if (event[DAP_WS_EVENT] == lastEvent.event.id) {
-                if (event.command == DAP_WS_ALERT) {
-                    if (event[DAP_WS_ALERT] == DAP_WS_ALERT_ON) {
-                        var timeout = event[DAP_WS_TIME] + event[DAP_WS_ALERT_TIMEOUT];
-                        if (lastEvent.time < timeout) {
-                            var startAlert = {};
-                            startAlert.type = DAP_WS_ALERT_ON
-                            startAlert.time = svg.smoothie.zeroTime - svg.smoothie.after;
-                            array.push(startAlert)
-                            //array.push(0,0,alert);
-                            return;
-                        }
-
-                    }
-                    //array.splice(0,1);
-                    array.pop();
-                    return;
-                }
-            }
-        }
-        //array.splice(0,1);
-        array.pop()
-
+    if (lastEvent.type == DAP_WS_ALERT_OFF) {
+        _dapAddStartEvent(svg,lastEvent,array)
     }
     if (lastEvent.type == DAP_WS_ALERT_ON) {
+        _dapChangeStartEvent(svg,lastEvent,array)
+        //var endAlert = {};
+        //endAlert.event = lastEvent.event;
+        //endAlert.type = DAP_WS_ALERT_OFF;
+        //endAlert.time = svg.smoothie.zeroTime + svg.smoothie.after*2;
+        //array.push(endAlert);
+        //array.splice(0,0,endAlert);
+    }
+    if (firstEvent.type == DAP_WS_ALERT_ON) {
         var endAlert = {};
+        endAlert.event = firstEvent.event;
         endAlert.type = DAP_WS_ALERT_OFF;
-        endAlert.time = svg.smoothie.graphTime + svg.smoothie.after;
-        array.push(endAlert);
+        endAlert.time = svg.smoothie.zeroTime + svg.smoothie.after;
+        //array.push(endAlert);
+        array.splice(0,0,endAlert);
+    }
+}
+var _dapChangeStartEvent = function (svg,startEvent,array) {
+    for (var i = svg.windowEvents.end+1;i <  svg.wss[0].eventsInBuffer.length;i++) {
+        var event = svg.wss[0].eventsInBuffer[i];
+        if (event[DAP_WS_EVENT] == startEvent.event.id) {
+            if (event.command == DAP_WS_ALERT) {
+                if (event[DAP_WS_ALERT] == DAP_WS_ALERT_ON) {
+                    var timeout = event[DAP_WS_TIME] + event[DAP_WS_ALERT_TIMEOUT];
+                    if (event.time < timeout) {
+                        var newStartEvent = {};
+                        newStartEvent.type = DAP_WS_ALERT_ON
+                        newStartEvent.time = event.time;
+                        //array.splice(0,1,newStartEvent);
+                        array.pop();
+                        array.push(newStartEvent);
+                    }
+                }
+                return;
+            }
+        }
+    }
+}
+var _dapAddStartEvent = function (svg,endEvent,array){
+    for (var i = svg.windowEvents.end+1;i <  svg.wss[0].eventsInBuffer.length;i++) {
+    //for (var i = svg.windowEvents.start-1;i >0;i--) {
+        // XXX ONLY 1 WSS
+        var event = svg.wss[0].eventsInBuffer[i];
+        if (event[DAP_WS_EVENT] == endEvent.event.id) {
+            if (event.command == DAP_WS_ALERT) {
+                if (event[DAP_WS_ALERT] == DAP_WS_ALERT_ON) {
+                    var timeout = event[DAP_WS_TIME] + event[DAP_WS_ALERT_TIMEOUT];
+                    if (event.time < timeout) {
+                        var startAlert = {};
+                        startAlert.type = DAP_WS_ALERT_ON
+                        startAlert.time = endEvent.time;
+                        array.push(startAlert)
+                        //array.splice(0,0,startAlert);
+                        return;
+                    }
 
+                }
+                //array.splice(0,1);
+                array.pop();
+                return;
+            }
+        }
+    }
+    //array.splice(0,1);
+    array.pop()
+}
 
+var dapPaintAlertsInChart = function (svg) {
+    $(svg).find("."+DAP_EVENT_CLASS_ALERT).remove();
+    Object.keys(svg.smoothie.events).map(function (key) {
+        svg.smoothie.events[key].alerted = false;
+    })
+    $.each(svg.alerts,function (eventName) {
+        var event = dapAddEventToSmoothie(svg, eventName);
+        event.alerted = true;
+        var range = {};
+        var eventAlerts = svg.alerts[eventName]
+        for (var i = 0; i < eventAlerts.length; i= i+2){
+            range.before = eventAlerts[i].time;
+            if (eventAlerts[i+1] != undefined){
+                range.after= eventAlerts[i+1].time
+            } else {
+                range.after = svg.currentDate + svg.smoothie.after;
+            }
+            dapPaintAlert(svg,event,range)
+
+        };
+
+    })
+}
+
+var dapPaintAlert = function (svg,event, alertRage){
+    //
+    if(event.filter) {
+        var x = dapGetXPixel(svg,alertRage.after)
+        var width =  dapGetXPixel(svg,alertRage.before) - x
+        var y = event.position * $(svg).height() - DAP_ALERT_LINE_WIDTH / 2;
+        var highlighted = event.isSumaryHover || event.isSumaryClicked //|| event.isClicked || event.isHover;
+        svg.layer2.append('rect').attr('x', x).attr('y', y).attr('rx', 2).attr('ry', 2)
+            .attr('width', width).attr('height', DAP_ALERT_LINE_WIDTH).attr('fill',event.color)
+            .attr('fill-opacity',DAP_ALERT_LINE_TRANSPARENCY).attr('stroke', event.color)
+            .attr('stroke-width', DAP_ALERT_LINE_BORDER).attr('class', DAP_EVENT_CLASS_ALERT);
+        //.attr('stroke-width', (highlighted) ? DAP_SVG_FOOTER_STROKE_VERTICAL_LINE : DAP_SVG_FOOTER_STROKE_VERTICAL_LINE_HIDDEN)
     }
 }
 
@@ -1571,30 +1644,6 @@ var dapClearClicks = function (event) {
     dapHideTooltip();
 }
 
-var dapPaintAlertsInChart = function (svg) {
-    $(svg).find("."+DAP_EVENT_CLASS_ALERT).remove();
-    Object.keys(svg.smoothie.events).map(function (key) {
-        svg.smoothie.events[key].alerted = false;
-    })
-    $.each(svg.alerts,function (eventName) {
-        var event = dapAddEventToSmoothie(svg, eventName);
-        event.alerted = true;
-        var range = {};
-        var eventAlerts = svg.alerts[eventName]
-        for (var i = 0; i < eventAlerts.length; i= i+2){
-            range.before = eventAlerts[i].time;
-            if (eventAlerts[i+1] != undefined){
-                range.after = eventAlerts[i+1].time
-            } else {
-                range.after = svg.currentDate - svg.smoothie.after;
-            }
-            dapPaintAlert(svg,event,range)
-
-        };
-
-    })
-}
-
 var dabCalculateHeight = function (svg) {
     var smoothie = svg.smoothie
     var parent = dapGetGraphParent(svg);
@@ -1620,20 +1669,7 @@ var dabCalculateHeightButton = function (event) {
     dabCalculateHeight(dapGetGraphParent(event.target).find("."+DAP_SVG_UP)[0])
 }
 
-var dapPaintAlert = function (svg,event, alertRage){
-    //
-    if(event.filter) {
-        var x = dapGetXPixel(svg,alertRage.after)
-        var width =  dapGetXPixel(svg,alertRage.before) - x
-        var y = event.position * $(svg).height() - DAP_ALERT_LINE_WIDTH / 2;
-        var highlighted = event.isSumaryHover || event.isSumaryClicked //|| event.isClicked || event.isHover;
-        svg.layer2.append('rect').attr('x', x).attr('y', y).attr('rx', 2).attr('ry', 2)
-            .attr('width', width).attr('height', DAP_ALERT_LINE_WIDTH).attr('fill',event.color)
-            .attr('fill-opacity',DAP_ALERT_LINE_TRANSPARENCY).attr('stroke', event.color)
-            .attr('stroke-width', DAP_ALERT_LINE_BORDER).attr('class', DAP_EVENT_CLASS_ALERT);
-            //.attr('stroke-width', (highlighted) ? DAP_SVG_FOOTER_STROKE_VERTICAL_LINE : DAP_SVG_FOOTER_STROKE_VERTICAL_LINE_HIDDEN)
-    }
-}
+
 
 
 var dapPaintEvent = function(svg,event) {
