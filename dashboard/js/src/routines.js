@@ -432,3 +432,9 @@ var alternativeSwitchClass = function (jElement, className,status) {
     })
 }
 
+
+var addTransparencyToHexColor = function (color,alpha){
+    var rgbColor = d3.rgb(color);
+    return "rgba("+rgbColor.r+","+rgbColor.g+","+rgbColor.b+","+alpha+")"
+
+}
