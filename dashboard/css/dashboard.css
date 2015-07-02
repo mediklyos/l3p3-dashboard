@@ -1058,6 +1058,14 @@ thead {
     margin: 5px;
 }
 
+#dap-main button.dap-toggle-button span.glyphicon {
+    color:grey;
+}
+
+#dap-main button.dap-toggle-button.active span.glyphicon {
+    color:black;
+}
+
 
 #dap-input-url {
     width: 150px;
