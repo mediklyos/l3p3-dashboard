@@ -65,6 +65,7 @@ var DAP_EVENT_CLASS_PREDICTION_RESULT = PRE + "-prediction-class-prefix-result-"
 var DAP_EVENT_CLASS_SUMMARY = PRE + "-event-class-summary"
 var DAP_EVENT_CLASS_ALERT = PRE + "-event-class-alert"
 var DAP_EVENT_TYPE_CLASS = PRE + "-event-type-class-"
+var DAP_RESULT_CLASS = PRE + "-result"
 var DAP_OCCURRENCE_CLASS = PRE + "-event-occurrence"
 var DAP_BASE_LINE = PRE + "-base-line";
 var DAP_EVENT_ATTRIBUTE = PRE + "-event"
@@ -84,12 +85,22 @@ var DAP_SVG_FOOTER_FONT_FAMILY = "monospace"
 var DAP_HEIGHT_STEP = 10;
 var DAP_EVENT_CIRCLE_RADIUS = 3;
 var DAP_EVENT_CIRCLE_RADIUS_HIGHLIGHT = 4;
+var DAP_RESULT_CIRCLE_RADIUS = 10;
 var DAP_ZERO_POS = 0.5
 //var DAP_TIMEOUT = -( DAP_CHARTS_DEFAULT_TIME * DAP_ZERO_POS)
 var DAP_TIMEOUT = 200
 var DAP_ALERT_LINE_WIDTH = 7;
 var DAP_ALERT_LINE_BORDER = 1;
 var DAP_ALERT_LINE_TRANSPARENCY = 0.4;
+
+var DAP_HIT_COLOR = "#254117"; //Dark Forrest Green
+var DAP_MISS_FP_COLOR = "orange";
+var DAP_MISS_FN_COLOR = "red";
+var DAP_ORIGINAL_COLOR_ATTR = "original-color"
+var DAP_RESULT_HIGHLIGHT_STROKE_WIDTH = 2;
+var DAP_RESULT_STROKE_WIDTH = 1;
+var DAP_RESULT_X_SIZE = 16
+
 
 var DAP_COLOR_TEXT_NORMAL = 1
 var DAP_COLOR_TEXT_LEGIBLE_BLANK = 2
@@ -120,9 +131,9 @@ var DAP_WS_DESCRIPTION = "description"
 var DAP_WS_RESULT_HIT = "hit"
 var DAP_WS_RESULT_MISS_FALSE_POSITIVE = "miss-fp"
 var DAP_WS_RESULT_MISS_FALSE_NEGATIVE = "miss-fn"
-var DAP_WS_RESULT_HIT_CLASS = PRE + "-hit"
-var DAP_WS_RESULT_MISS_FALSE_POSITIVE_CLASS = PRE + "-miss-fp"
-var DAP_WS_RESULT_MISS_FALSE_NEGATIVE_CLASS = PRE + "-miss-fn"
+var DAP_RESULT_HIT_CLASS = PRE + "-hit"
+var DAP_RESULT_MISS_FALSE_POSITIVE_CLASS = PRE + "-miss-fp"
+var DAP_RESULT_MISS_FALSE_NEGATIVE_CLASS = PRE + "-miss-fn"
 var DAP_WS_ALERT = "alert"
 var DAP_WS_ALERT_TIMEOUT = "timeout"
 var DAP_WS_ALERT_ON = "on"
@@ -289,10 +300,26 @@ var dapAddEventToSmoothie = function (svg,eventName){
         smoothie.events[eventName].position = Math.random();
         smoothie.events[eventName]._filter = true;
         smoothie.events[eventName].filter = function (event){
+            if (this.filterSignificant) {
+                if (event.model == undefined) {
+                    if (event.isSignificant) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                    return event.isSignificant;
+                } else {
+                    return event._filter;
+                }
+            } else {
+                return event._filter;
+            }
+            return;
             if (!event._filter) {
                 return false;
             }
             else if (this.filterSignificant) {
+
                 return event.isSignificant;
             } else {
                 return true;
@@ -481,11 +508,11 @@ if (DAP_DRAWN_LAPSE != 0) {
 //            newLine.find("." + DAP_CELL_2).text(printDate(this.time)).css('color', event.color(DAP_COLOR_TEXT_LEGIBLE_BLANK))
 //            var img;
 //            if (this.result === DAP_WS_RESULT_MISS_FALSE_POSITIVE) {
-//                img = $('<div/>').addClass(DAP_WS_RESULT_MISS_FALSE_POSITIVE_CLASS)//.addClass(DAP_EVENT_TYPE_CLASS+this.event)
+//                img = $('<div/>').addClass(DAP_RESULT_MISS_FALSE_POSITIVE_CLASS)//.addClass(DAP_EVENT_TYPE_CLASS+this.event)
 //            } else if (this.result === DAP_WS_RESULT_MISS_FALSE_NEGATIVE) {
-//                img = $('<div/>').addClass(DAP_WS_RESULT_MISS_FALSE_NEGATIVE_CLASS)
+//                img = $('<div/>').addClass(DAP_RESULT_MISS_FALSE_NEGATIVE_CLASS)
 //            } else {
-//                img = $('<div/>').addClass(DAP_WS_RESULT_HIT_CLASS)
+//                img = $('<div/>').addClass(DAP_RESULT_HIT_CLASS)
 //            }
 //            newLine.find("." + DAP_CELL_3).append(img)
 //            newLine.mouseenter(function (svg) {
@@ -595,11 +622,13 @@ var dapPaintEventsInADiv = function (jQSvg) {
         }
 
     })
-    //$.each(svg.predictionResults,function (){
-    //    events[this.event.id] = {}
-    //    events[this.event.id].count = 0;
-    //    events[this.event.id].event = this.event;
-    //})
+    $.each(svg.predictionResults,function (){
+        if (events[this.eventObject.id] === undefined) {
+            events[this.eventObject.id] = {}
+            events[this.eventObject.id].count = 0;
+            events[this.eventObject.id].event = this.event;
+        }
+    })
     $.each(smoothie.eventsHappend,function () {
         if (events[this.eventObject.id] === undefined){
             events[this.eventObject.id] = {};
@@ -629,7 +658,11 @@ var dapPaintEventsInADiv = function (jQSvg) {
     $.each(shortedKeys, function () {
         var newLine = genericLine.clone().removeClass(DASHBOARD_TEMPLATES).addClass(DAP_EVENT_TYPE_CLASS+getIndexOfSvg(svg)+"-"+this).addClass(DAP_EVENT_CLASS_SUMMARY);
         var event = dapAddEventToSmoothie(svg,this);
-        newLine.find("."+DAP_CELL_1).text(this)
+        if (dapGetActiveAlias() && event.alias != undefined) {
+            newLine.find("."+DAP_CELL_1).text(event.alias )
+        } else {
+            newLine.find("."+DAP_CELL_1).text(this)
+        }
         var highlighted = event.isSumaryHover || event.isSumaryClicked
         if (highlighted) {
             alternativeAddClass(newLine,DAP_TEXT_HIGHLIGHT)
@@ -673,6 +706,9 @@ var dapPaintEventsInADiv = function (jQSvg) {
 
 }
 
+var dapGetActiveAlias = function (){
+    return true;
+}
 
 
 var cleanPredictionResults = function () {
@@ -1341,6 +1377,14 @@ var dapPreprocessEvents = function (events) {
     for (var i = 0; i < events.length; i++){
         for (var j =0;j < events[i].data.length;j++) {
             switch (events[i].data[j][DAP_WS_COMMAND]){
+                case DAP_WS_RESULT :
+                    if (events[i].data[j].time == undefined){
+                        if (result.timeline.length == 0) {
+                            break
+                        } else {
+                            events[i].data[j].time = result.timeline[result.timeline.length - 1].time;
+                        }
+                    }
                 case DAP_WS_EVENT :
                 case DAP_WS_ALERT :
                     result.timeline.push(events[i].data[j]);
@@ -1457,6 +1501,7 @@ var _dapDrawEventsInGraph = function (force ) {
                 jQSvg.find("." + DAP_OCCURRENCE_CLASS).remove();
             }
             svg.smoothie.eventsHappend = [];
+            svg.predictionResults = [];
             var eventsToPaint = []
             _dapCleanBeforePaint(svg)
             if (svg.wss != undefined) {
@@ -1510,6 +1555,8 @@ var _dapDrawEventsInGraph = function (force ) {
                             case DAP_WS_ALERT:
                                 dapAddAlert(svg,this.eventsInBuffer[i]);
                                 break;
+                            case DAP_WS_RESULT:
+                                dapAddResult(svg,this.eventsInBuffer[i]);
                             default:
                         }
 
@@ -1521,13 +1568,107 @@ var _dapDrawEventsInGraph = function (force ) {
             })
             dapPaintEvents(svg);
             dapPaintAlertsInChart(svg);
+            dapPaintResults(svg);
             dapPaintEventsInADiv($(svg));
         }
     })
 
 }
 
+var dapPaintResults = function (svg) {
+    $(svg).find("."+DAP_RESULT_CLASS).remove();
+    svg.predictionResults.forEach(function (result) {
+        dapPaintResult(svg,result);
+    })
+}
 
+var dapPaintResult = function (svg, result){
+    var smoothieEvent = result.eventObject;
+    if (smoothieEvent.filter()) {
+        var stringResultClass = DAP_EVENT_CLASS_PREDICTION_RESULT+getIndexOfSvg(svg)+"-"+smoothieEvent.id+"-" + result.time;
+        //var stringOccurrenceClass = DAP_EVENT_CLASS_OCCURRENCE_PREFIX + getIndexOfSvg(svg) + "-" + event.eventObject.id + "-" + event.time
+        var eventClass = DAP_EVENT_TYPE_CLASS + getIndexOfSvg(svg) + "-" + smoothieEvent.id;
+        //var eventClass = DAP_EVENT_CLASS_OCCURRENCE_PREFIX + getIndexOfSvg(svg) + "-" + smoothieEvent.id;
+
+        var x = dapGetXPixel(svg,result.time);
+
+        var y = smoothieEvent.position * $(svg).height();
+        var highlighted = smoothieEvent.isSumaryHover || smoothieEvent.isSumaryClicked || smoothieEvent.isClicked || smoothieEvent.isHover;
+        switch (result.result) {
+            case DAP_WS_RESULT_HIT:
+                /*var circle = */
+                svg.layer2.append('circle').attr('cx', x).attr('cy', y)
+                    .attr('r', DAP_RESULT_CIRCLE_RADIUS)
+                    .attr('stroke', (highlighted)?DAP_HIT_COLOR:smoothieEvent.color)
+                    .style("stroke-width", (highlighted)?DAP_RESULT_HIGHLIGHT_STROKE_WIDTH:DAP_RESULT_STROKE_WIDTH)
+                    .attr('fill', 'none')
+                    .attr('class', stringResultClass + " " + eventClass + " " + DAP_RESULT_CLASS + " "+ DAP_RESULT_HIT_CLASS)
+                    .attr(DAP_ORIGINAL_COLOR_ATTR, smoothieEvent.color);
+                break;
+            case DAP_WS_RESULT_MISS_FALSE_POSITIVE:
+                var increment = DAP_RESULT_X_SIZE /2;
+                var x1 = x-increment;
+                if (x1 < 0){
+                    x1 = 0;
+                }
+                var x2 = x+increment;
+                var y1 = y-increment;
+                if (y1 <0 ){
+                    y1 = 0;
+                }
+                var y2 = y+increment;
+                /*var line = */
+                svg.layer2.append('line').attr('x1', x1).attr('x2', x2).attr('y1', y1).attr('y2', y2)
+                    .style("stroke-width", (highlighted)?DAP_RESULT_HIGHLIGHT_STROKE_WIDTH*2:DAP_RESULT_STROKE_WIDTH*2)
+                    .attr('stroke', (highlighted)?DAP_MISS_FP_COLOR:smoothieEvent.color)
+                    .attr('class', stringResultClass + " " + eventClass + " " + DAP_RESULT_CLASS + " " + DAP_RESULT_MISS_FALSE_POSITIVE_CLASS)
+                    .attr(DAP_ORIGINAL_COLOR_ATTR, smoothieEvent.color);
+                svg.layer2.append('line').attr('x1', x1).attr('x2', x2).attr('y1', y2).attr('y2', y1)
+                    .style("stroke-width", (highlighted)?DAP_RESULT_HIGHLIGHT_STROKE_WIDTH*2:DAP_RESULT_STROKE_WIDTH*2)
+                    .attr('stroke', (highlighted)?DAP_MISS_FP_COLOR:smoothieEvent.color)
+                    .attr('class', stringResultClass + " " + eventClass + " " + DAP_RESULT_CLASS + " " + DAP_RESULT_MISS_FALSE_POSITIVE_CLASS)
+                    .attr(DAP_ORIGINAL_COLOR_ATTR, smoothieEvent.color);
+                break;
+            case DAP_WS_RESULT_MISS_FALSE_NEGATIVE:
+                var increment = DAP_RESULT_X_SIZE /2;
+                var x1 = x-increment;
+                if (x1 < 0){
+                    x1 = 0;
+                }
+                var x2 = x+increment;
+                var y1 = y-increment;
+                if (y1 <0 ){
+                    y1 = 0;
+                }
+                var y2 = y+increment;
+                /*var line = */
+                svg.layer2.append('line').attr('x1', x1).attr('x2', x2).attr('y1', y1).attr('y2', y2)
+                    .style("stroke-width", (highlighted)?DAP_RESULT_HIGHLIGHT_STROKE_WIDTH*2:DAP_RESULT_STROKE_WIDTH*2)
+                    .attr('stroke', (highlighted)?DAP_MISS_FN_COLOR:smoothieEvent.color)
+                    .attr('class', stringResultClass + " " + eventClass + " " + DAP_RESULT_CLASS + " " + DAP_RESULT_MISS_FALSE_NEGATIVE_CLASS)
+                    .attr(DAP_ORIGINAL_COLOR_ATTR, smoothieEvent.color);
+                svg.layer2.append('line').attr('x1', x1).attr('x2', x2).attr('y1', y2).attr('y2', y1)
+                    .style("stroke-width", (highlighted)?DAP_RESULT_HIGHLIGHT_STROKE_WIDTH*2:DAP_RESULT_STROKE_WIDTH*2)
+                    .attr('stroke', (highlighted)?DAP_MISS_FN_COLOR:smoothieEvent.color)
+                    .attr('class', stringResultClass + " " + eventClass + " " + DAP_RESULT_CLASS + " " + DAP_RESULT_MISS_FALSE_NEGATIVE_CLASS)
+                    .attr(DAP_ORIGINAL_COLOR_ATTR, smoothieEvent.color);
+                break;
+
+        }
+
+    }
+}
+
+var dapAddResult = function (svg, predictionResult) {
+    var smoothieEvent = dapAddEventToSmoothie(svg, predictionResult[DAP_WS_EVENT]);
+    if (predictionResult.eventObject == undefined) {
+        predictionResult.eventObject = smoothieEvent;
+        predictionResult.isClicked = false;
+        predictionResult.isHover = false;
+    }
+    smoothieEvent.isSignificant = false;
+    svg.predictionResults.push(predictionResult)
+}
 
 var dapReduceAlerts = function (array,svg) {
     for (var i = 0; i < array.length-1  ; i++){
@@ -1559,9 +1700,9 @@ var dapReduceAlerts = function (array,svg) {
 
     /*Setting the significantEvent*/
     if (svg.filterSignificant) {
-        firstEvent.event.isSignificant = true;
-        if (array.length > 0 && firstEvent.event.model) {
-            firstEvent.event.model.signifcantEvents.forEach(function(event) {
+        if (array.length > 0 && firstEvent.event.model && firstEvent.event.filter()) {
+            //firstEvent.event.isSignificant = true;
+            firstEvent.event.model.signifcantEvents.forEach(function (event) {
                 event.isSignificant = true;
             })
         }
@@ -1876,11 +2017,32 @@ var dapFillAndShowTooltip = function (content,type) {
 
 var dapHighlightSvg = function (jElements, highlight) {
     if (highlight) {
-        jElements.filter('circle').attr('r',DAP_EVENT_CIRCLE_RADIUS_HIGHLIGHT);
-        jElements.filter('line').attr('stroke-width', DAP_SVG_FOOTER_STROKE_VERTICAL_LINE);
+        /*Ocurrences*/
+        jElements.filter('circle.'+DAP_OCCURRENCE_CLASS).attr('r',DAP_EVENT_CIRCLE_RADIUS_HIGHLIGHT);
+        jElements.filter('line.'+DAP_OCCURRENCE_CLASS).attr('stroke-width', DAP_SVG_FOOTER_STROKE_VERTICAL_LINE);
+        /*Results*/
+        jElements.filter('circle.'+DAP_RESULT_HIT_CLASS).attr('stroke',DAP_HIT_COLOR)
+            .css("stroke-width", DAP_RESULT_HIGHLIGHT_STROKE_WIDTH)
+        jElements.filter('line.'+DAP_RESULT_MISS_FALSE_POSITIVE_CLASS).attr('stroke',DAP_MISS_FP_COLOR)
+            .css("stroke-width", DAP_RESULT_HIGHLIGHT_STROKE_WIDTH*2)
+        jElements.filter('line.'+DAP_RESULT_MISS_FALSE_NEGATIVE_CLASS).attr('stroke',DAP_MISS_FN_COLOR)
+            .css("stroke-width", DAP_RESULT_HIGHLIGHT_STROKE_WIDTH*2)
+
     } else {
-        jElements.filter('circle').attr('r',DAP_EVENT_CIRCLE_RADIUS);
-        jElements.filter('line').attr('stroke-width', DAP_SVG_FOOTER_STROKE_VERTICAL_LINE_HIDDEN);
+        /*Ocurrences*/
+        jElements.filter('circle.'+DAP_OCCURRENCE_CLASS).attr('r',DAP_EVENT_CIRCLE_RADIUS);
+        jElements.filter('line.'+DAP_OCCURRENCE_CLASS).attr('stroke-width', DAP_SVG_FOOTER_STROKE_VERTICAL_LINE_HIDDEN);
+        /*Results*/
+        //jElements.filter('circle.'+DAP_RESULT_CLASS).attr('stroke',jElements.filter('circle.'+DAP_RESULT_CLASS).attr(DAP_ORIGINAL_COLOR_ATTR));
+        jElements.filter('circle.'+DAP_RESULT_HIT_CLASS)
+            .attr('stroke',jElements.filter('circle.'+DAP_RESULT_CLASS).attr(DAP_ORIGINAL_COLOR_ATTR))
+            .css("stroke-width", DAP_RESULT_STROKE_WIDTH)
+        jElements.filter('line.'+DAP_RESULT_MISS_FALSE_POSITIVE_CLASS)
+            .attr('stroke',jElements.filter('line.'+DAP_RESULT_MISS_FALSE_POSITIVE_CLASS).attr(DAP_ORIGINAL_COLOR_ATTR))
+            .css("stroke-width", DAP_RESULT_HIGHLIGHT_STROKE_WIDTH)
+        jElements.filter('line.'+DAP_RESULT_MISS_FALSE_NEGATIVE_CLASS)
+            .attr('stroke',jElements.filter('line.'+DAP_RESULT_MISS_FALSE_NEGATIVE_CLASS).attr(DAP_ORIGINAL_COLOR_ATTR))
+            .css("stroke-width", DAP_RESULT_HIGHLIGHT_STROKE_WIDTH)
 
     }
 }

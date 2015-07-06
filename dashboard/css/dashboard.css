@@ -1350,7 +1350,7 @@ div.dap-table-graph-footer>.dap-prediction-table tr {
     min-height: 100px;
     top: 2px;
     right: 2px;
-    opacity: 0.8;
+    /*opacity: 0.8;*/
     padding: 2px;
     border-radius: 5px;
 }
