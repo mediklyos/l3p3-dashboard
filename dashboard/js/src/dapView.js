@@ -69,6 +69,7 @@ var DAP_RESULT_CLASS = PRE + "-result"
 var DAP_OCCURRENCE_CLASS = PRE + "-event-occurrence"
 var DAP_BASE_LINE = PRE + "-base-line";
 var DAP_EVENT_ATTRIBUTE = PRE + "-event"
+var DAP_JOIN_POINTS = PRE + "-join-lines"
 
 /*Other constants*/
 var DAP_MAX_LG_COL = 12;
@@ -78,8 +79,8 @@ var DAP_SVG_FOOTER_LINE_HEIGHT = 10 + DAP_SVG_FOOTER_LINE_FONT_SIZE;
 var DAP_SVG_FOOTER_LINE_SEPARATION = 60000 // in milliseconds
 var DAP_SVG_FOOTER_SUB_LINE_HEIGHT = 3
 var DAP_SVG_FOOTER_STROKE_VERTICAL_LINE_HIDDEN = 0
-var DAP_SVG_FOOTER_STROKE_VERTICAL_LINE = 1
-var DAP_SVG_FOOTER_STROKE_VERTICAL_LINE_BOLD = 3
+var DAP_SVG_STROKE_LINE_NORMAL = 1
+var DAP_SVG_STROKE_LINE_BOLD = 3
 var DAP_SVG_LINES_COLOR = "#ccc"
 var DAP_SVG_FOOTER_FONT_FAMILY = "monospace"
 var DAP_HEIGHT_STEP = 10;
@@ -224,6 +225,7 @@ var dapAddGraph= function () {
     svg.endDate = undefined;
     svg.currentDate = undefined;
     svg.currentFactor = 1;
+    svg.models = [];
 
     svg.d3svg = d3.select(svg);
     svg.layer1 = svg.d3svg.append('g')
@@ -262,9 +264,7 @@ var dapDeleteGraph = function (target) {
 }
 
 var dapFilterSignificant = function (target) {
-    while (target != null && target != undefined && target.tagName !="BUTTON") {
-        target = target.parentNode;
-    }
+    target = getButtonParent(target);
     $(target).toggleClass("active")
     var svg =dapGetGraphParent(target).find("."+DAP_SVG_UP)[0];
     svg.filterSignificant = $(target).hasClass("active");
@@ -325,6 +325,16 @@ var dapAddEventToSmoothie = function (svg,eventName){
                 return true;
             }
         }.bind(svg,smoothie.events[eventName]);
+        smoothie.events[eventName].present = function (event) {
+            //var parent =
+            var eventRow = this.find("."+DAP_EVENT_CLASS_SUMMARY+"["+DAP_EVENT_ATTRIBUTE+'="'+event.id+'"]')
+            if (eventRow.length == 0){
+                return undefined;
+            } else {
+                return eventRow.find("."+DAP_CELL_2).text();
+            }
+
+        }.bind(dapGetGraphParent(svg),smoothie.events[eventName])
         smoothie.events[eventName].model = undefined;
     }
     return smoothie.events[eventName];
@@ -751,13 +761,24 @@ var dapMarkText = function (svg, systemEvent) {
     var elements = $(document.getElementsByClassName(eventClass))
 
     if (event.isSumaryHover || event.isSumaryClicked) {
+        if(event.model != undefined) {
+            event.model.highlighted = true;
+            dapJoinPointsModel(svg,event.model)
+        }
+
+
         // add class and remove class does not work with svg elements, this sentence is equivalment
         alternativeAddClass(elements,DAP_TEXT_HIGHLIGHT);
         dapHighlightSvg(elements,true);
+
     } else  {
 
         switch (systemEventOrigin) {
             case SYSTEM_EVENT_ORIGIN_SUMMARY :
+                if (event.model != undefined) {
+                    event.model.highlighted = false;
+                    dapJoinPointSvg(svg);
+                }
                 alternativeRemoveClass(elements, DAP_TEXT_HIGHLIGHT);
                 dapHighlightSvg(elements, false);
                 if (event.occurrences != undefined) {
@@ -810,7 +831,7 @@ var drawOnSvgBase = function (svg){
             .attr('x2', jQSvg.width() * svg.smoothie.zero)
             .attr('y1', 0)
             .attr('y2', jQSvg.height())
-            .attr('stroke-width', DAP_SVG_FOOTER_STROKE_VERTICAL_LINE_BOLD)
+            .attr('stroke-width', DAP_SVG_STROKE_LINE_BOLD)
             .attr('stroke', '#ff5555')
             .attr('shape-rendering', "crispEdges")
             .attr('class',DAP_BASE_LINE)
@@ -827,7 +848,7 @@ var drawOnSvgBase = function (svg){
             .attr('x2', position )
             .attr('y1', 0)
             .attr('y2', jQSvg.height())
-            .attr('stroke-width', DAP_SVG_FOOTER_STROKE_VERTICAL_LINE)
+            .attr('stroke-width', DAP_SVG_STROKE_LINE_NORMAL)
             .attr('stroke', DAP_SVG_LINES_COLOR)
             .attr('shape-rendering', "crispEdges")
             .attr('class',DAP_BASE_LINE)
@@ -843,7 +864,7 @@ var drawOnSvgBase = function (svg){
             .attr('x2', position )
             .attr('y1', 0)
             .attr('y2', jQSvg.height())
-            .attr('stroke-width', DAP_SVG_FOOTER_STROKE_VERTICAL_LINE)
+            .attr('stroke-width', DAP_SVG_STROKE_LINE_NORMAL)
             .attr('stroke', DAP_SVG_LINES_COLOR)
             .attr('shape-rendering', "crispEdges")
             .attr('class',DAP_BASE_LINE)
@@ -856,7 +877,7 @@ var drawOnSvgBase = function (svg){
     position = jQSvg.height();
     while ((position -= separation) > 0) {
         svg.layer1.append('line').attr('x1', 0 ).attr('x2', jQSvg.width() ).attr('y1', position).attr('y2', position)
-            .attr('stroke-width', DAP_SVG_FOOTER_STROKE_VERTICAL_LINE).attr('stroke', DAP_SVG_LINES_COLOR)
+            .attr('stroke-width', DAP_SVG_STROKE_LINE_NORMAL).attr('stroke', DAP_SVG_LINES_COLOR)
             .attr('shape-rendering', "crispEdges").attr('class',DAP_BASE_LINE)
 
     }
@@ -908,7 +929,7 @@ var drawFooter = function (svg,width,timePerPixel,lineSeparation,zero){
     var v_y = DAP_SVG_FOOTER_SUB_LINE_HEIGHT
     var d3Svg = d3.selectAll(svg.toArray())
     d3Svg.append('line').attr('x1',v_x1).attr('x2',v_x2).attr('y1',v_y).attr('y2',v_y)
-        .attr('stroke-width', DAP_SVG_FOOTER_STROKE_VERTICAL_LINE)
+        .attr('stroke-width', DAP_SVG_STROKE_LINE_NORMAL)
         .attr('stroke', 'black').attr('shape-rendering',"crispEdges")
     //
 
@@ -918,7 +939,7 @@ var drawFooter = function (svg,width,timePerPixel,lineSeparation,zero){
     var h_y2 = DAP_SVG_FOOTER_SUB_LINE_HEIGHT;
     var h_x = zeroPos;
     d3Svg.append('line').attr('x1',h_x).attr('x2',h_x).attr('y1',h_y1).attr('y2',h_y2)
-        .attr('stroke-width', DAP_SVG_FOOTER_STROKE_VERTICAL_LINE)
+        .attr('stroke-width', DAP_SVG_STROKE_LINE_NORMAL)
         .attr('stroke', 'black').attr('shape-rendering',"crispEdges")
     d3Svg.append('text').attr('x',h_x).attr('fill','black')
         .attr('font-family',DAP_SVG_FOOTER_FONT_FAMILY)
@@ -930,7 +951,7 @@ var drawFooter = function (svg,width,timePerPixel,lineSeparation,zero){
     for (var i = zeroPos-widthStep,j=1;i >= 0; i-=widthStep,j++  ){
         h_x = i;
         d3Svg.append('line').attr('x1',h_x).attr('x2',h_x).attr('y1',h_y1).attr('y2',h_y2)
-            .attr('stroke-width', DAP_SVG_FOOTER_STROKE_VERTICAL_LINE).attr('stroke', 'black')
+            .attr('stroke-width', DAP_SVG_STROKE_LINE_NORMAL).attr('stroke', 'black')
             .attr('shape-rendering',"crispEdges")
         d3Svg.append('text').attr('fill','black').attr('x',i).attr('text-anchor',"middle")
             .text("-"+footerTextCalculator(j,lineSeparation))
@@ -943,7 +964,7 @@ var drawFooter = function (svg,width,timePerPixel,lineSeparation,zero){
         h_x = i;
 
         d3Svg.append('line').attr('x1',h_x).attr('x2',h_x).attr('y1',h_y1).attr('y2',h_y2)
-            .attr('stroke-width', DAP_SVG_FOOTER_STROKE_VERTICAL_LINE)
+            .attr('stroke-width', DAP_SVG_STROKE_LINE_NORMAL)
             .attr('stroke', 'black').attr('shape-rendering',"crispEdges")
         d3Svg.append('text').attr('fill','black')
             .attr('font-family',DAP_SVG_FOOTER_FONT_FAMILY)
@@ -1412,11 +1433,13 @@ var dapProcessHeaders = function (ws) {
                 event.model.predictionWindow = header[DAP_WS_AFTER];
                 event.model.observationWindow =header[DAP_WS_BEFORE];
                 event.model.algorithm = header[DAP_WS_ALGORITHM];
-                event.model.signifcantEvents = [];
+                event.model.significantEvents = [];
+                event.model.event = event;
                 header[DAP_WS_EVENTS].forEach(function (significantEvent){
                     var theEvent = dapAddEventToSmoothie(ws.svg,significantEvent.event)
-                    event.model.signifcantEvents.push(theEvent)
+                    event.model.significantEvents.push(theEvent)
                 })
+                ws.svg.models.push(event.model)
                 //dap_print("hola");
                 break;
             case DAP_WS_ALIAS :
@@ -1500,9 +1523,9 @@ var _dapDrawEventsInGraph = function (force ) {
             if (force) {
                 jQSvg.find("." + DAP_OCCURRENCE_CLASS).remove();
             }
+
             svg.smoothie.eventsHappend = [];
             svg.predictionResults = [];
-            var eventsToPaint = []
             _dapCleanBeforePaint(svg)
             if (svg.wss != undefined) {
                 $.each(svg.wss, function () {
@@ -1557,7 +1580,9 @@ var _dapDrawEventsInGraph = function (force ) {
                                 break;
                             case DAP_WS_RESULT:
                                 dapAddResult(svg,this.eventsInBuffer[i]);
+                                break;
                             default:
+                                break;
                         }
 
                     }
@@ -1570,6 +1595,7 @@ var _dapDrawEventsInGraph = function (force ) {
             dapPaintAlertsInChart(svg);
             dapPaintResults(svg);
             dapPaintEventsInADiv($(svg));
+            dapJoinPointSvg(svg)
         }
     })
 
@@ -1702,7 +1728,7 @@ var dapReduceAlerts = function (array,svg) {
     if (svg.filterSignificant) {
         if (array.length > 0 && firstEvent.event.model && firstEvent.event.filter()) {
             //firstEvent.event.isSignificant = true;
-            firstEvent.event.model.signifcantEvents.forEach(function (event) {
+            firstEvent.event.model.significantEvents.forEach(function (event) {
                 event.isSignificant = true;
             })
         }
@@ -1779,6 +1805,7 @@ var dapPaintAlertsInChart = function (svg) {
 var dapPaintAlert = function (svg,event, alertRage){
     //
     if(event.filter()) {
+        var eventClass = DAP_EVENT_TYPE_CLASS + getIndexOfSvg(svg) + "-" + event.id;
         var x = dapGetXPixel(svg,alertRage.after)
         var width =  dapGetXPixel(svg,alertRage.before) - x
         var y = event.position * $(svg).height() - DAP_ALERT_LINE_WIDTH / 2;
@@ -1786,8 +1813,9 @@ var dapPaintAlert = function (svg,event, alertRage){
         svg.layer2.append('rect').attr('x', x).attr('y', y).attr('rx', 2).attr('ry', 2)
             .attr('width', width).attr('height', DAP_ALERT_LINE_WIDTH).attr('fill',event.color)
             .attr('fill-opacity',DAP_ALERT_LINE_TRANSPARENCY).attr('stroke', event.color)
-            .attr('stroke-width', DAP_ALERT_LINE_BORDER).attr('class', DAP_EVENT_CLASS_ALERT);
-        //.attr('stroke-width', (highlighted) ? DAP_SVG_FOOTER_STROKE_VERTICAL_LINE : DAP_SVG_FOOTER_STROKE_VERTICAL_LINE_HIDDEN)
+            .attr('stroke-width',(highlighted)?DAP_SVG_STROKE_LINE_BOLD:DAP_SVG_STROKE_LINE_NORMAL)
+            .attr('class', DAP_EVENT_CLASS_ALERT + ' '+ eventClass);
+        //.attr('stroke-width', (highlighted) ? DAP_SVG_STROKE_LINE_NORMAL : DAP_SVG_FOOTER_STROKE_VERTICAL_LINE_HIDDEN)
     }
 }
 
@@ -1809,6 +1837,7 @@ var _checkOrder = function (array,order,attribute) {
 }
 
 var _dapCleanBeforePaint = function (svg) {
+    $(svg.layer2[0]).find('.'+DAP_JOIN_POINTS).remove();
     svg.smoothie.eventsHappend = [];
     $.each(svg.smoothie.events,function() {
         this.occurrences = [];
@@ -1875,8 +1904,7 @@ var dapAddEvent = function (svg,event) {
 
 }
 
-var dapPaintEvents = function (svg) {
-    svg.smoothie.eventsHappend.forEach(function (element) {
+var dapPaintEvents = function (svg) {svg.smoothie.eventsHappend.forEach(function (element) {
         element.eventObject.occurrences.push(element);
         dapPaintEvent(svg,element);
     })
@@ -1884,9 +1912,9 @@ var dapPaintEvents = function (svg) {
 
 var dapPaintEvent = function(svg,event) {
     var smoothieEvent = event.eventObject;
+    var eventClass = DAP_EVENT_TYPE_CLASS + getIndexOfSvg(svg) + "-" + event.eventObject.id;
     if (smoothieEvent.filter()) {
         var stringOccurrenceClass = DAP_EVENT_CLASS_OCCURRENCE_PREFIX + getIndexOfSvg(svg) + "-" + event.eventObject.id + "-" + event.time
-        var eventClass = DAP_EVENT_TYPE_CLASS + getIndexOfSvg(svg) + "-" + event.eventObject.id;
 
         var x = dapGetXPixel(svg,event.time);
 
@@ -1922,14 +1950,18 @@ var dapPaintEvent = function(svg,event) {
         }
         if (event.line == undefined) {
             var line = svg.layer1.append('line').attr('x1', x).attr('x2', x).attr('y1', 0).attr('y2', $(svg).height())
-                .attr('stroke-width', (highlighted) ? DAP_SVG_FOOTER_STROKE_VERTICAL_LINE : DAP_SVG_FOOTER_STROKE_VERTICAL_LINE_HIDDEN)
+                .attr('stroke-width', (highlighted) ? DAP_SVG_STROKE_LINE_NORMAL : DAP_SVG_FOOTER_STROKE_VERTICAL_LINE_HIDDEN)
                 .attr('stroke', smoothieEvent.color).attr('class', stringOccurrenceClass + " " + eventClass + " " + DAP_OCCURRENCE_CLASS);
             event.line = line[0][0];
         } else {
             event.line.setAttribute('x1',x)
             event.line.setAttribute('x2',x)
         }
-
+    } else {
+        if (event.circle != undefined) {
+            event.circle.remove();
+            event.circle = undefined;
+        }
     }
 }
 
@@ -2016,10 +2048,17 @@ var dapFillAndShowTooltip = function (content,type) {
 }
 
 var dapHighlightSvg = function (jElements, highlight) {
+
     if (highlight) {
+        /*Join lines*/
+        jElements.filter('line.'+DAP_JOIN_POINTS).attr('stroke-width', DAP_SVG_STROKE_LINE_BOLD);
+
+        /*Alerts*/
+        jElements.filter('rect.'+DAP_EVENT_CLASS_ALERT).attr('stroke-width', DAP_SVG_STROKE_LINE_BOLD);
+
         /*Ocurrences*/
         jElements.filter('circle.'+DAP_OCCURRENCE_CLASS).attr('r',DAP_EVENT_CIRCLE_RADIUS_HIGHLIGHT);
-        jElements.filter('line.'+DAP_OCCURRENCE_CLASS).attr('stroke-width', DAP_SVG_FOOTER_STROKE_VERTICAL_LINE);
+        jElements.filter('line.'+DAP_OCCURRENCE_CLASS).attr('stroke-width', DAP_SVG_STROKE_LINE_NORMAL);
         /*Results*/
         jElements.filter('circle.'+DAP_RESULT_HIT_CLASS).attr('stroke',DAP_HIT_COLOR)
             .css("stroke-width", DAP_RESULT_HIGHLIGHT_STROKE_WIDTH)
@@ -2029,6 +2068,12 @@ var dapHighlightSvg = function (jElements, highlight) {
             .css("stroke-width", DAP_RESULT_HIGHLIGHT_STROKE_WIDTH*2)
 
     } else {
+        /*Join lines*/
+        jElements.filter('line.'+DAP_JOIN_POINTS).attr('stroke-width', DAP_SVG_STROKE_LINE_NORMAL);
+
+        /*Alerts*/
+        jElements.filter('rect.'+DAP_EVENT_CLASS_ALERT).attr('stroke-width', DAP_SVG_STROKE_LINE_NORMAL);
+
         /*Ocurrences*/
         jElements.filter('circle.'+DAP_OCCURRENCE_CLASS).attr('r',DAP_EVENT_CIRCLE_RADIUS);
         jElements.filter('line.'+DAP_OCCURRENCE_CLASS).attr('stroke-width', DAP_SVG_FOOTER_STROKE_VERTICAL_LINE_HIDDEN);
@@ -2162,4 +2207,77 @@ var dapButtonMinus = function(event) {
         textDiv.text("x" + svg.playingFactor);
     }
 
+}
+var dapJoinPointSvg = function (svg) {
+    $(svg).find("."+DAP_JOIN_POINTS).remove();
+    svg.models.forEach(function (model){
+        if (svg.joinLines || model.highlighted) {
+            dapJoinPointsModel(svg,model)
+        } else {
+
+        }
+    })
+
+}
+
+
+var dapJoinPointsButton = function (target) {
+    var button = getButtonParent(target);
+    var parent = dapGetGraphParent(target);
+    var svg = parent.find("."+DAP_SVG_UP)[0]
+    var active = !$(button).hasClass("active");
+    svg.joinLines = active;
+    //$("."+DAP_JOIN_POINTS).remove();
+    if (active) {
+        $(button).addClass("active");
+    } else {
+        $(button).removeClass("active");
+        //$(svg).find("."+DAP_JOIN_POINTS).remove();
+    }
+    dapJoinPointSvg(svg);
+
+}
+
+var dapJoinPointsModel= function (svg,model) {
+    var linePoints = [];
+    if (model.event.filter() && model.event.present() != undefined) {
+        var modelEventClass = DAP_EVENT_TYPE_CLASS + getIndexOfSvg(svg) + "-" + model.event.id;
+        model.significantEvents.forEach(function (event){
+            var eventName = event.id;
+            var eventClass = DAP_EVENT_TYPE_CLASS + getIndexOfSvg(svg) + "-" + eventName;
+            var elements = document.getElementsByClassName(eventClass);
+            elements = $(elements).filter('circle.'+DAP_OCCURRENCE_CLASS)
+            $.each(elements,function (){
+                linePoints.push(this);
+            })
+            linePoints.sort(function (p1,p2){
+                return p1.getAttribute('cx') -p2.getAttribute('cx');
+            })
+        })
+        var highlighted = model.event.isSumaryClicked || model.event.isSumaryHover;
+        for (var i = 0,j=1; j < linePoints.length;i++,j++) {
+            var x1 = linePoints[i].getAttribute('cx')
+            var x2 = linePoints[j].getAttribute('cx')
+            var y1 = linePoints[i].getAttribute('cy')
+            var y2 = linePoints[j].getAttribute('cy')
+
+            svg.layer2.append('line')
+                .attr('x1', x1)
+                .attr('x2', x2)
+                .attr('y1', y1)
+                .attr('y2', y2)
+                .attr('stroke-width',(highlighted)?DAP_SVG_STROKE_LINE_BOLD:DAP_SVG_STROKE_LINE_NORMAL )
+                .attr('stroke', model.event.color)
+                .attr(DAP_EVENT_ATTRIBUTE, model.event.id)
+                //.attr('shape-rendering', "crispEdges")
+                .attr('class',DAP_JOIN_POINTS + " "+ modelEventClass)
+        }
+    }
+}
+
+var getButtonParent = function (target){
+    while (target != null && target != undefined && target.tagName !="BUTTON") {
+        target = target.parentNode;
+    }
+    return target;
 }
