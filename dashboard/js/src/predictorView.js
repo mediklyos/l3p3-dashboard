@@ -523,7 +523,7 @@ var pvPaintFooter = function (){
     var jQCanvas = getActiveGraph();
     var canvas = jQCanvas[0]
 
-    if (canvas.smoothie == undefined || canvas.smoothie.isStoped){
+    if (canvas == undefined || canvas.smoothie.isStoped){
         return;
     }
     paintFooterPredictions(jQCanvas)
