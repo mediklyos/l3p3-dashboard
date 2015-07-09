@@ -404,7 +404,7 @@ var atCreateWS = function (url,origin) {
         at_print(e);
     }
     ws.onmessage = function (e){
-        at_print(e);
+        //at_print(e);
         var message;
         try {
             message = eval('('+ e.data+')');

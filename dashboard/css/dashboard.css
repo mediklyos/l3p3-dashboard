@@ -566,7 +566,7 @@ body {
 }
 
 .pv-events-count {
-    width: 100%;
+    width: 95%;
 }
 
 .pv-events-count span {
@@ -627,11 +627,11 @@ div.pv-table-graph-footer>.pv-prediction-table {
 
 }
 .pv-canvas-graph {
-    width: calc(100% - 310px);
+    width: calc(100% - 340px);
     display: inline-block;
 }
 .pv-events-count-parent {
-    width: 250px;
+    width: 280px;
     display: inline-block;
 }
 div.pv-table-graph-footer>.pv-prediction-table th {
@@ -689,7 +689,7 @@ div.pv-table-graph-footer>.pv-prediction-table thead tr:not(:first-child) th{
     width: 100%;
 }
 .pv-events-count .pv-td-1 {
-    width: 70%;
+    width: 69%;
     text-align: left;
 }
 .pv-events-count .pv-td-2{

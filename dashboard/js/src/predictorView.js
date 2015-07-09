@@ -60,6 +60,11 @@ var PV_Z_INDEX_LVL_1 = 20;
 var PV_Z_INDEX_LVL_2 = 30;
 var PV_Z_INDEX_LVL_3 = 40;
 
+var PV_COLOR_TEXT_NORMAL = 1
+var PV_COLOR_TEXT_LEGIBLE_BLANK = 2
+var PV_COLOR_TEXT_LEGIBLE_SELF = 3
+var PV_COLOR_TEXT_BACKGROUND_SELF = 4
+
 var PV_EVENT_CLASS_OCCURRENCE_PREFIX = PRE + "-event-class-occurrence-"
 var PV_EVENT_CLASS_PREDICTION = PRE + "-prediction-class"
 var PV_EVENT_CLASS_PREDICTION_RESULT = PRE + "-prediction-class-prefix-result-"
@@ -75,15 +80,15 @@ var PV_SVG_FOOTER_LINE_FONT_SIZE = 10;
 var PV_SVG_FOOTER_LINE_HEIGHT = 10 + PV_SVG_FOOTER_LINE_FONT_SIZE;
 var PV_SVG_FOOTER_LINE_SEPARATION = 60000 // in milliseconds
 var PV_SVG_FOOTER_SUB_LINE_HEIGHT = 3
-var PV_SVG_FOOTER_STROKE_VERTICAL_LINE = 1
+var PV_SVG_FOOTER_STROKE_VERTICAL_LINE = 2
 var PV_SVG_FOOTER_STROKE_VERTICAL_LINE_BOLD = 3
 var PV_SVG_FOOTER_FONT_FAMILY = "monospace"
 var PV_SVG_FOOTER_MARKS = 6;
 var PV_HEIGHT_STEP = 10;
 var PV_EVENT_CIRCLE_RADIUS = 2;
 var PV_EVENT_CIRCLE_RADIUS_HOVER = 4;
-var PV_EVENT_LINE_WIDTH = 1;
-var PV_EVENT_LINE_WIDTH_HOVER = 2;
+var PV_EVENT_LINE_WIDTH = 2;
+var PV_EVENT_LINE_WIDTH_HOVER = 4;
 var PV_ZERO_POS = 0.75
 //var PV_TIMEOUT = -( PV_CHARTS_DEFAULT_TIME * PV_ZERO_POS)
 var PV_TIMEOUT = 200
@@ -278,7 +283,22 @@ var pvAddEventToSmoothie = function (canvas,eventName){
             smoothie.actualColor = 0;
         }
         smoothie.events[eventName] = {}
-        smoothie.events[eventName].color = web_colors[color];
+        smoothie.events[eventName]._color = web_colors[color];
+        smoothie.events[eventName].color = function (type) {
+            switch (type) {
+                case PV_COLOR_TEXT_LEGIBLE_BLANK:
+                    return d3plus.color.legible(web_colors[color])
+                    break;
+                case PV_COLOR_TEXT_LEGIBLE_SELF:
+                    return d3plus.color.text(web_colors[color]);
+                    break;
+                case PV_COLOR_TEXT_BACKGROUND_SELF:
+                    return web_colors[color];
+                    break;
+                default:
+                    return web_colors[color];
+            }
+        }
         smoothie.events[eventName].id = eventName
         smoothie.events[eventName].timeSeries = new TimeSeries();
         smoothie.events[eventName].occurrences = [];
@@ -387,11 +407,11 @@ var drawOnCanvasEvents = function (jQCanvas) {
             else if (this.result === PV_WS_RESULT_HIT){
                 content.append($('<div/>').addClass(PV_WS_RESULT_HIT_CLASS))
             }
-            content.css('background', chroma(this.event.color).darken().alpha(0.2).css())
+            content.css('background', chroma(this.event.color()).darken().alpha(0.2).css())
             if (this.isHover || this.isClicked || this.event.isSumaryClicked || this.event.isSumaryHover) {
-                content.css('border', '2px solid ' + this.event.color)
+                content.css('border', '2px solid ' + this.event.color())
             } else {
-                content.css('border', '1px solid ' + this.event.color)
+                content.css('border', '1px solid ' + this.event.color())
             }
 //        if (this.isHover || this.isClicked){
 //            content.css('z-index',-PV_Z_INDEX_LVL_3);
@@ -429,9 +449,9 @@ var drawOnCanvasEvents = function (jQCanvas) {
                 var content = $('<div/>', {
                     class: PV_TOOLTIP_EVENTS_OCCURRED_INTERNAL
                 }).append('<div style="white-space: nowrap">Event ID: '+this.event.id+'</div><div style="white-space: nowrap">Time: '+printDate(this.time)+'</div>');
-                content.css('border-color',this.event.color)
-                content.css('color',this.event.color)
-                content.css('background',chroma(this.event.color).darken().alpha(0.2).css())
+                content.css('border-color',this.event.color())
+                content.css('color',this.event.color())
+                content.css('background',chroma(this.event.color()).darken().alpha(0.2).css())
                 var tooltip = createTooltip(d3Svg,content ,PV_TOOLTIP_EVENTS_OCCURRED,MY_ALIGNMENT_TOP_LEFT,cx,0)
 
                 // TODO el problma es en el repintado, si esta parado se quita
@@ -450,7 +470,7 @@ var drawOnCanvasEvents = function (jQCanvas) {
                 .attr('y1',0)
                 .attr('y2',cy)
                 .attr('stroke-width', lineWidth)
-                .attr('stroke', this.event.color)
+                .attr('stroke', this.event.color(PV_COLOR_TEXT_LEGIBLE_BLANK))
                 .attr('shape-rendering',"crispEdges")
 //                .attr("class", PV_SVG_EVENTS_IN_UP_CANVAS + " " + PV_EVENT_CLASS_OCCURRENCE_PREFIX+this.event.id+"-"+this.time)
 //                .attr("class", PV_SVG_EVENTS_IN_UP_CANVAS + " " + PV_EVENT_TYPE_CLASS+"-"+canvasIndex+"-"+this.event.id+"-"+this.time)
@@ -461,15 +481,15 @@ var drawOnCanvasEvents = function (jQCanvas) {
                 .attr('cy', cy)
                 .attr('r', radius)
                 .attr("class", PV_SVG_EVENTS_IN_UP_CANVAS)
-                .style("fill", this.event.color)
+                .style("fill", this.event.color(PV_COLOR_TEXT_LEGIBLE_BLANK))
             circle.append('title')
                 .text(this.event.id)
-                .style("fill", this.event.color);
+                .style("fill", this.event.color(PV_COLOR_TEXT_LEGIBLE_BLANK));
 
             if (canvas.smoothie.paintName) {
                 var text = d3Svg.append('text')
                     .attr("class", PV_SVG_EVENTS_IN_UP_CANVAS)
-                    .attr('fill', this.event.color)
+                    .attr('fill', this.event.color(PV_COLOR_TEXT_LEGIBLE_BLANK))
                     .attr('font-family', PV_SVG_FOOTER_FONT_FAMILY)
                     .attr('font-size', (PV_SVG_FOOTER_LINE_FONT_SIZE+5) + "px")
                     .attr('text-anchor', "end")
@@ -503,16 +523,36 @@ var pvPaintFooter = function (){
     var jQCanvas = getActiveGraph();
     var canvas = jQCanvas[0]
 
-    if (canvas.smoothie.isStoped){
+    if (canvas.smoothie == undefined || canvas.smoothie.isStoped){
         return;
     }
     paintFooterPredictions(jQCanvas)
     paintFooterEvents(jQCanvas)
     paintFooterPredictionResult(jQCanvas)
     paintFooterAlerts(jQCanvas);
-
-
 }
+
+
+var pvClearClicks = function (target) {
+    var parent = getCharDiv(target)
+    var canvas = parent.find("canvas")[0]
+    $.each(canvas.smoothie.events,function(value){
+        if (this.isSumaryClicked) {
+            this.isSumaryClicked = false;
+
+        }
+        if (this.occurrences != undefined) {
+            this.occurrences.forEach(function (value) {
+                value.isClicked = false;
+            })
+        }
+        pvMarkText(canvas,{type:SYSTEM_EVENT_ORIGIN_SUMMARY,event:this});
+
+    })
+    //dapHideTooltip();
+}
+
+
 
 var paintFooterAlerts = function (jQCanvas){
     var canvas = jQCanvas[0]
@@ -525,7 +565,7 @@ var paintFooterAlerts = function (jQCanvas){
         var event = pvAddEventToSmoothie(canvas,key);
         var className = PV_EVENT_TYPE_CLASS+canvasIndex+"-"+key
         var newLine = genericLine.clone().removeClass(DASHBOARD_TEMPLATES).addClass(className).addClass(PV_EVENT_CLASS_ALERT)
-        newLine.css('color',event.color)
+        newLine.css('color',event.color(PV_COLOR_TEXT_LEGIBLE_BLANK))
         newLine.find("."+PV_CELL_1).text(key);
         newLine.find("."+PV_CELL_2).text(this.type);
         newLine.mouseenter(function (canvas){
@@ -565,8 +605,8 @@ var paintFooterPredictions = function (jQCanvas) {
         var line = genericLine.clone().removeAttr('class')
 
         var className = PV_EVENT_TYPE_CLASS+canvasIndex+"-"+this.id
-        var spanEvent =$('<span>'+this.id+'</span>').css('color',this.color)
-        var spanPrediction =$('<span>'+this.timeSeries.data[this.timeSeries.data.length-1][1]+'</span>').css('color',this.color)
+        var spanEvent =$('<span>'+this.id+'</span>').css('color',this.color(PV_COLOR_TEXT_LEGIBLE_BLANK))
+        var spanPrediction =$('<span>'+this.timeSeries.data[this.timeSeries.data.length-1][1]+'</span>').css('color',this.color(PV_COLOR_TEXT_LEGIBLE_BLANK))
         line.find('.'+PV_CELL_1).removeAttr('class').addClass(className).addClass(PV_EVENT_CLASS_PREDICTION).append(spanEvent);
         line.find('.'+PV_CELL_2).removeAttr('class').addClass(className).addClass(PV_EVENT_CLASS_PREDICTION).append(spanPrediction);
         tbody.append(line)
@@ -656,7 +696,7 @@ var paintEventsInADiv = function (jQCanvas) {
         newLine.find("."+PV_CELL_2).text(events[this].count)
         if (canvas.alerts[this] !== undefined){
             if (canvas.alerts[this].type === PV_WS_ALERT_ON){
-                newLine.find("."+PV_CELL_3).append($('<div class="pv-alert-box"/>').css('color',event.color).css('background',event.color))
+                newLine.find("."+PV_CELL_3).append($('<div class="pv-alert-box"/>').css('color',event.color()).css('background',event.color()))
                 alertedLines.push(newLine)
             } else {
                 normalLines.push(newLine)
@@ -681,7 +721,7 @@ var paintEventsInADiv = function (jQCanvas) {
             this.isSumaryClicked = !this.isSumaryClicked;
             pvMarkText(canvas, {type:SYSTEM_EVENT_ORIGIN_SUMMARY,event:this});
         }.bind(event,canvas))
-        newLine.css('color',event.color)
+        newLine.css('color',event.color(PV_COLOR_TEXT_LEGIBLE_BLANK))
 //        container.append(newLine)
     })
 
@@ -711,8 +751,8 @@ var paintFooterPredictionResult = function (jQCanvas){
         var className = PV_EVENT_TYPE_CLASS+canvasIndex+"-"+event.id
         var newLine = genericLine.clone().removeClass(DASHBOARD_TEMPLATES);
         newLine.addClass(className).addClass(PV_EVENT_CLASS_PREDICTION_RESULT+canvasIndex+"-"+event.id+"-"+this.time)
-        newLine.find("."+PV_CELL_1).text(this.event.id).css('color',event.color)
-        newLine.find("."+PV_CELL_2).text(printDate(this.time)).css('color',event.color)
+        newLine.find("."+PV_CELL_1).text(this.event.id).css('color',event.color(PV_COLOR_TEXT_LEGIBLE_BLANK))
+        newLine.find("."+PV_CELL_2).text(printDate(this.time)).css('color',event.color(PV_COLOR_TEXT_LEGIBLE_BLANK))
         var img;
         if (this.result === PV_WS_RESULT_MISS_FALSE_POSITIVE){
             img = $('<div/>').addClass(PV_WS_RESULT_MISS_FALSE_POSITIVE_CLASS)//.addClass(PV_EVENT_TYPE_CLASS+this.event)
@@ -849,8 +889,8 @@ var paintFooterEvents = function (jQCanvas){
         var line = genericLine.clone().removeAttr('class')
         var className1 = PV_EVENT_CLASS_OCCURRENCE_PREFIX + canvasIndex + "-" + eventOccurrence.event.id + "-" + eventOccurrence.time
         var className2 = PV_EVENT_TYPE_CLASS +canvasIndex+"-"+ eventOccurrence.event.id;
-        var spanEvent = $('<span>' + eventOccurrence.event.id + '</span>').css('color', eventOccurrence.event.color)
-        var spanTime = $('<span>' + printDate(eventOccurrence.time) + '</span>').css('color', eventOccurrence.event.color)
+        var spanEvent = $('<span>' + eventOccurrence.event.id + '</span>').css('color', eventOccurrence.event.color(PV_COLOR_TEXT_LEGIBLE_BLANK))
+        var spanTime = $('<span>' + printDate(eventOccurrence.time) + '</span>').css('color', eventOccurrence.event.color(PV_COLOR_TEXT_LEGIBLE_BLANK))
         line.find('.' + PV_CELL_1).removeAttr('class').addClass(className1).addClass(className2).append(spanEvent);
         line.find('.' + PV_CELL_2).removeAttr('class').addClass(className1).addClass(className2).append(spanTime);
         tbody.append(line);
