@@ -787,8 +787,8 @@ var atCountdown = function (time ){
     var atDebugRoutines = function (){
         console.log("Debug Routine");
         var origins = []
-        origins[0] = ["origin1","ws://192.168.122.131:2346/summary/"]
-        origins[1] = ["origin2","ws://localhost:2346/summary/"]
+        origins[0] = ["origin2","ws://localhost:2346/summary/"]
+        origins[1] = ["origin1","ws://192.168.122.131:2346/summary/"]
         for (var i = 0; i < origins.length;i++){
             atAddConnection(origins[i][0],origins[i][1]);
 
@@ -838,6 +838,9 @@ var atCountdown = function (time ){
     var atClearFunction = function (){
         at_print("Clear function");
         finish = true;
+        $.each(wss,function () {
+            this.ws.close();
+        })
         //TODO eliminar los ws
 
         $(window).unbind('resize',atResizeFunction)

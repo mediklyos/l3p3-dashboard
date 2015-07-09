@@ -45,5 +45,5 @@ var demoViews = []
 demoViews[0] = [];
 demoViews[0][0] = {id: "d3plusDemo",constantsPrefix: "d3p",ref: "js/templates/template_d3p.ejs",title : "Demo D3 plus", js: "js/src/d3plusDemo.js"}
 if (GLOBAL_DEBUG){
-    var debugView = views[0][7];
+    var debugView = views[0][5];
 }
