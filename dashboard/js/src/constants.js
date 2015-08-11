@@ -90,8 +90,8 @@ ORIGINAL_COLORS [2] = 'black';
 ORIGINAL_COLORS = []
 var i = 0;
 
-ORIGINAL_COLORS.push('lightgreen')
 ORIGINAL_COLORS.push('orange')
+ORIGINAL_COLORS.push('lightgreen')
 ORIGINAL_COLORS.push('navy')
 
 ORIGINAL_COLORS.push('aquamarine')
@@ -120,7 +120,8 @@ ORIGINAL_COLORS.push('limegreen')
 
 
 ORIGINAL_COLORS.push('mediumblue')
-ORIGINAL_COLORS.push('tomato')
+ORIGINAL_COLORS.push('#5F9EA0') // cadet blue
+//ORIGINAL_COLORS.push('tomato')
 ORIGINAL_COLORS.push('lawngreen')
 
 

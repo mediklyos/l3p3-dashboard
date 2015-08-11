@@ -944,7 +944,7 @@ var atPaintModel = function (alertEvent){
     body.empty();
     templateRow.appendTo(body);
     lastAlertSelected= alertEvent;
-    if (alertEvent) {
+    if (alertEvent && $("#"+AT_ALIAS_ACTIVATED)[0] != undefined) {
         if ($("#"+AT_ALIAS_ACTIVATED)[0].checked && atAliasTable[alertEvent.name] != undefined){
             $("#"+AT_ALERT_SELECTED_NAME).text(atAliasTable[alertEvent.name].alias)
         } else {

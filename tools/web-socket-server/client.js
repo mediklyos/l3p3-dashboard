@@ -25,6 +25,9 @@ var COMMAND_DISCONNECT = "d";
 var COMMAND_LIST = "l";
 var COMMAND_ECHO = "e";
 
+var helpMessage = "List of parameters: \n" +
+    " - /c <ws_addr>, connect to a web socket, The addr format can contain the ws:// prefix or not"
+
 /*Requires*/
 var readline = require('readline');
 var WebSocket = require('ws')

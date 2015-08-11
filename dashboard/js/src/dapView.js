@@ -1126,7 +1126,7 @@ var _dapLoadSource = function (url) {
 }
 
 var dapRegisterMessage = function (message,ws) {
-    dap_print(message)
+    //dap_print(message)
     switch (message.command) {
     }
 }
@@ -1405,6 +1405,10 @@ var dapPreprocessEvents = function (events) {
                             break
                         } else {
                             events[i].data[j].time = result.timeline[result.timeline.length - 1].time;
+                            // XXX temporal hasta que el predictor lo haga correctamente
+                            if (events[i].data[j][DAP_WS_RESULT] == DAP_WS_RESULT_MISS_FALSE_POSITIVE) {
+                                events[i].data[j].time += 300000;
+                            }
                         }
                     }
                 case DAP_WS_EVENT :
@@ -1813,6 +1817,7 @@ var dapPaintAlert = function (svg,event, alertRage){
     if(event.filter()) {
         var eventClass = DAP_EVENT_TYPE_CLASS + getIndexOfSvg(svg) + "-" + event.id;
         var x = dapGetXPixel(svg,alertRage.after)
+        // XXX Temporal, hasta que se estabplezca en el predictor
         /*Se establece aqui, posteriormente se quitara de aqui porque ira en el predictor*/
         var width =  dapGetXPixel(svg,alertRage.before + event.model.predictionWindow) - x
         var y = event.position * $(svg).height() - DAP_ALERT_LINE_WIDTH / 2;
