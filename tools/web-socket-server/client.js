@@ -24,6 +24,7 @@ var COMMAND_BROADCAST = "b";
 var COMMAND_DISCONNECT = "d";
 var COMMAND_LIST = "l";
 var COMMAND_ECHO = "e";
+var COMMAND_HELP = "help";
 
 var helpMessage = "List of parameters: \n" +
     " - /c <ws_addr>, connect to a web socket, The addr format can contain the ws:// prefix or not"
@@ -131,6 +132,9 @@ var executeCommand = function (input){
     if ((input.charAt(0) == "/") && (input.charAt(1)) != "/") {
         var command = input.slice(1).split(" ");
         switch (command[0]) {
+			case COMMAND_HELP : 
+				print(helpMessage)
+				break;
             case COMMAND_CONNECT :
                 switch (command.length) {
                     case 2:
